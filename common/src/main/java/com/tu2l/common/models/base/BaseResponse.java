@@ -1,7 +1,7 @@
-package com.tu2l.pdf.api.models.base;
+package com.tu2l.common.models.base;
 
 
-import com.tu2l.pdf.api.models.states.ResponseProcessingStatus;
+import com.tu2l.common.models.states.ResponseProcessingStatus;
 import lombok.Data;
 
 /**

@@ -1,4 +1,4 @@
-package com.tu2l.pdf.api.models.states;
+package com.tu2l.common.models.states;
 
 public enum ResponseProcessingStatus {
     SUCCESS,

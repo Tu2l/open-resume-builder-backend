@@ -1,4 +1,4 @@
-package com.tu2l.pdf.api;
+package com.pdf.api;
 
 import static org.junit.jupiter.api.Assertions.assertTrue;
 

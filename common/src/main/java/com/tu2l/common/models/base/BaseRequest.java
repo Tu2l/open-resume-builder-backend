@@ -1,4 +1,4 @@
-package com.tu2l.pdf.api.models.base;
+package com.tu2l.common.models.base;
 
 /**
  * Marker interface for all request models.

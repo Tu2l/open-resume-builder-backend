@@ -1,11 +1,5 @@
-package com.tu2l.pdf.api.utils;
+package com.tu2l.common.utils;
 
-import org.springframework.beans.factory.config.ConfigurableBeanFactory;
-import org.springframework.context.annotation.Scope;
-import org.springframework.stereotype.Component;
-
-@Component
-@Scope(ConfigurableBeanFactory.SCOPE_SINGLETON)
 public class Util {
 
     public String decodeBase64StringToString(String base64String) {
@@ -53,6 +47,17 @@ public class Util {
     public String encodeByteArrayToBase64String(byte[] input) {
         byte[] encodedBytes = java.util.Base64.getEncoder().encode(input);
         return new String(encodedBytes);
+    }
+
+    public String cleanExtension(String fileName) {
+        if (fileName == null) {
+            return null;
+        }
+        int lastDotIndex = fileName.lastIndexOf('.');
+        if (lastDotIndex == -1) {
+            return fileName;
+        }
+        return fileName.substring(0, lastDotIndex);
     }
 
 }

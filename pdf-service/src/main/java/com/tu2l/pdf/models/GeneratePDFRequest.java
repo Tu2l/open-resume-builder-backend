@@ -1,6 +1,7 @@
-package com.tu2l.pdf.api.models;
+package com.tu2l.pdf.models;
 
-import com.tu2l.pdf.api.models.base.BaseRequest;
+
+import com.tu2l.common.models.base.BaseRequest;
 
 import lombok.Data;
 
@@ -8,7 +9,7 @@ import lombok.Data;
  * Request model for resume content.
  */
 @Data
-public class GenerateResumeRequest implements BaseRequest {
+public class GeneratePDFRequest implements BaseRequest {
     private String content; // base64 encoded html content
     private String fileName;
     private int numberOfPages;
