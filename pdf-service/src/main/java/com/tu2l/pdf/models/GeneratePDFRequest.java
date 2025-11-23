@@ -13,4 +13,5 @@ public class GeneratePDFRequest implements BaseRequest {
     private String content; // base64 encoded html content
     private String fileName;
     private int numberOfPages;
+    private String userId;
 }

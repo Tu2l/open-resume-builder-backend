@@ -8,4 +8,5 @@ import com.tu2l.pdf.models.GeneratePDFResponse;
  */
 public interface PDFService {
     GeneratePDFResponse generate(GeneratePDFRequest pdfRequest) throws Exception;
+    GeneratePDFResponse generateAndSave(GeneratePDFRequest pdfRequest) throws Exception;
 }
