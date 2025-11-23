@@ -7,41 +7,42 @@ public class Util {
         return new String(decodedBytes);
     }
 
-    public String sanitizeHtmlForXhtml(String html) {
-        return html
-            .replace("&", "&amp;")
-            .replace("<", "&lt;")
-            .replace(">", "&gt;")
-            .replace("\"", "&quot;")
-            .replace("'", "&apos;");
-    }
-
-    public String escapeHtmlEntities(String html) {
-        // Only escape standalone & characters, not already escaped entities
-        return html.replaceAll("&(?!(amp|lt|gt|quot|apos|#\\d+|#x[0-9a-fA-F]+);)", "&amp;");
-    }
-
-    public String convertToXhtml(String html) {
-        // Escape unescaped & characters
-        String xhtml = escapeHtmlEntities(html);
+    /**
+     * Sanitizes HTML content by removing potentially dangerous tags and attributes.
+     * This helps prevent XSS attacks and limits file system access risks.
+     * 
+     * @param html The HTML content to sanitize
+     * @return Sanitized HTML content
+     */
+    public String sanitizeHtml(String html) {
+        if (html == null) {
+            return null;
+        }
         
-        // Convert self-closing tags to XHTML format
-        xhtml = xhtml.replaceAll("<meta([^>]*?)>", "<meta$1/>");
-        xhtml = xhtml.replaceAll("<br([^>]*?)>", "<br$1/>");
-        xhtml = xhtml.replaceAll("<hr([^>]*?)>", "<hr$1/>");
-        xhtml = xhtml.replaceAll("<img([^>]*?)>", "<img$1/>");
-        xhtml = xhtml.replaceAll("<input([^>]*?)>", "<input$1/>");
-        xhtml = xhtml.replaceAll("<link([^>]*?)>", "<link$1/>");
-        xhtml = xhtml.replaceAll("<area([^>]*?)>", "<area$1/>");
-        xhtml = xhtml.replaceAll("<base([^>]*?)>", "<base$1/>");
-        xhtml = xhtml.replaceAll("<col([^>]*?)>", "<col$1/>");
-        xhtml = xhtml.replaceAll("<embed([^>]*?)>", "<embed$1/>");
-        xhtml = xhtml.replaceAll("<param([^>]*?)>", "<param$1/>");
-        xhtml = xhtml.replaceAll("<source([^>]*?)>", "<source$1/>");
-        xhtml = xhtml.replaceAll("<track([^>]*?)>", "<track$1/>");
-        xhtml = xhtml.replaceAll("<wbr([^>]*?)>", "<wbr$1/>");
+        // Remove script tags and their content
+        String sanitized = html.replaceAll("(?i)<script[^>]*>.*?</script>", "");
         
-        return xhtml;
+        // Remove potentially dangerous event handlers
+        sanitized = sanitized.replaceAll("(?i)\\s*on\\w+\\s*=\\s*['\"][^'\"]*['\"]?", "");
+        
+        // Remove javascript: protocol from href and src attributes
+        sanitized = sanitized.replaceAll("(?i)(href|src)\\s*=\\s*['\"]?javascript:[^'\"\\s>]*['\"]?", "");
+        
+        // Remove file:// protocol to prevent local file access
+        sanitized = sanitized.replaceAll("(?i)(href|src)\\s*=\\s*['\"]?file://[^'\"\\s>]*['\"]?", "");
+        
+        // Remove data: URLs that could contain malicious content
+        sanitized = sanitized.replaceAll("(?i)(href|src)\\s*=\\s*['\"]?data:[^'\"\\s>]*['\"]?", "");
+        
+        // Remove iframe tags
+        sanitized = sanitized.replaceAll("(?i)<iframe[^>]*>.*?</iframe>", "");
+        sanitized = sanitized.replaceAll("(?i)<iframe[^>]*/?>", "");
+        
+        // Remove object and embed tags
+        sanitized = sanitized.replaceAll("(?i)<(object|embed)[^>]*>.*?</(object|embed)>", "");
+        sanitized = sanitized.replaceAll("(?i)<(object|embed)[^>]*/?>", "");
+        
+        return sanitized;
     }
 
     public String encodeByteArrayToBase64String(byte[] input) {

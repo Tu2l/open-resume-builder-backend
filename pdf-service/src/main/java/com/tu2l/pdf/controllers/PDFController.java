@@ -28,31 +28,23 @@ public class PDFController {
     }
 
     @PostMapping("/generate")
-    public ResponseEntity<BaseResponse> generate(@Valid@RequestBody GeneratePDFRequest request) throws Exception {
+    public ResponseEntity<BaseResponse> generate(@Valid @RequestBody GeneratePDFRequest request) throws Exception {
         logger.info("Received request to generate PDF: fileName={}", request.getFileName());
-        try {
-            BaseResponse response = pdfService.generate(request);
-            logger.info("PDF generation completed successfully: fileName={}, status={}", 
-                request.getFileName(), response.getStatus());
-            return ResponseEntity.ok(response);
-        } catch (Exception e) {
-            logger.error("Error generating PDF: fileName={}", request.getFileName(), e);
-            throw e;
-        }
+        BaseResponse response = pdfService.generate(request);
+        logger.info("PDF generation completed successfully: fileName={}, status={}", request.getFileName(),
+                response.getStatus());
+        return ResponseEntity.ok(response);
     }
 
-    @PostMapping("/generate/save") 
-    public ResponseEntity<BaseResponse> generateAndSave(@Valid @RequestBody GenerateAndSavePDFRequest request) throws Exception {
+    @PostMapping("/generate/save")
+    public ResponseEntity<BaseResponse> generateAndSave(@Valid @RequestBody GenerateAndSavePDFRequest request)
+            throws Exception {
         logger.info("Received request to generate and save PDF: fileName={}", request.getFileName());
-        try {
-            BaseResponse response = pdfService.generateAndSave(request);
-            logger.info("PDF generation and save completed successfully: fileName={}, status={}", 
+
+        BaseResponse response = pdfService.generateAndSave(request);
+        logger.info("PDF generation and save completed successfully: fileName={}, status={}",
                 request.getFileName(), response.getStatus());
-            return ResponseEntity.ok(response);
-        } catch (Exception e) {
-            logger.error("Error generating and saving PDF: fileName={}", request.getFileName(), e);
-            throw e;
-        }
+        return ResponseEntity.ok(response);
     }
 
 }

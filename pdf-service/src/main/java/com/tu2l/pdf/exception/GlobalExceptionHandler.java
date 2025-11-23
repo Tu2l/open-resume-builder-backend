@@ -1,4 +1,4 @@
-package com.tu2l.pdf.expection;
+package com.tu2l.pdf.exception;
 
 import java.util.stream.Collectors;
 
@@ -14,11 +14,11 @@ import com.tu2l.common.models.base.BaseResponse;
 import com.tu2l.common.models.states.ResponseProcessingStatus;
 
 @RestControllerAdvice
-public class GlobalExpectionHandler {
-    private static final Logger logger = LoggerFactory.getLogger(GlobalExpectionHandler.class);
+public class GlobalExceptionHandler {
+    private static final Logger logger = LoggerFactory.getLogger(GlobalExceptionHandler.class);
 
     @ExceptionHandler(Exception.class)
-    public ResponseEntity<BaseResponse> handleGlobalExpections(Exception exception) {
+    public ResponseEntity<BaseResponse> handleGlobalExceptions(Exception exception) {
         logger.error("Exception caught", exception);
 
         BaseResponse error = new BaseResponse() {};

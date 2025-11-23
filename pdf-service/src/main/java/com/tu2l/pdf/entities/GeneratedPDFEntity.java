@@ -1,5 +1,9 @@
 package com.tu2l.pdf.entities;
 
+import java.time.LocalDateTime;
+
+import org.hibernate.annotations.CreationTimestamp;
+
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
 import jakarta.persistence.GeneratedValue;
@@ -23,4 +27,7 @@ public class GeneratedPDFEntity {
     private String fileName;
     @Column(nullable = false)
     private int numberOfPages;
+    @CreationTimestamp
+    @Column(nullable = false, updatable = false)
+    private LocalDateTime createdAt;
 }
