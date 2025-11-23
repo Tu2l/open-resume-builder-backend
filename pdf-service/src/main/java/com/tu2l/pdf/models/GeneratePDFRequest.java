@@ -3,6 +3,8 @@ package com.tu2l.pdf.models;
 
 import com.tu2l.common.models.base.BaseRequest;
 
+import jakarta.validation.constraints.Min;
+import jakarta.validation.constraints.NotBlank;
 import lombok.Data;
 
 /**
@@ -10,8 +12,10 @@ import lombok.Data;
  */
 @Data
 public class GeneratePDFRequest implements BaseRequest {
+    @NotBlank(message = "BASE64 encoded HTML content cannot be null")
     private String content; // base64 encoded html content
+    @NotBlank(message = "File name cannot be null")
     private String fileName;
+    @Min(value = 1, message = "Number of pages must be at least 1")
     private int numberOfPages;
-    private String userId;
 }

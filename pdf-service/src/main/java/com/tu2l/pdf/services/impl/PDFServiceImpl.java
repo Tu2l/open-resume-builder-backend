@@ -11,19 +11,27 @@ import org.springframework.stereotype.Service;
 
 import com.tu2l.common.models.states.ResponseProcessingStatus;
 import com.tu2l.common.utils.Util;
+import com.tu2l.pdf.entities.GeneratedPDFEntity;
+import com.tu2l.pdf.models.GenerateAndSavePDFRequest;
 import com.tu2l.pdf.models.GeneratePDFRequest;
 import com.tu2l.pdf.models.GeneratePDFResponse;
+import com.tu2l.pdf.repositories.PDFRepository;
 import com.tu2l.pdf.services.PDFService;
+import com.tu2l.pdf.utils.RequestToEntityMapper;
 
 @Service
 public class PDFServiceImpl implements PDFService {
     private static final Logger logger = LoggerFactory.getLogger(PDFServiceImpl.class);
     private static final String JAVA_TEMP_DIR = "java.io.tmpdir";
+    private final PDFRepository repository;
     private final Util util;
-
+    private final RequestToEntityMapper mapper;
+    
     @Autowired
-    public PDFServiceImpl(Util util) {
+    public PDFServiceImpl(PDFRepository repository, Util util, RequestToEntityMapper mapper) {
+        this.repository = repository;
         this.util = util;
+        this.mapper = mapper;
     }
 
     @Override
@@ -44,6 +52,7 @@ public class PDFServiceImpl implements PDFService {
             
             content = util.encodeByteArrayToBase64String(pdfBytes);
             response.setContent(content);
+            response.setFileName(fileName);
             response.setStatus(ResponseProcessingStatus.SUCCESS);
         } catch (Exception e) {
             logger.error("Failed to generate PDF: fileName={}", pdfRequest.getFileName(), e);
@@ -56,12 +65,17 @@ public class PDFServiceImpl implements PDFService {
     }
 
     @Override
-    public GeneratePDFResponse generateAndSave(GeneratePDFRequest pdfRequest) throws Exception {
+    public GeneratePDFResponse generateAndSave(GenerateAndSavePDFRequest pdfRequest) throws Exception {
         logger.info("Starting PDF generation and save: fileName={}", pdfRequest.getFileName());
-        // Implementation for generating and saving the PDF
-        // This is a placeholder; 
-        // TODO: actual saving logic would depend on requirements
-        return generate(pdfRequest);
+        
+        GeneratePDFResponse response = generate(pdfRequest);
+        GeneratedPDFEntity entity = mapper.map(response, pdfRequest);
+        if (entity != null && entity.getEncodedPdf() != null) {
+            repository.save(entity);
+        }
+
+        return response;
+        
     }
 
 

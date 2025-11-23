@@ -10,8 +10,11 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
 import com.tu2l.common.models.base.BaseResponse;
+import com.tu2l.pdf.models.GenerateAndSavePDFRequest;
 import com.tu2l.pdf.models.GeneratePDFRequest;
 import com.tu2l.pdf.services.PDFService;
+
+import jakarta.validation.Valid;
 
 @RestController
 @RequestMapping("/pdf")
@@ -25,7 +28,7 @@ public class PDFController {
     }
 
     @PostMapping("/generate")
-    public ResponseEntity<BaseResponse> generate(@RequestBody GeneratePDFRequest request) throws Exception {
+    public ResponseEntity<BaseResponse> generate(@Valid@RequestBody GeneratePDFRequest request) throws Exception {
         logger.info("Received request to generate PDF: fileName={}", request.getFileName());
         try {
             BaseResponse response = pdfService.generate(request);
@@ -39,7 +42,7 @@ public class PDFController {
     }
 
     @PostMapping("/generate/save") 
-    public ResponseEntity<BaseResponse> generateAndSave(@RequestBody GeneratePDFRequest request) throws Exception {
+    public ResponseEntity<BaseResponse> generateAndSave(@Valid @RequestBody GenerateAndSavePDFRequest request) throws Exception {
         logger.info("Received request to generate and save PDF: fileName={}", request.getFileName());
         try {
             BaseResponse response = pdfService.generateAndSave(request);
