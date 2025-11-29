@@ -9,11 +9,11 @@ import lombok.extern.slf4j.Slf4j;
 @Slf4j
 @SpringBootApplication
 @EnableAsync
-public class PDFServiceApp {
+public class PDFServiceApplication {
   
     public static void main(String[] args) {
         log.info("Starting PDF Service Application...");
-        SpringApplication.run(PDFServiceApp.class, args);
+        SpringApplication.run(PDFServiceApplication.class, args);
         log.info("PDF Service Application started successfully");
     }
 }
