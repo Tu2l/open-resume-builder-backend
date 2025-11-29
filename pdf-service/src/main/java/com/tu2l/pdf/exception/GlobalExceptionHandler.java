@@ -11,8 +11,8 @@ import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
 import org.springframework.web.servlet.resource.NoResourceFoundException;
 
-import com.tu2l.common.models.base.BaseResponse;
-import com.tu2l.common.models.states.ResponseProcessingStatus;
+import com.tu2l.common.model.base.BaseResponse;
+import com.tu2l.common.model.states.ResponseProcessingStatus;
 
 @RestControllerAdvice
 public class GlobalExceptionHandler {
