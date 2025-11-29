@@ -4,12 +4,12 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
-import org.springframework.scheduling.annotation.Async;
 import org.springframework.stereotype.Service;
 
 import com.tu2l.common.models.states.ResponseProcessingStatus;
 import com.tu2l.common.utils.Util;
 import com.tu2l.pdf.entities.GeneratedPDFEntity;
+import com.tu2l.pdf.exception.PDFException;
 import com.tu2l.pdf.generators.PDFGenerator;
 import com.tu2l.pdf.generators.PDFGeneratorConfiguration;
 import com.tu2l.pdf.generators.PDFGeneratorConfiguration.LayoutParams;
@@ -27,14 +27,17 @@ public class PDFServiceImpl implements PDFService {
     private final Util util;
     private final EntityMapper mapper;
     private final PDFGenerator pdfGenerator;
+    private final AsyncPDFService asyncPDFService;
 
     @Autowired
     public PDFServiceImpl(PDFRepository repository, Util util, EntityMapper mapper,
-            @Qualifier("wkhtmlToPdfGenerator") PDFGenerator pdfGenerator) {
+            @Qualifier("wkhtmlToPdfGenerator") PDFGenerator pdfGenerator,
+            AsyncPDFService asyncPDFService) {
         this.repository = repository;
         this.util = util;
         this.mapper = mapper;
         this.pdfGenerator = pdfGenerator;
+        this.asyncPDFService = asyncPDFService;
     }
 
     @Override
@@ -50,7 +53,7 @@ public class PDFServiceImpl implements PDFService {
 
         GeneratePDFResponse response = generateAndGetPDFResponse(pdfRequest);
         GeneratedPDFEntity entity = mapper.map(response, pdfRequest)
-                .orElseThrow(() -> new RuntimeException("Mapping to entity failed"));
+                .orElseThrow(() -> new PDFException("Mapping to entity failed"));
         if (entity != null && entity.getEncodedPdf() != null) {
             repository.save(entity);
         }
@@ -64,14 +67,15 @@ public class PDFServiceImpl implements PDFService {
         GeneratePDFResponse asyncResponse = new GeneratePDFResponse();
 
         GeneratedPDFEntity pdfToBeGenerated = mapper.map(pdfRequest)
-                .orElseThrow(() -> new RuntimeException("Mapping to entity failed"));
+                .orElseThrow(() -> new PDFException("Mapping to entity failed"));
 
         GeneratedPDFEntity saved = repository.save(pdfToBeGenerated);
         asyncResponse.setId(String.valueOf(saved.getId()));
         asyncResponse.setFileName(saved.getFileName());
         asyncResponse.setStatus(ResponseProcessingStatus.PROCESSING);
 
-        processAsyncPDFGeneration(pdfRequest, saved.getId());
+        // Delegate to AsyncPDFService where @Async will work via Spring proxy
+        asyncPDFService.processAsyncPDFGeneration(pdfRequest, saved.getId(), this::generateAndGetPDFResponse);
 
         return asyncResponse;
     }
@@ -81,22 +85,7 @@ public class PDFServiceImpl implements PDFService {
         logger.info("Fetching generated PDF by ID: pdfRequestId={}", pdfRequestId);
         return repository.findById(pdfRequestId)
                 .map(mapper::map)
-                .orElseThrow(() -> new RuntimeException("Generated PDF not found for ID: " + pdfRequestId));
-    }
-
-    @Async
-    void processAsyncPDFGeneration(GenerateAndSavePDFRequest pdfRequest, Long savedEntityId) {
-        try {
-            GeneratePDFResponse response = generate(pdfRequest);
-            GeneratedPDFEntity entityToUpdate = mapper.map(response, pdfRequest)
-                    .orElseThrow(() -> new RuntimeException("Mapping to entity failed"));
-            entityToUpdate.setId(savedEntityId);
-            repository.save(entityToUpdate);
-            logger.info("Asynchronous PDF generation and save completed: fileName={}", pdfRequest.getFileName());
-        } catch (Exception e) {
-            logger.error("Error during asynchronous PDF generation: fileName={}, error={}",
-                    pdfRequest.getFileName(), e.getMessage());
-        }
+                .orElseThrow(() -> new PDFException("Generated PDF not found for ID: " + pdfRequestId));
     }
 
     private GeneratePDFResponse generateAndGetPDFResponse(GeneratePDFRequest pdfRequest) throws Exception {

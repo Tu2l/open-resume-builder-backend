@@ -54,4 +54,13 @@ public class GlobalExceptionHandler {
         error.setStatus(ResponseProcessingStatus.FAILURE);
         return new ResponseEntity<>(error, HttpStatus.BAD_REQUEST);
     }
+
+    @ExceptionHandler(PDFException.class)
+    public ResponseEntity<BaseResponse> handlePDFExceptions(PDFException exception) {
+        logger.error("PDFException caught: {}", exception.getMessage());
+        BaseResponse error = new BaseResponse() {};
+        error.setMessage(exception.getMessage());
+        error.setStatus(ResponseProcessingStatus.FAILURE);  
+        return new ResponseEntity<>(error, HttpStatus.OK);
+    }   
 }
