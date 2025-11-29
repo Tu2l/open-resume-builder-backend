@@ -1,19 +1,19 @@
 package com.tu2l.pdf;
 
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
 import org.springframework.scheduling.annotation.EnableAsync;
 
+import lombok.extern.slf4j.Slf4j;
+
+@Slf4j
 @SpringBootApplication
 @EnableAsync
 public class PDFServiceApp {
-    private static final Logger logger = LoggerFactory.getLogger(PDFServiceApp.class);
   
     public static void main(String[] args) {
-        logger.info("Starting PDF Service Application...");
+        log.info("Starting PDF Service Application...");
         SpringApplication.run(PDFServiceApp.class, args);
-        logger.info("PDF Service Application started successfully");
+        log.info("PDF Service Application started successfully");
     }
 }

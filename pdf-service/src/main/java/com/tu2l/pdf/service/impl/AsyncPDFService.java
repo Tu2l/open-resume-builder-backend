@@ -1,7 +1,5 @@
 package com.tu2l.pdf.service.impl;
 
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.scheduling.annotation.Async;
 import org.springframework.stereotype.Service;
@@ -14,13 +12,15 @@ import com.tu2l.pdf.model.GeneratePDFResponse;
 import com.tu2l.pdf.repository.PDFRepository;
 import com.tu2l.pdf.util.EntityMapper;
 
+import lombok.extern.slf4j.Slf4j;
+
 /**
  * Async processing service that handles asynchronous PDF generation
  * in a separate class, allowing Spring's @Async proxy to work correctly.
  */
+@Slf4j
 @Service
 public class AsyncPDFService {
-    private static final Logger logger = LoggerFactory.getLogger(AsyncPDFService.class);
     private final PDFRepository repository;
     private final EntityMapper mapper;
 
@@ -35,17 +35,17 @@ public class AsyncPDFService {
             GenerateAndSavePDFRequest pdfRequest, 
             Long savedEntityId, 
             PDFGenerationFunction pdfGenerationFunction) {
-        logger.info("Processing async PDF in thread: {}", Thread.currentThread().getName());
+        log.info("Processing async PDF in thread: {}", Thread.currentThread().getName());
         try {
             GeneratePDFResponse response = pdfGenerationFunction.generate(pdfRequest);
             GeneratedPDFEntity entityToUpdate = mapper.map(response, pdfRequest)
                     .orElseThrow(() -> new PDFException("Mapping to entity failed"));
             entityToUpdate.setId(savedEntityId);
             repository.save(entityToUpdate);
-            logger.info("Asynchronous PDF generation completed: fileName={}, thread={}", 
+            log.info("Asynchronous PDF generation completed: fileName={}, thread={}", 
                 pdfRequest.getFileName(), Thread.currentThread().getName());
         } catch (Exception e) {
-            logger.error("Error during asynchronous PDF generation: fileName={}, error={}",
+            log.error("Error during asynchronous PDF generation: fileName={}, error={}",
                     pdfRequest.getFileName(), e.getMessage(), e);
             
             // Note: Update entity status/error handling can be added when entity supports it

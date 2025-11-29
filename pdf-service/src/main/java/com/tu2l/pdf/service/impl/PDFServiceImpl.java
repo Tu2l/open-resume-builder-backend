@@ -1,7 +1,5 @@
 package com.tu2l.pdf.service.impl;
 
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.stereotype.Service;
@@ -21,10 +19,11 @@ import com.tu2l.pdf.service.PDFService;
 import com.tu2l.pdf.util.EntityMapper;
 
 import jakarta.transaction.Transactional;
+import lombok.extern.slf4j.Slf4j;
 
+@Slf4j
 @Service
 public class PDFServiceImpl implements PDFService {
-    private static final Logger logger = LoggerFactory.getLogger(PDFServiceImpl.class);
     private final PDFRepository repository;
     private final Util util;
     private final EntityMapper mapper;
@@ -44,7 +43,7 @@ public class PDFServiceImpl implements PDFService {
 
     @Override
     public GeneratePDFResponse generate(GeneratePDFRequest pdfRequest) throws Exception {
-        logger.debug("Starting PDF generation: fileName={}, numberOfPages={}", pdfRequest.getFileName(),
+        log.debug("Starting PDF generation: fileName={}, numberOfPages={}", pdfRequest.getFileName(),
                 pdfRequest.getNumberOfPages());
         return generateAndGetPDFResponse(pdfRequest);
     }
@@ -52,7 +51,7 @@ public class PDFServiceImpl implements PDFService {
     @Override
     @Transactional
     public GeneratePDFResponse generateAndSave(GenerateAndSavePDFRequest pdfRequest) throws Exception {
-        logger.info("Starting PDF generation and save: fileName={}", pdfRequest.getFileName());
+        log.info("Starting PDF generation and save: fileName={}", pdfRequest.getFileName());
 
         GeneratePDFResponse response = generateAndGetPDFResponse(pdfRequest);
         GeneratedPDFEntity entity = mapper.map(response, pdfRequest)
@@ -67,7 +66,7 @@ public class PDFServiceImpl implements PDFService {
     @Override
     @Transactional
     public GeneratePDFResponse generateAsync(GenerateAndSavePDFRequest pdfRequest) throws Exception {
-        logger.info("Starting asynchronous PDF generation: fileName={}", pdfRequest.getFileName());
+        log.info("Starting asynchronous PDF generation: fileName={}", pdfRequest.getFileName());
         GeneratePDFResponse asyncResponse = new GeneratePDFResponse();
 
         GeneratedPDFEntity pdfToBeGenerated = mapper.map(pdfRequest)
@@ -86,7 +85,7 @@ public class PDFServiceImpl implements PDFService {
 
     @Override
     public GeneratePDFResponse getGeneratedPDFById(long pdfRequestId) throws Exception {
-        logger.info("Fetching generated PDF by ID: pdfRequestId={}", pdfRequestId);
+        log.info("Fetching generated PDF by ID: pdfRequestId={}", pdfRequestId);
         return repository.findById(pdfRequestId)
                 .map(mapper::map)
                 .orElseThrow(() -> new PDFException("Generated PDF not found for ID: " + pdfRequestId));
@@ -95,12 +94,12 @@ public class PDFServiceImpl implements PDFService {
     private GeneratePDFResponse generateAndGetPDFResponse(GeneratePDFRequest pdfRequest) throws Exception {
         GeneratePDFResponse response = new GeneratePDFResponse();
 
-        logger.debug("Decoding and Sanitizing content for file: {}", pdfRequest.getFileName());
+        log.debug("Decoding and Sanitizing content for file: {}", pdfRequest.getFileName());
 
         String content = util.decodeAndSanitizeBase64StringToString(pdfRequest.getContent());
         String fileName = util.cleanExtension(pdfRequest.getFileName());
 
-        logger.debug("Cleaned filename: {}", fileName);
+        log.debug("Cleaned filename: {}", fileName);
 
         PDFGeneratorConfiguration configuration = PDFGeneratorConfiguration.builder()
                 .htmlContent(content)
@@ -111,7 +110,7 @@ public class PDFServiceImpl implements PDFService {
 
         byte[] pdfBytes = pdfGenerator.generatePDF(configuration);
 
-        logger.info("PDF generated successfully: fileName={}, size={} bytes", fileName, pdfBytes.length);
+        log.info("PDF generated successfully: fileName={}, size={} bytes", fileName, pdfBytes.length);
 
         content = util.encodeByteArrayToBase64String(pdfBytes);
         response.setContent(content);

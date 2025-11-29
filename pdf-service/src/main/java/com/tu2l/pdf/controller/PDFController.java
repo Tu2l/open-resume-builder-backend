@@ -1,7 +1,5 @@
 package com.tu2l.pdf.controller;
 
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -17,11 +15,12 @@ import com.tu2l.pdf.model.GeneratePDFRequest;
 import com.tu2l.pdf.service.PDFService;
 
 import jakarta.validation.Valid;
+import lombok.extern.slf4j.Slf4j;
 
+@Slf4j
 @RestController
 @RequestMapping("/")
 public class PDFController {
-    private static final Logger logger = LoggerFactory.getLogger(PDFController.class);
     private final PDFService pdfService;
 
     @Autowired
@@ -31,9 +30,9 @@ public class PDFController {
 
     @PostMapping("/generate")
     public ResponseEntity<BaseResponse> generate(@Valid @RequestBody GeneratePDFRequest request) throws Exception {
-        logger.info("Received request to generate PDF: fileName={}", request.getFileName());
+        log.info("Received request to generate PDF: fileName={}", request.getFileName());
         BaseResponse response = pdfService.generate(request);
-        logger.info("PDF generation completed successfully: fileName={}, status={}", request.getFileName(),
+        log.info("PDF generation completed successfully: fileName={}, status={}", request.getFileName(),
                 response.getStatus());
         return ResponseEntity.ok(response);
     }
@@ -41,10 +40,10 @@ public class PDFController {
     @PostMapping("/generate/save")
     public ResponseEntity<BaseResponse> generateAndSave(@Valid @RequestBody GenerateAndSavePDFRequest request)
             throws Exception {
-        logger.info("Received request to generate and save PDF: fileName={}", request.getFileName());
+        log.info("Received request to generate and save PDF: fileName={}", request.getFileName());
 
         BaseResponse response = pdfService.generateAndSave(request);
-        logger.info("PDF generation and save completed successfully: fileName={}, status={}",
+        log.info("PDF generation and save completed successfully: fileName={}, status={}",
                 request.getFileName(), response.getStatus());
         return ResponseEntity.ok(response);
     }
@@ -52,16 +51,16 @@ public class PDFController {
     @PostMapping("/generate/async")
     public ResponseEntity<BaseResponse> generateAndSaveAsync(@Valid @RequestBody GenerateAndSavePDFRequest request)
             throws Exception {
-        logger.info("Received async request to generate and save PDF: fileName={}", request.getFileName()); 
+        log.info("Received async request to generate and save PDF: fileName={}", request.getFileName()); 
         BaseResponse response = pdfService.generateAsync(request);
-        logger.info("Asynchronous PDF generation and save initiated: fileName={}, status={}, fileId={}",
+        log.info("Asynchronous PDF generation and save initiated: fileName={}, status={}, fileId={}",
                 request.getFileName(), response.getStatus(), response.getId());
         return ResponseEntity.ok(response);
     }
 
     @GetMapping("/get/id/{id}")
     public ResponseEntity<BaseResponse> getPdfById(@PathVariable("id") long id) throws Exception {
-        logger.info("Received request to get PDF by id: pdfId={}", id);
+        log.info("Received request to get PDF by id: pdfId={}", id);
         return ResponseEntity.ok(pdfService.getGeneratedPDFById(id));
     }    
 
