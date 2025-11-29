@@ -1,4 +1,4 @@
-package com.tu2l.pdf.model;
+package com.tu2l.pdf.model.response;
 
 import com.tu2l.common.model.base.BaseResponse;
 

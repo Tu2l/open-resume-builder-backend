@@ -11,9 +11,9 @@ import com.tu2l.pdf.exception.PDFException;
 import com.tu2l.pdf.generator.PDFGenerator;
 import com.tu2l.pdf.generator.PDFGeneratorConfiguration;
 import com.tu2l.pdf.generator.PDFGeneratorConfiguration.LayoutParams;
-import com.tu2l.pdf.model.GenerateAndSavePDFRequest;
-import com.tu2l.pdf.model.GeneratePDFRequest;
-import com.tu2l.pdf.model.GeneratePDFResponse;
+import com.tu2l.pdf.model.request.GenerateAndSavePDFRequest;
+import com.tu2l.pdf.model.request.GeneratePDFRequest;
+import com.tu2l.pdf.model.response.GeneratePDFResponse;
 import com.tu2l.pdf.repository.PDFRepository;
 import com.tu2l.pdf.service.PDFService;
 import com.tu2l.pdf.util.EntityMapper;
@@ -71,6 +71,10 @@ public class PDFServiceImpl implements PDFService {
 
         GeneratedPDFEntity pdfToBeGenerated = mapper.map(pdfRequest)
                 .orElseThrow(() -> new PDFException("Mapping to entity failed"));
+
+        if(pdfToBeGenerated == null) {
+            throw new PDFException("Failed to map PDF request to entity for async processing");
+        }
 
         GeneratedPDFEntity saved = repository.save(pdfToBeGenerated);
         asyncResponse.setId(String.valueOf(saved.getId()));

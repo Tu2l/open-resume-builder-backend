@@ -1,8 +1,8 @@
 package com.tu2l.pdf.service;
 
-import com.tu2l.pdf.model.GenerateAndSavePDFRequest;
-import com.tu2l.pdf.model.GeneratePDFRequest;
-import com.tu2l.pdf.model.GeneratePDFResponse;
+import com.tu2l.pdf.model.request.GenerateAndSavePDFRequest;
+import com.tu2l.pdf.model.request.GeneratePDFRequest;
+import com.tu2l.pdf.model.response.GeneratePDFResponse;
 
 /**
  * Service interface for generating PDFs from HTML content.

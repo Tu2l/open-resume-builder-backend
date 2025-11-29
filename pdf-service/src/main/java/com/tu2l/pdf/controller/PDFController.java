@@ -10,8 +10,8 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
 import com.tu2l.common.model.base.BaseResponse;
-import com.tu2l.pdf.model.GenerateAndSavePDFRequest;
-import com.tu2l.pdf.model.GeneratePDFRequest;
+import com.tu2l.pdf.model.request.GenerateAndSavePDFRequest;
+import com.tu2l.pdf.model.request.GeneratePDFRequest;
 import com.tu2l.pdf.service.PDFService;
 
 import jakarta.validation.Valid;

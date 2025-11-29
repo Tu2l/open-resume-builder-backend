@@ -1,4 +1,4 @@
-package com.tu2l.pdf.model;
+package com.tu2l.pdf.model.request;
 
 import jakarta.validation.constraints.NotBlank;
 import lombok.Data;

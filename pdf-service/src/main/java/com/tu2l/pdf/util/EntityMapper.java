@@ -6,8 +6,8 @@ import org.springframework.stereotype.Component;
 
 import com.tu2l.common.model.states.ResponseProcessingStatus;
 import com.tu2l.pdf.entity.GeneratedPDFEntity;
-import com.tu2l.pdf.model.GenerateAndSavePDFRequest;
-import com.tu2l.pdf.model.GeneratePDFResponse;
+import com.tu2l.pdf.model.request.GenerateAndSavePDFRequest;
+import com.tu2l.pdf.model.response.GeneratePDFResponse;
 
 @Component
 public class EntityMapper {
