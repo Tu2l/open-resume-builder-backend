@@ -34,7 +34,7 @@ public class UserController {
     public UserController(UserService userService) {
         this.userService = userService;
     }
-    
+
     /**
      * GET /users/me - Get current authenticated user profile
      */
@@ -48,7 +48,7 @@ public class UserController {
         log.info("User profile retrieved successfully");
         return ResponseEntity.ok(response);
     }
-    
+
     /**
      * GET /users/{id} - Get user by ID (Admin only)
      */
@@ -61,7 +61,7 @@ public class UserController {
         log.info("User retrieved successfully: {}", id);
         return ResponseEntity.ok(response);
     }
-    
+
     /**
      * PUT /users/me - Update current user profile
      */
@@ -76,14 +76,15 @@ public class UserController {
         log.info("User profile updated successfully");
         return ResponseEntity.ok(response);
     }
-    
+
     /**
      * PUT /users/{id} - Update user by ID (Admin only)
      */
     @PutMapping("/{id}")
     public ResponseEntity<UserResponse> updateUser(
             @PathVariable Long id,
-            @Valid @RequestBody UpdateUserRequest request) {
+            @Valid @RequestBody UpdateUserRequest request,
+            @RequestHeader("Authorization") String authHeader) {
         log.info("Updating user profile for ID: {}", id);
         // TODO: Authorization check - admin only
         UserResponse response = new UserResponse();
@@ -91,7 +92,7 @@ public class UserController {
         log.info("User updated successfully: {}", id);
         return ResponseEntity.ok(response);
     }
-    
+
     /**
      * PUT /users/me/password - Change current user password
      */
@@ -100,13 +101,14 @@ public class UserController {
             @Valid @RequestBody ChangePasswordRequest request,
             @RequestHeader("Authorization") String authHeader) {
         log.info("Changing password for current user");
-        // TODO: Extract user from JWT, verify current password and update  
-        BaseResponse response = new BaseResponse() {};
+        // TODO: Extract user from JWT, verify current password and update
+        BaseResponse response = new BaseResponse() {
+        };
         response.setMessage("Password changed successfully");
         log.info("Password changed successfully");
         return ResponseEntity.ok(response);
     }
-    
+
     /**
      * DELETE /users/me - Delete/deactivate current user account
      */
@@ -115,12 +117,13 @@ public class UserController {
             @RequestHeader("Authorization") String authHeader) {
         log.info("Deleting/deactivating current user account");
         // TODO: Extract user from JWT and soft delete/deactivate
-        BaseResponse response = new BaseResponse() {};
+        BaseResponse response = new BaseResponse() {
+        };
         response.setMessage("Account deleted successfully");
         log.info("Account deleted successfully");
         return ResponseEntity.ok(response);
     }
-    
+
     /**
      * DELETE /users/{id} - Delete user by ID (Admin only)
      */
@@ -128,7 +131,8 @@ public class UserController {
     public ResponseEntity<BaseResponse> deleteUser(@PathVariable Long id) {
         log.info("Deleting user with ID: {}", id);
         // TODO: Authorization check - admin only
-        BaseResponse response = new BaseResponse() {};
+        BaseResponse response = new BaseResponse() {
+        };
         response.setMessage("User deleted successfully");
         log.info("User deleted successfully: {}", id);
         return ResponseEntity.ok(response);

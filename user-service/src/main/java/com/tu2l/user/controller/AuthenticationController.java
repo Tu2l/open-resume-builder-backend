@@ -17,6 +17,7 @@ import com.tu2l.user.model.request.RegisterRequest;
 import com.tu2l.user.model.request.ResetPasswordRequest;
 import com.tu2l.user.model.response.AuthResponse;
 import com.tu2l.user.service.AuthenticationService;
+import com.tu2l.user.utils.UserMapper;
 
 import jakarta.validation.Valid;
 import lombok.extern.slf4j.Slf4j;
@@ -30,10 +31,12 @@ import lombok.extern.slf4j.Slf4j;
 @RequestMapping("/auth")
 public class AuthenticationController {
     private final AuthenticationService authenticationService;
-    
+    private final UserMapper userMapper;
+
     @Autowired
-    public AuthenticationController(AuthenticationService authenticationService) {
+    public AuthenticationController(AuthenticationService authenticationService, UserMapper userMapper) {
         this.authenticationService = authenticationService;
+        this.userMapper = userMapper;
     }
 
     /**
@@ -53,7 +56,7 @@ public class AuthenticationController {
         log.info("User registered successfully: {}", request.getUsername());
         return ResponseEntity.status(HttpStatus.CREATED).body(response);
     }
-    
+
     /**
      * POST /auth/login - Authenticate user and return JWT tokens
      */
@@ -70,7 +73,7 @@ public class AuthenticationController {
         log.info("Login successful for user: {}", request.getUsernameOrEmail());
         return ResponseEntity.ok(response);
     }
-    
+
     /**
      * POST /auth/refresh - Refresh access token using refresh token
      */
@@ -87,7 +90,7 @@ public class AuthenticationController {
         log.info("Token refreshed successfully");
         return ResponseEntity.ok(response);
     }
-    
+
     /**
      * POST /auth/logout - Logout user (invalidate tokens)
      */
@@ -98,12 +101,13 @@ public class AuthenticationController {
         // 1. Extract token from Authorization header
         // 2. Add token to blacklist/revoked tokens
         // 3. Clear any server-side session if applicable
-        BaseResponse response = new BaseResponse() {};
+        BaseResponse response = new BaseResponse() {
+        };
         response.setMessage("Logout successful");
         log.info("Logout successful");
         return ResponseEntity.ok(response);
     }
-    
+
     /**
      * POST /auth/forgot-password - Request password reset
      */
@@ -115,12 +119,13 @@ public class AuthenticationController {
         // 2. Generate password reset token
         // 3. Send email with reset link
         // 4. Store token with expiration
-        BaseResponse response = new BaseResponse() {};
+        BaseResponse response = new BaseResponse() {
+        };
         response.setMessage("Password reset instructions sent to your email");
         log.info("Password reset email sent to: {}", request.getEmail());
         return ResponseEntity.ok(response);
     }
-    
+
     /**
      * POST /auth/reset-password - Reset password using reset token
      */
@@ -133,12 +138,13 @@ public class AuthenticationController {
         // 3. Hash new password
         // 4. Update user password
         // 5. Invalidate reset token
-        BaseResponse response = new BaseResponse() {};
+        BaseResponse response = new BaseResponse() {
+        };
         response.setMessage("Password reset successful");
         log.info("Password reset successful");
         return ResponseEntity.ok(response);
     }
-    
+
     /**
      * POST /auth/verify-email - Verify email address (optional)
      */
@@ -149,7 +155,8 @@ public class AuthenticationController {
         // 1. Validate verification token
         // 2. Mark user email as verified
         // 3. Update user status if needed
-        BaseResponse response = new BaseResponse() {};
+        BaseResponse response = new BaseResponse() {
+        };
         response.setMessage("Email verified successfully");
         log.info("Email verified successfully");
         return ResponseEntity.ok(response);
