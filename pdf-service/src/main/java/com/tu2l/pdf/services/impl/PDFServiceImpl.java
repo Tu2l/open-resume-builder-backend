@@ -20,6 +20,8 @@ import com.tu2l.pdf.repositories.PDFRepository;
 import com.tu2l.pdf.services.PDFService;
 import com.tu2l.pdf.utils.EntityMapper;
 
+import jakarta.transaction.Transactional;
+
 @Service
 public class PDFServiceImpl implements PDFService {
     private static final Logger logger = LoggerFactory.getLogger(PDFServiceImpl.class);
@@ -48,6 +50,7 @@ public class PDFServiceImpl implements PDFService {
     }
 
     @Override
+    @Transactional
     public GeneratePDFResponse generateAndSave(GenerateAndSavePDFRequest pdfRequest) throws Exception {
         logger.info("Starting PDF generation and save: fileName={}", pdfRequest.getFileName());
 
@@ -62,6 +65,7 @@ public class PDFServiceImpl implements PDFService {
     }
 
     @Override
+    @Transactional
     public GeneratePDFResponse generateAsync(GenerateAndSavePDFRequest pdfRequest) throws Exception {
         logger.info("Starting asynchronous PDF generation: fileName={}", pdfRequest.getFileName());
         GeneratePDFResponse asyncResponse = new GeneratePDFResponse();
