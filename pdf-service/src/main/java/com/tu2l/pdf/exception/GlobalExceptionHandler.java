@@ -9,6 +9,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
+import org.springframework.web.servlet.resource.NoResourceFoundException;
 
 import com.tu2l.common.models.base.BaseResponse;
 import com.tu2l.common.models.states.ResponseProcessingStatus;
@@ -26,6 +27,17 @@ public class GlobalExceptionHandler {
         error.setStatus(ResponseProcessingStatus.FAILURE);
         return new ResponseEntity<>(error, HttpStatus.INTERNAL_SERVER_ERROR);
     }
+
+    @ExceptionHandler(NoResourceFoundException.class)
+    public ResponseEntity<BaseResponse> handleNoResourceFoundException(NoResourceFoundException exception) {
+        logger.warn("Resource not found: {}", exception.getMessage());
+
+        BaseResponse error = new BaseResponse() {};
+        error.setMessage(exception.getMessage());
+        error.setStatus(ResponseProcessingStatus.FAILURE);
+        return new ResponseEntity<>(error, HttpStatus.NOT_FOUND);
+    }
+
 
     @ExceptionHandler(MethodArgumentNotValidException.class)
     public ResponseEntity<BaseResponse> handleValidationExceptions(MethodArgumentNotValidException exception) {

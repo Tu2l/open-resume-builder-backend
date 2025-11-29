@@ -7,6 +7,10 @@ public class Util {
         return new String(decodedBytes);
     }
 
+    public String decodeAndSanitizeBase64StringToString(String base64String) {
+        return sanitizeHtml(decodeBase64StringToString(base64String));
+    }
+
     /**
      * Sanitizes HTML content by removing potentially dangerous tags and attributes.
      * This helps prevent XSS attacks and limits file system access risks.

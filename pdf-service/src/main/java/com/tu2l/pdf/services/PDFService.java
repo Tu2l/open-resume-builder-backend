@@ -8,6 +8,11 @@ import com.tu2l.pdf.models.GeneratePDFResponse;
  * Service interface for generating PDFs from HTML content.
  */
 public interface PDFService {
+    // Synchronous PDF generation
     GeneratePDFResponse generate(GeneratePDFRequest pdfRequest) throws Exception;
     GeneratePDFResponse generateAndSave(GenerateAndSavePDFRequest pdfRequest) throws Exception;
+
+    // Asynchronous PDF generation
+    GeneratePDFResponse generateAsync(GenerateAndSavePDFRequest pdfRequest) throws Exception;
+    GeneratePDFResponse getGeneratedPDFById(long pdfRequestId) throws Exception;
 }

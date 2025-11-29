@@ -4,6 +4,8 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
+import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -46,5 +48,21 @@ public class PDFController {
                 request.getFileName(), response.getStatus());
         return ResponseEntity.ok(response);
     }
+
+    @PostMapping("/generate/async")
+    public ResponseEntity<BaseResponse> generateAndSaveAsync(@Valid @RequestBody GenerateAndSavePDFRequest request)
+            throws Exception {
+        logger.info("Received async request to generate and save PDF: fileName={}", request.getFileName()); 
+        BaseResponse response = pdfService.generateAsync(request);
+        logger.info("Asynchronous PDF generation and save initiated: fileName={}, status={}, fileId={}",
+                request.getFileName(), response.getStatus(), response.getId());
+        return ResponseEntity.ok(response);
+    }
+
+    @GetMapping("/get/id/{id}")
+    public ResponseEntity<BaseResponse> getPdfById(@PathVariable("id") long id) throws Exception {
+        logger.info("Received request to get PDF by id: pdfId={}", id);
+        return ResponseEntity.ok(pdfService.getGeneratedPDFById(id));
+    }    
 
 }
