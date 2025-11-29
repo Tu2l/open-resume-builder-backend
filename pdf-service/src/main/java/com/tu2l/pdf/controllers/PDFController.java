@@ -19,7 +19,7 @@ import com.tu2l.pdf.services.PDFService;
 import jakarta.validation.Valid;
 
 @RestController
-@RequestMapping("/pdf")
+@RequestMapping("/")
 public class PDFController {
     private static final Logger logger = LoggerFactory.getLogger(PDFController.class);
     private final PDFService pdfService;
