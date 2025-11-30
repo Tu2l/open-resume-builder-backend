@@ -5,6 +5,8 @@ import java.time.LocalDateTime;
 import org.hibernate.annotations.CreationTimestamp;
 import org.hibernate.annotations.UpdateTimestamp;
 
+import com.tu2l.common.model.states.UserRole;
+
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
 import jakarta.persistence.EnumType;
@@ -155,12 +157,5 @@ public class UserEntity {
             return firstName;
         }
         return firstName + " " + lastName;
-    }
-    
-    public enum UserRole {
-        USER,
-        ADMIN,
-        MODERATOR,
-        GUEST
     }
 }

@@ -12,10 +12,16 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
 import com.tu2l.common.model.base.BaseResponse;
+import com.tu2l.common.model.states.ResponseProcessingStatus;
+import com.tu2l.common.model.states.UserRole;
+import com.tu2l.user.entity.UserEntity;
 import com.tu2l.user.model.request.ChangePasswordRequest;
 import com.tu2l.user.model.request.UpdateUserRequest;
+import com.tu2l.user.model.response.UserDTO;
 import com.tu2l.user.model.response.UserResponse;
+import com.tu2l.user.service.JwtService;
 import com.tu2l.user.service.UserService;
+import com.tu2l.user.utils.UserMapper;
 
 import jakarta.validation.Valid;
 import lombok.extern.slf4j.Slf4j;
@@ -29,10 +35,14 @@ import lombok.extern.slf4j.Slf4j;
 @RequestMapping("/users")
 public class UserController {
     private final UserService userService;
+    private final JwtService jwtService;
+    private final UserMapper userMapper;
 
     @Autowired
-    public UserController(UserService userService) {
+    public UserController(UserService userService, JwtService jwtService, UserMapper userMapper) {
         this.userService = userService;
+        this.jwtService = jwtService;
+        this.userMapper = userMapper;
     }
 
     /**
@@ -40,11 +50,16 @@ public class UserController {
      */
     @GetMapping("/me")
     public ResponseEntity<UserResponse> getCurrentUser(
-            @RequestHeader("Authorization") String authHeader) {
+            @RequestHeader("Authorization") String authHeader) throws Exception {
         log.info("Fetching current user profile");
-        // TODO: Extract user from JWT token in Authorization header
+
+        Long userId = jwtService.getUserId(authHeader);
+        UserEntity user = userService.getUserById(userId);
+        UserDTO userDTO = userMapper.toUserDTO(user);
         UserResponse response = new UserResponse();
-        response.setMessage("User profile retrieved successfully");
+        response.setUser(userDTO);
+        response.setStatus(ResponseProcessingStatus.SUCCESS);
+
         log.info("User profile retrieved successfully");
         return ResponseEntity.ok(response);
     }
@@ -53,11 +68,22 @@ public class UserController {
      * GET /users/{id} - Get user by ID (Admin only)
      */
     @GetMapping("/{id}")
-    public ResponseEntity<UserResponse> getUserById(@PathVariable Long id) {
+    public ResponseEntity<UserResponse> getUserById(
+            @RequestHeader("Authorization") String authHeader,
+            @PathVariable Long id) throws Exception {
         log.info("Fetching user profile for ID: {}", id);
-        // TODO: Authorization check - admin only
+
+        if (!jwtService.verifyRole(authHeader, UserRole.ADMIN)) {
+            log.warn("Unauthorized access attempt to fetch user ID: {}", id);
+            return ResponseEntity.status(403).build();
+        }
+
         UserResponse response = new UserResponse();
-        response.setMessage("User retrieved successfully");
+        UserEntity user = userService.getUserById(id);
+        UserDTO userDTO = userMapper.toUserDTO(user);
+        response.setUser(userDTO);
+        response.setStatus(ResponseProcessingStatus.SUCCESS);
+
         log.info("User retrieved successfully: {}", id);
         return ResponseEntity.ok(response);
     }
@@ -68,11 +94,19 @@ public class UserController {
     @PutMapping("/me")
     public ResponseEntity<UserResponse> updateCurrentUser(
             @Valid @RequestBody UpdateUserRequest request,
-            @RequestHeader("Authorization") String authHeader) {
+            @RequestHeader("Authorization") String authHeader) throws Exception {
         log.info("Updating current user profile");
-        // TODO: Extract user from JWT and update profile
+
+        UserDTO userDTO = userMapper.toUserDTO(request);
+        userDTO.setId(jwtService.getUserId(authHeader));
+
+        UserEntity user = userService.updateUser(userDTO);
+        
         UserResponse response = new UserResponse();
+        response.setUser(userMapper.toUserDTO(user));
+        response.setStatus(ResponseProcessingStatus.SUCCESS);
         response.setMessage("User profile updated successfully");
+        
         log.info("User profile updated successfully");
         return ResponseEntity.ok(response);
     }
