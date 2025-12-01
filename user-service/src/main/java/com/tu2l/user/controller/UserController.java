@@ -51,8 +51,8 @@ public class UserController {
      * GET /users/me - Get current authenticated user profile
      */
     @GetMapping("/me")
-    public ResponseEntity<UserResponse> getCurrentUser(
-            @RequestHeader("Authorization") String authHeader) throws Exception {
+    public ResponseEntity<UserResponse> getCurrentUser(@RequestHeader("Authorization") String authHeader)
+            throws Exception {
         log.info("Fetching current user profile");
 
         Long userId = jwtService.getUserId(authHeader);
@@ -70,8 +70,7 @@ public class UserController {
      * GET /users/{id} - Get user by ID (Admin only)
      */
     @GetMapping("/{id}")
-    public ResponseEntity<UserResponse> getUserById(
-            @RequestHeader("Authorization") String authHeader,
+    public ResponseEntity<UserResponse> getUserById(@RequestHeader("Authorization") String authHeader,
             @PathVariable Long id) throws Exception {
         log.info("Fetching user profile for ID: {}", id);
 
@@ -94,8 +93,7 @@ public class UserController {
      * PUT /users/me - Update current user profile
      */
     @PutMapping("/me")
-    public ResponseEntity<UserResponse> updateCurrentUser(
-            @Valid @RequestBody UpdateUserRequest request,
+    public ResponseEntity<UserResponse> updateCurrentUser(@Valid @RequestBody UpdateUserRequest request,
             @RequestHeader("Authorization") String authHeader) throws Exception {
         log.info("Updating current user profile");
 
@@ -117,8 +115,7 @@ public class UserController {
      * PUT /users/{id} - Update user by ID (Admin only)
      */
     @PutMapping("/{id}")
-    public ResponseEntity<UserResponse> updateUser(
-            @PathVariable Long id,
+    public ResponseEntity<UserResponse> updateUser(@PathVariable Long id,
             @Valid @RequestBody UpdateUserRequest request,
             @RequestHeader("Authorization") String authHeader) throws Exception {
 
@@ -146,8 +143,7 @@ public class UserController {
      * PUT /users/me/password - Change current user password
      */
     @PutMapping("/me/password")
-    public ResponseEntity<UserResponse> changePassword(
-            @Valid @RequestBody ChangePasswordRequest request,
+    public ResponseEntity<UserResponse> changePassword(@Valid @RequestBody ChangePasswordRequest request,
             @RequestHeader("Authorization") String authHeader) throws Exception {
         log.info("Chnage password for current user request received");
         if (!jwtService.validateToken(authHeader, JwtTokenType.ACCESS)) {
@@ -169,8 +165,8 @@ public class UserController {
      * DELETE /users/me - Delete/deactivate current user account
      */
     @DeleteMapping("/me")
-    public ResponseEntity<BaseResponse> deleteCurrentUser(
-            @RequestHeader("Authorization") String authHeader) throws Exception {
+    public ResponseEntity<BaseResponse> deleteCurrentUser(@RequestHeader("Authorization") String authHeader)
+            throws Exception {
         log.info("Deleting/deactivating current user account");
         if (!jwtService.validateToken(authHeader, JwtTokenType.ACCESS)) {
             throw new AuthenticationException("Invalid access token");
@@ -195,8 +191,7 @@ public class UserController {
      * DELETE /users/{id} - Delete user by ID (Admin only)
      */
     @DeleteMapping("/{id}")
-    public ResponseEntity<BaseResponse> deleteUser(
-            @PathVariable Long id,
+    public ResponseEntity<BaseResponse> deleteUser(@PathVariable Long id,
             @RequestHeader("Authorization") String authHeader) throws Exception {
         log.info("Deleting user with ID: {}", id);
         if (!jwtService.verifyRole(authHeader, UserRole.ADMIN)) {

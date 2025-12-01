@@ -10,6 +10,9 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
 import com.tu2l.common.model.base.BaseResponse;
+import com.tu2l.common.model.states.ResponseProcessingStatus;
+import com.tu2l.user.entity.UserEntity;
+import com.tu2l.user.entity.UserLogin;
 import com.tu2l.user.model.request.ForgotPasswordRequest;
 import com.tu2l.user.model.request.LoginRequest;
 import com.tu2l.user.model.request.RefreshTokenRequest;
@@ -17,7 +20,6 @@ import com.tu2l.user.model.request.RegisterRequest;
 import com.tu2l.user.model.request.ResetPasswordRequest;
 import com.tu2l.user.model.response.AuthResponse;
 import com.tu2l.user.service.AuthenticationService;
-import com.tu2l.user.utils.UserMapper;
 
 import jakarta.validation.Valid;
 import lombok.extern.slf4j.Slf4j;
@@ -31,28 +33,28 @@ import lombok.extern.slf4j.Slf4j;
 @RequestMapping("/auth")
 public class AuthenticationController {
     private final AuthenticationService authenticationService;
-    private final UserMapper userMapper;
 
     @Autowired
-    public AuthenticationController(AuthenticationService authenticationService, UserMapper userMapper) {
+    public AuthenticationController(AuthenticationService authenticationService) {
         this.authenticationService = authenticationService;
-        this.userMapper = userMapper;
     }
 
     /**
      * POST /auth/register - Register a new user account
      */
     @PostMapping("/register")
-    public ResponseEntity<AuthResponse> register(@Valid @RequestBody RegisterRequest request) {
+    public ResponseEntity<AuthResponse> register(@Valid @RequestBody RegisterRequest request) throws Exception {
         log.info("Registration request received for username: {}", request.getUsername());
-        // TODO: Implement user registration logic
-        // 1. Validate request
-        // 2. Check if username/email already exists
-        // 3. Hash password
-        // 4. Create user in database
-        // 5. Generate JWT tokens
+
+        UserEntity registeredUser = authenticationService.register(request);
+        UserLogin userLogin = registeredUser.getMostRecentLogin();
+
         AuthResponse response = new AuthResponse();
+        response.setAccessToken(userLogin.getToken());
+        response.setExpiresIn(userLogin.getExpiresIn());
+        response.setRefreshToken(registeredUser.getRefreshToken());
         response.setMessage("User registered successfully");
+
         log.info("User registered successfully: {}", request.getUsername());
         return ResponseEntity.status(HttpStatus.CREATED).body(response);
     }
@@ -61,15 +63,19 @@ public class AuthenticationController {
      * POST /auth/login - Authenticate user and return JWT tokens
      */
     @PostMapping("/login")
-    public ResponseEntity<AuthResponse> login(@Valid @RequestBody LoginRequest request) {
+    public ResponseEntity<AuthResponse> login(@Valid @RequestBody LoginRequest request) throws Exception {
         log.info("Login attempt for user: {}", request.getUsernameOrEmail());
-        // TODO: Implement authentication logic
-        // 1. Find user by username or email
-        // 2. Verify password
-        // 3. Generate access token and refresh token
-        // 4. Return tokens with user info
+
+        UserEntity loggedInUserEntity = authenticationService.authenticate(request.getUsernameOrEmail(),
+                request.getPassword(), request.getRememberMe());
+        UserLogin userLogin = loggedInUserEntity.getMostRecentLogin();
+
         AuthResponse response = new AuthResponse();
+        response.setAccessToken(userLogin.getToken());
+        response.setExpiresIn(userLogin.getExpiresIn());
+        response.setRefreshToken(loggedInUserEntity.getRefreshToken());
         response.setMessage("Login successful");
+
         log.info("Login successful for user: {}", request.getUsernameOrEmail());
         return ResponseEntity.ok(response);
     }
@@ -78,15 +84,17 @@ public class AuthenticationController {
      * POST /auth/refresh - Refresh access token using refresh token
      */
     @PostMapping("/refresh")
-    public ResponseEntity<AuthResponse> refreshToken(@Valid @RequestBody RefreshTokenRequest request) {
+    public ResponseEntity<AuthResponse> refreshToken(@Valid @RequestBody RefreshTokenRequest request) throws Exception {
         log.info("Token refresh request received");
-        // TODO: Implement token refresh logic
-        // 1. Validate refresh token
-        // 2. Extract user from refresh token
-        // 3. Generate new access token
-        // 4. Optionally generate new refresh token (token rotation)
+
+        UserEntity refreshedUserEntity = authenticationService.refreshToken(request.getRefreshToken());
+
         AuthResponse response = new AuthResponse();
         response.setMessage("Token refreshed successfully");
+        response.setAccessToken(refreshedUserEntity.getMostRecentLogin().getToken());
+        response.setExpiresIn(refreshedUserEntity.getMostRecentLogin().getExpiresIn());
+        response.setRefreshToken(refreshedUserEntity.getRefreshToken());
+
         log.info("Token refreshed successfully");
         return ResponseEntity.ok(response);
     }
@@ -95,33 +103,39 @@ public class AuthenticationController {
      * POST /auth/logout - Logout user (invalidate tokens)
      */
     @PostMapping("/logout")
-    public ResponseEntity<BaseResponse> logout(@RequestHeader("Authorization") String authHeader) {
+    public ResponseEntity<BaseResponse> logout(@RequestHeader("Authorization") String token) throws Exception {
         log.info("Logout request received");
-        // TODO: Implement logout logic
-        // 1. Extract token from Authorization header
-        // 2. Add token to blacklist/revoked tokens
-        // 3. Clear any server-side session if applicable
+
+        authenticationService.logout(token);
+
         BaseResponse response = new BaseResponse() {
         };
         response.setMessage("Logout successful");
+        response.setStatus(ResponseProcessingStatus.SUCCESS);
+
         log.info("Logout successful");
         return ResponseEntity.ok(response);
     }
 
     /**
+     * forgot password, reset password, verify email are still incomplete
+     */
+
+    /**
      * POST /auth/forgot-password - Request password reset
      */
     @PostMapping("/forgot-password")
-    public ResponseEntity<BaseResponse> forgotPassword(@Valid @RequestBody ForgotPasswordRequest request) {
+    public ResponseEntity<BaseResponse> forgotPassword(@Valid @RequestBody ForgotPasswordRequest request)
+            throws Exception {
         log.info("Password reset request for email: {}", request.getEmail());
-        // TODO: Implement forgot password logic
-        // 1. Find user by email
-        // 2. Generate password reset token
-        // 3. Send email with reset link
-        // 4. Store token with expiration
+
+        authenticationService.forgotPassword(request.getEmail());
+
         BaseResponse response = new BaseResponse() {
         };
         response.setMessage("Password reset instructions sent to your email");
+        response.setStatus(ResponseProcessingStatus.SUCCESS);
+
         log.info("Password reset email sent to: {}", request.getEmail());
         return ResponseEntity.ok(response);
     }
@@ -130,17 +144,17 @@ public class AuthenticationController {
      * POST /auth/reset-password - Reset password using reset token
      */
     @PostMapping("/reset-password")
-    public ResponseEntity<BaseResponse> resetPassword(@Valid @RequestBody ResetPasswordRequest request) {
+    public ResponseEntity<BaseResponse> resetPassword(@Valid @RequestBody ResetPasswordRequest request)
+            throws Exception {
         log.info("Password reset attempt with token");
-        // TODO: Implement reset password logic
-        // 1. Validate reset token
-        // 2. Check token expiration
-        // 3. Hash new password
-        // 4. Update user password
-        // 5. Invalidate reset token
+
+        authenticationService.resetPassword(request.getResetToken(), request.getNewPassword());
+
         BaseResponse response = new BaseResponse() {
         };
         response.setMessage("Password reset successful");
+        response.setStatus(ResponseProcessingStatus.SUCCESS);
+
         log.info("Password reset successful");
         return ResponseEntity.ok(response);
     }
@@ -149,15 +163,16 @@ public class AuthenticationController {
      * POST /auth/verify-email - Verify email address (optional)
      */
     @PostMapping("/verify-email")
-    public ResponseEntity<BaseResponse> verifyEmail(@RequestBody String verificationToken) {
+    public ResponseEntity<BaseResponse> verifyEmail(@RequestBody String verificationToken) throws Exception {
         log.info("Email verification attempt");
-        // TODO: Implement email verification logic
-        // 1. Validate verification token
-        // 2. Mark user email as verified
-        // 3. Update user status if needed
+
+        authenticationService.verifyEmail(verificationToken);
+
         BaseResponse response = new BaseResponse() {
         };
         response.setMessage("Email verified successfully");
+        response.setStatus(ResponseProcessingStatus.SUCCESS);
+
         log.info("Email verified successfully");
         return ResponseEntity.ok(response);
     }

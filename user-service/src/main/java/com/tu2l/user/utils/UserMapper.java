@@ -11,12 +11,9 @@ import com.tu2l.user.model.request.RegisterRequest;
 import com.tu2l.user.model.request.UpdateUserRequest;
 import com.tu2l.user.model.response.UserDTO;
 
-@Mapper(
-    componentModel = MappingConstants.ComponentModel.SPRING,
-    unmappedTargetPolicy = ReportingPolicy.IGNORE
-)
+@Mapper(componentModel = MappingConstants.ComponentModel.SPRING, unmappedTargetPolicy = ReportingPolicy.IGNORE)
 public interface UserMapper {
-    
+
     @Mapping(target = "role", expression = "java(userEntity.getRole().name())")
     UserDTO toUserDTO(UserEntity userEntity);
 
@@ -25,6 +22,9 @@ public interface UserMapper {
 
     @Mapping(target = "role", expression = "java(com.tu2l.common.model.states.UserRole.USER.name())")
     UserDTO toUserDTO(RegisterRequest registerRequest);
+
+    @Mapping(target = "role", expression = "java(com.tu2l.common.model.states.UserRole.USER.name())")
+    UserEntity toUserEntity(RegisterRequest registerRequest);
 
     @Mapping(target = "role", expression = "java(com.tu2l.common.model.states.UserRole.valueOf(userDTO.getRole()))")
     UserEntity updateUserFromDTO(UserDTO userDTO, @MappingTarget UserEntity userEntity);

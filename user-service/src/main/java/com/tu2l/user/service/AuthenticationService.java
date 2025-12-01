@@ -76,12 +76,12 @@ public interface AuthenticationService {
     /**
      * Resets the user password when provided with a valid reset token.
      *
-     * @param token       the password reset token
-     * @param newPassword the new password to set
+     * @param passwordResetToken the password reset token
+     * @param newPassword        the new password to set
      * @return a UserEntity representing the reset outcome
      * @throws Exception if the token is invalid or expired
      */
-    UserEntity resetPassword(String token, String newPassword) throws Exception;
+    UserEntity resetPassword(String passwordResetToken, String newPassword) throws Exception;
 
     /**
      * Confirms a user’s email address using a verification token.

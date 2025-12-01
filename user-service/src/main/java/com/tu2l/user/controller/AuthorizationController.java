@@ -17,8 +17,8 @@ import com.tu2l.user.service.AuthorizationService;
 import lombok.extern.slf4j.Slf4j;
 
 /**
- * Authorization Controller - Handles role-based access control (RBAC) operations
- * Base path: /user/authorize
+ * Authorization Controller - Handles role-based access control (RBAC)
+ * operations
  */
 @Slf4j
 @RestController
@@ -30,7 +30,7 @@ public class AuthorizationController {
     public AuthorizationController(AuthorizationService authorizationService) {
         this.authorizationService = authorizationService;
     }
-    
+
     /**
      * GET /authorize/check - Check if user has specific permission
      * Query params: resource, action
@@ -46,12 +46,13 @@ public class AuthorizationController {
         // 2. Get user roles and permissions
         // 3. Check if user has permission for resource and action
         // 4. Return authorization result
-        BaseResponse response = new BaseResponse() {};
+        BaseResponse response = new BaseResponse() {
+        };
         response.setMessage("Authorization check completed");
         log.info("Authorization check completed - resource: {}, action: {}", resource, action);
         return ResponseEntity.ok(response);
     }
-    
+
     /**
      * GET /authorize/roles - Get all available roles (Admin only)
      */
@@ -60,12 +61,13 @@ public class AuthorizationController {
         log.info("Fetching all roles");
         // TODO: Implement role listing
         // Return list of all available roles in the system
-        BaseResponse response = new BaseResponse() {};
+        BaseResponse response = new BaseResponse() {
+        };
         response.setMessage("Roles retrieved successfully");
         log.info("Roles retrieved successfully");
         return ResponseEntity.ok(response);
     }
-    
+
     /**
      * GET /authorize/roles/{userId} - Get user roles (Admin only)
      */
@@ -74,12 +76,13 @@ public class AuthorizationController {
         log.info("Fetching roles for user: {}", userId);
         // TODO: Implement user role retrieval
         // Return roles assigned to specific user
-        BaseResponse response = new BaseResponse() {};
+        BaseResponse response = new BaseResponse() {
+        };
         response.setMessage("User roles retrieved successfully");
         log.info("User roles retrieved for user: {}", userId);
         return ResponseEntity.ok(response);
     }
-    
+
     /**
      * POST /authorize/roles/{userId} - Assign role to user (Admin only)
      */
@@ -93,12 +96,13 @@ public class AuthorizationController {
         // 2. Validate user exists
         // 3. Assign role to user
         // 4. Handle duplicate assignments
-        BaseResponse response = new BaseResponse() {};
+        BaseResponse response = new BaseResponse() {
+        };
         response.setMessage("Role assigned successfully");
         log.info("Role assigned successfully - user: {}, role: {}", userId, roleName);
         return ResponseEntity.ok(response);
     }
-    
+
     /**
      * GET /authorize/permissions - Get all available permissions (Admin only)
      */
@@ -107,12 +111,13 @@ public class AuthorizationController {
         log.info("Fetching all permissions");
         // TODO: Implement permission listing
         // Return list of all available permissions in the system
-        BaseResponse response = new BaseResponse() {};
+        BaseResponse response = new BaseResponse() {
+        };
         response.setMessage("Permissions retrieved successfully");
         log.info("Permissions retrieved successfully");
         return ResponseEntity.ok(response);
     }
-    
+
     /**
      * GET /authorize/permissions/{userId} - Get user permissions (Admin only)
      */
@@ -121,12 +126,13 @@ public class AuthorizationController {
         log.info("Fetching permissions for user: {}", userId);
         // TODO: Implement user permission retrieval
         // Return all permissions for user (direct + role-based)
-        BaseResponse response = new BaseResponse() {};
+        BaseResponse response = new BaseResponse() {
+        };
         response.setMessage("User permissions retrieved successfully");
         log.info("User permissions retrieved for user: {}", userId);
         return ResponseEntity.ok(response);
     }
-    
+
     /**
      * GET /authorize/me/permissions - Get current user's permissions
      */
@@ -135,7 +141,8 @@ public class AuthorizationController {
             @RequestHeader("Authorization") String authHeader) {
         log.info("Fetching permissions for current user");
         // TODO: Extract user from JWT and return their permissions
-        BaseResponse response = new BaseResponse() {};
+        BaseResponse response = new BaseResponse() {
+        };
         response.setMessage("Permissions retrieved successfully");
         log.info("Permissions retrieved for current user");
         return ResponseEntity.ok(response);

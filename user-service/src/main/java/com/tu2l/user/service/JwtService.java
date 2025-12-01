@@ -26,7 +26,8 @@ public interface JwtService {
      * Generate JWT token for a user with specified token type
      * 
      * @param user      the user entity for whom the token is generated
-     * @param tokenType the type of token to generate (ACCESS, REFRESH, PASSWORD_RESET,
+     * @param tokenType the type of token to generate (ACCESS, REFRESH,
+     *                  PASSWORD_RESET,
      *                  EMAIL_VERIFICATION)
      * @return the generated JWT token as a String
      * @throws Exception if token generation fails
@@ -37,7 +38,8 @@ public interface JwtService {
      * Validate a JWT token based on its type
      * 
      * @param token     the JWT token to validate
-     * @param tokenType the type of token to validate (ACCESS, REFRESH, PASSWORD_RESET,
+     * @param tokenType the type of token to validate (ACCESS, REFRESH,
+     *                  PASSWORD_RESET,
      *                  EMAIL_VERIFICATION)
      * @return true if the token is valid, false otherwise
      * @throws Exception if token validation fails
@@ -49,13 +51,32 @@ public interface JwtService {
      * 
      * @param refreshToken the refresh token used to generate a new access token
      * @return the new access token as a String
-     * @throws Exception if the refresh token is invalid or expired 
+     * @throws Exception if the refresh token is invalid or expired
      */
     String refreshAccessToken(String refreshToken) throws Exception;
 
+    /**
+     * Get username from token
+     * 
+     * @param token jwt token
+     * @return username from token after verification against live database
+     */
     String getUsername(String token);
 
+    /**
+     * Get user id from token
+     * 
+     * @param token jwt token
+     * @return user id userId from token after verification against live database
+     */
     Long getUserId(String token);
 
-    Boolean verifyRole(String token, UserRole admin);
+    /**
+     * Verify if the token has the specified role
+     * 
+     * @param token jwt token
+     * @param role  user role to verify
+     * @return true if the token has the role, false otherwise
+     */
+    Boolean verifyRole(String token, UserRole role);
 }
