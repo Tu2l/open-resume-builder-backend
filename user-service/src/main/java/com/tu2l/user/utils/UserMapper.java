@@ -23,7 +23,7 @@ public interface UserMapper {
     @Mapping(target = "role", expression = "java(com.tu2l.common.model.states.UserRole.USER.name())")
     UserDTO toUserDTO(RegisterRequest registerRequest);
 
-    @Mapping(target = "role", expression = "java(com.tu2l.common.model.states.UserRole.USER.name())")
+    @Mapping(target = "role", expression = "java(com.tu2l.common.model.states.UserRole.USER)")
     UserEntity toUserEntity(RegisterRequest registerRequest);
 
     @Mapping(target = "role", expression = "java(com.tu2l.common.model.states.UserRole.valueOf(userDTO.getRole()))")
