@@ -11,10 +11,13 @@ import org.springframework.web.bind.annotation.RequestHeader;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
+import com.tu2l.common.model.JwtTokenType;
 import com.tu2l.common.model.base.BaseResponse;
 import com.tu2l.common.model.states.ResponseProcessingStatus;
 import com.tu2l.common.model.states.UserRole;
 import com.tu2l.user.entity.UserEntity;
+import com.tu2l.user.exception.AuthenticationException;
+import com.tu2l.user.exception.UserException;
 import com.tu2l.user.model.request.ChangePasswordRequest;
 import com.tu2l.user.model.request.UpdateUserRequest;
 import com.tu2l.user.model.response.UserDTO;
@@ -28,11 +31,10 @@ import lombok.extern.slf4j.Slf4j;
 
 /**
  * User Controller - Handles user profile management operations
- * Base path: /user/users
  */
 @Slf4j
 @RestController
-@RequestMapping("/users")
+@RequestMapping("/")
 public class UserController {
     private final UserService userService;
     private final JwtService jwtService;
@@ -101,12 +103,12 @@ public class UserController {
         userDTO.setId(jwtService.getUserId(authHeader));
 
         UserEntity user = userService.updateUser(userDTO);
-        
+
         UserResponse response = new UserResponse();
         response.setUser(userMapper.toUserDTO(user));
         response.setStatus(ResponseProcessingStatus.SUCCESS);
         response.setMessage("User profile updated successfully");
-        
+
         log.info("User profile updated successfully");
         return ResponseEntity.ok(response);
     }
@@ -118,11 +120,24 @@ public class UserController {
     public ResponseEntity<UserResponse> updateUser(
             @PathVariable Long id,
             @Valid @RequestBody UpdateUserRequest request,
-            @RequestHeader("Authorization") String authHeader) {
+            @RequestHeader("Authorization") String authHeader) throws Exception {
+
         log.info("Updating user profile for ID: {}", id);
-        // TODO: Authorization check - admin only
+        if (!jwtService.verifyRole(authHeader, UserRole.ADMIN)) {
+            log.warn("Unauthorized access attempt to fetch user ID: {}", id);
+            return ResponseEntity.status(403).build();
+        }
+
+        UserDTO userDTO = userMapper.toUserDTO(request);
+        userDTO.setId(id);
+
+        UserEntity user = userService.updateUser(userDTO);
+
         UserResponse response = new UserResponse();
-        response.setMessage("User updated successfully");
+        response.setUser(userMapper.toUserDTO(user));
+        response.setStatus(ResponseProcessingStatus.SUCCESS);
+        response.setMessage("User profile updated successfully");
+
         log.info("User updated successfully: {}", id);
         return ResponseEntity.ok(response);
     }
@@ -131,14 +146,21 @@ public class UserController {
      * PUT /users/me/password - Change current user password
      */
     @PutMapping("/me/password")
-    public ResponseEntity<BaseResponse> changePassword(
+    public ResponseEntity<UserResponse> changePassword(
             @Valid @RequestBody ChangePasswordRequest request,
-            @RequestHeader("Authorization") String authHeader) {
-        log.info("Changing password for current user");
-        // TODO: Extract user from JWT, verify current password and update
-        BaseResponse response = new BaseResponse() {
-        };
+            @RequestHeader("Authorization") String authHeader) throws Exception {
+        log.info("Chnage password for current user request received");
+        if (!jwtService.validateToken(authHeader, JwtTokenType.ACCESS)) {
+            throw new AuthenticationException("Invalid access token");
+        }
+
+        long userId = jwtService.getUserId(authHeader);
+        UserEntity user = userService.updatePassword(userId, request.getCurrentPassword(), request.getNewPassword());
+        UserResponse response = new UserResponse();
+        response.setUser(userMapper.toUserDTO(user));
+        response.setStatus(ResponseProcessingStatus.SUCCESS);
         response.setMessage("Password changed successfully");
+
         log.info("Password changed successfully");
         return ResponseEntity.ok(response);
     }
@@ -148,11 +170,22 @@ public class UserController {
      */
     @DeleteMapping("/me")
     public ResponseEntity<BaseResponse> deleteCurrentUser(
-            @RequestHeader("Authorization") String authHeader) {
+            @RequestHeader("Authorization") String authHeader) throws Exception {
         log.info("Deleting/deactivating current user account");
-        // TODO: Extract user from JWT and soft delete/deactivate
+        if (!jwtService.validateToken(authHeader, JwtTokenType.ACCESS)) {
+            throw new AuthenticationException("Invalid access token");
+        }
+
+        long userId = jwtService.getUserId(authHeader);
+        boolean deleted = userService.deleteUser(userId);
+
+        if (!deleted) {
+            throw new UserException("Failed to delete user account with ID: " + userId);
+        }
+
         BaseResponse response = new BaseResponse() {
         };
+        response.setStatus(ResponseProcessingStatus.SUCCESS);
         response.setMessage("Account deleted successfully");
         log.info("Account deleted successfully");
         return ResponseEntity.ok(response);
@@ -162,12 +195,25 @@ public class UserController {
      * DELETE /users/{id} - Delete user by ID (Admin only)
      */
     @DeleteMapping("/{id}")
-    public ResponseEntity<BaseResponse> deleteUser(@PathVariable Long id) {
+    public ResponseEntity<BaseResponse> deleteUser(
+            @PathVariable Long id,
+            @RequestHeader("Authorization") String authHeader) throws Exception {
         log.info("Deleting user with ID: {}", id);
-        // TODO: Authorization check - admin only
+        if (!jwtService.verifyRole(authHeader, UserRole.ADMIN)) {
+            log.warn("Unauthorized access attempt to delete user ID: {}", id);
+            return ResponseEntity.status(403).build();
+        }
+        boolean deleted = userService.deleteUser(id);
+
+        if (!deleted) {
+            throw new UserException("Failed to delete user with ID: " + id);
+        }
+
         BaseResponse response = new BaseResponse() {
         };
+        response.setStatus(ResponseProcessingStatus.SUCCESS);
         response.setMessage("User deleted successfully");
+
         log.info("User deleted successfully: {}", id);
         return ResponseEntity.ok(response);
     }

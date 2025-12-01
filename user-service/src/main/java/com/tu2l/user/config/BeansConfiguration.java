@@ -1,22 +1,37 @@
 package com.tu2l.user.config;
 
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.security.crypto.password.PasswordEncoder;
 
+import com.tu2l.common.util.JwtUtil;
 import com.tu2l.common.util.Util;
 
 @Configuration
 public class BeansConfiguration {
- 
+    @Value("${jwt.secret:asdsadsadsadsadsadsadsadsa}")
+    private String secretKey;
+    @Value("${jwt.access-token.expiration-minutes:60}")
+    private int accessTokenExpirationMinutes;
+    @Value("${jwt.refresh-token.expiration-days:30}")
+    private int refreshTokenExpirationDays;
+    @Value("${jwt.issuer:resume-builder-app}")
+    private String issuer;
+
     @Bean
-    public PasswordEncoder passwordEncoder() {
+    PasswordEncoder passwordEncoder() {
         return new BCryptPasswordEncoder();
     }
 
     @Bean
-    public Util commonUtil() {
+    Util commonUtil() {
         return new Util();
+    }
+
+    @Bean
+    public JwtUtil jwtUtil() {
+        return new JwtUtil(secretKey, accessTokenExpirationMinutes, refreshTokenExpirationDays, issuer);
     }
 }
