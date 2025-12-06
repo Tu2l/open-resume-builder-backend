@@ -1,6 +1,5 @@
 package com.tu2l.user.controller;
 
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.PostMapping;
@@ -34,7 +33,6 @@ import lombok.extern.slf4j.Slf4j;
 public class AuthenticationController {
     private final AuthenticationService authenticationService;
 
-    @Autowired
     public AuthenticationController(AuthenticationService authenticationService) {
         this.authenticationService = authenticationService;
     }

@@ -1,6 +1,5 @@
 package com.tu2l.pdf.service.impl;
 
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.stereotype.Service;
 
@@ -30,7 +29,6 @@ public class PDFServiceImpl implements PDFService {
     private final PDFGenerator pdfGenerator;
     private final AsyncPDFService asyncPDFService;
 
-    @Autowired
     public PDFServiceImpl(PDFRepository repository, Util util, EntityMapper mapper,
             @Qualifier("wkhtmlToPdfGenerator") PDFGenerator pdfGenerator,
             AsyncPDFService asyncPDFService) {
@@ -72,7 +70,7 @@ public class PDFServiceImpl implements PDFService {
         GeneratedPDFEntity pdfToBeGenerated = mapper.map(pdfRequest)
                 .orElseThrow(() -> new PDFException("Mapping to entity failed"));
 
-        if(pdfToBeGenerated == null) {
+        if (pdfToBeGenerated == null) {
             throw new PDFException("Failed to map PDF request to entity for async processing");
         }
 

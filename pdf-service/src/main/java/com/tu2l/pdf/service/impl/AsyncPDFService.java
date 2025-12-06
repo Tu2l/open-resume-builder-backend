@@ -1,6 +1,5 @@
 package com.tu2l.pdf.service.impl;
 
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.scheduling.annotation.Async;
 import org.springframework.stereotype.Service;
 
@@ -24,7 +23,6 @@ public class AsyncPDFService {
     private final PDFRepository repository;
     private final EntityMapper mapper;
 
-    @Autowired
     public AsyncPDFService(PDFRepository repository, EntityMapper mapper) {
         this.repository = repository;
         this.mapper = mapper;
@@ -32,8 +30,8 @@ public class AsyncPDFService {
 
     @Async
     public void processAsyncPDFGeneration(
-            GenerateAndSavePDFRequest pdfRequest, 
-            Long savedEntityId, 
+            GenerateAndSavePDFRequest pdfRequest,
+            Long savedEntityId,
             PDFGenerationFunction pdfGenerationFunction) {
         log.info("Processing async PDF in thread: {}", Thread.currentThread().getName());
         try {
@@ -42,19 +40,21 @@ public class AsyncPDFService {
                     .orElseThrow(() -> new PDFException("Mapping to entity failed"));
             entityToUpdate.setId(savedEntityId);
             repository.save(entityToUpdate);
-            log.info("Asynchronous PDF generation completed: fileName={}, thread={}", 
-                pdfRequest.getFileName(), Thread.currentThread().getName());
+            log.info("Asynchronous PDF generation completed: fileName={}, thread={}",
+                    pdfRequest.getFileName(), Thread.currentThread().getName());
         } catch (Exception e) {
             log.error("Error during asynchronous PDF generation: fileName={}, error={}",
                     pdfRequest.getFileName(), e.getMessage(), e);
-            
-            // Note: Update entity status/error handling can be added when entity supports it
+
+            // Note: Update entity status/error handling can be added when entity supports
+            // it
         }
     }
 
     /**
      * Functional interface for PDF generation operations.
-     * Allows passing PDF generation logic as a parameter while handling checked exceptions.
+     * Allows passing PDF generation logic as a parameter while handling checked
+     * exceptions.
      */
     @FunctionalInterface
     public interface PDFGenerationFunction {

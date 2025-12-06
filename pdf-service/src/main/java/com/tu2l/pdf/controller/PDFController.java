@@ -1,6 +1,5 @@
 package com.tu2l.pdf.controller;
 
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
@@ -23,7 +22,6 @@ import lombok.extern.slf4j.Slf4j;
 public class PDFController {
     private final PDFService pdfService;
 
-    @Autowired
     public PDFController(PDFService pdfService) {
         this.pdfService = pdfService;
     }
@@ -51,7 +49,7 @@ public class PDFController {
     @PostMapping("/generate/async")
     public ResponseEntity<BaseResponse> generateAndSaveAsync(@Valid @RequestBody GenerateAndSavePDFRequest request)
             throws Exception {
-        log.info("Received async request to generate and save PDF: fileName={}", request.getFileName()); 
+        log.info("Received async request to generate and save PDF: fileName={}", request.getFileName());
         BaseResponse response = pdfService.generateAsync(request);
         log.info("Asynchronous PDF generation and save initiated: fileName={}, status={}, fileId={}",
                 request.getFileName(), response.getStatus(), response.getId());
@@ -62,6 +60,6 @@ public class PDFController {
     public ResponseEntity<BaseResponse> getPdfById(@PathVariable("id") long id) throws Exception {
         log.info("Received request to get PDF by id: pdfId={}", id);
         return ResponseEntity.ok(pdfService.getGeneratedPDFById(id));
-    }    
+    }
 
 }
