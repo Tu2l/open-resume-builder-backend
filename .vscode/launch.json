@@ -2,10 +2,12 @@
     "configurations": [
         {
             "type": "java",
-            "name": "UserServiceApplication",
+            "name": "UserServiceApplication<user-service>",
             "request": "launch",
+            "cwd": "${workspaceFolder}",
             "mainClass": "com.tu2l.user.UserServiceApplication",
-            "projectName": "user-service"
+            "projectName": "user-service",
+            "envFile": "${workspaceFolder}/.env"
         },
         {
             "type": "java",
@@ -14,7 +16,15 @@
             "cwd": "${workspaceFolder}",
             "mainClass": "com.tu2l.pdf.PDFServiceApplication",
             "projectName": "pdf-service",
-            "args": "",
+            "envFile": "${workspaceFolder}/.env"
+        },
+        {
+            "type": "java",
+            "name": "Spring Boot-GatewayServiceApplication<gateway-service>",
+            "request": "launch",
+            "cwd": "${workspaceFolder}",
+            "mainClass": "com.tu2l.gateway.GatewayServiceApplication",
+            "projectName": "gateway-service",
             "envFile": "${workspaceFolder}/.env"
         }
     ]

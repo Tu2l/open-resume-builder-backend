@@ -16,6 +16,7 @@
         <module>common</module>
         <module>pdf-service</module>
         <module>user-service</module>
+        <module>gateway-service</module>
     </modules>
 
     <properties>

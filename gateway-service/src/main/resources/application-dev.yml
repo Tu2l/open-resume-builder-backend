@@ -1,0 +1,13 @@
+spring:
+  cloud:
+    gateway:
+      routes:
+        - id: user-service
+          uri: http://localhost:8091
+          predicates:
+            - Path=/user/**
+        
+        - id: pdf-service
+          uri: http://localhost:8090
+          predicates:
+            - Path=/pdf/**

@@ -1,0 +1,15 @@
+spring:
+  application:
+    name: gateway-service
+  profiles:
+    active: dev
+
+# Gateway runs on port 8080 by default
+server:
+  port: 8080
+
+# Common configuration
+logging:
+  level:
+    org.springframework.cloud.gateway: INFO
+    com.tu2l.gateway: DEBUG
