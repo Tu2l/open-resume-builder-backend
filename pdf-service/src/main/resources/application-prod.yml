@@ -1,0 +1,30 @@
+server:
+  servlet:
+    context-path: /pdf
+  port: 8090
+spring:
+  jackson:
+    default-property-inclusion: non_null
+  datasource:
+    url: ${DATABASE_URL}
+    username: ${DATABASE_USERNAME}
+    password: ${DATABASE_PASSWORD}
+    driver-class-name: org.postgresql.Driver
+  jpa:
+    database-platform: org.hibernate.dialect.PostgreSQLDialect
+    # show-sql: true
+    hibernate:
+      ddl-auto: update
+logging:
+  level:
+    org:
+      springframework: INFO
+    com:
+      tu2l:
+        pdf: INFO
+  file:
+    name: ./logs/pdf-service/app.log
+  logback:
+    rollingpolicy:
+      max-file-size: 10MB
+      max-history: 1
