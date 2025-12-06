@@ -2,6 +2,13 @@
     "configurations": [
         {
             "type": "java",
+            "name": "UserServiceApplication",
+            "request": "launch",
+            "mainClass": "com.tu2l.user.UserServiceApplication",
+            "projectName": "user-service"
+        },
+        {
+            "type": "java",
             "name": "Spring Boot-PDFServiceApplication<pdf-service>",
             "request": "launch",
             "cwd": "${workspaceFolder}",

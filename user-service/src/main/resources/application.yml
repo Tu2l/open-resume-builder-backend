@@ -1,34 +1,4 @@
-server:
-  servlet:
-    context-path: /user
-  port: 8091
 spring:
-  jackson:
-    default-property-inclusion: non_null
-  datasource:
-    url: jdbc:sqlite:../databases/users.db
-    driver-class-name: org.sqlite.JDBC
-  jpa:
-    database-platform: org.hibernate.community.dialect.SQLiteDialect
-    hibernate:
-      ddl-auto: update
-logging:
-  level:
-    org:
-      springframework: INFO
-    com:
-      tu2l:
-        user: DEBUG
-  file:
-    name: logs/user-service/app.log
-  logback:
-    rollingpolicy:
-      max-file-size: 10MB
-      max-history: 1
-jwt:
-  secret-key: yourSecureSecretKeyAtLeast32CharactersLong
-  access-token:
-    expiration-minutes: 15
-  refresh-token:
-    expiration-days: 7
-  issuer: resume-builder-app
+  profiles:
+    active:
+    - dev

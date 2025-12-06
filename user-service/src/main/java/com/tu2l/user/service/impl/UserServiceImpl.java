@@ -2,7 +2,6 @@ package com.tu2l.user.service.impl;
 
 import java.time.LocalDateTime;
 
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 
@@ -26,7 +25,6 @@ public class UserServiceImpl implements UserService {
     private final Util commonUtil;
     private final UserMapper userMapper;
 
-    @Autowired
     public UserServiceImpl(UserRepository userRepository, PasswordEncoder passwordEncoder, Util commonUtil,
             UserMapper userMapper) {
         this.userRepository = userRepository;
@@ -66,7 +64,7 @@ public class UserServiceImpl implements UserService {
         UserEntity updatedUser = userRepository.findById(userDTO.getId())
                 .map(user -> userMapper.updateUserFromDTO(userDTO, user))
                 .orElseThrow(() -> new Exception(USER_NOT_FOUND_MSG + userDTO.getId()));
-        
+
         log.info("Updating user with id: {}", updatedUser.getId());
         return userRepository.save(updatedUser);
     }
