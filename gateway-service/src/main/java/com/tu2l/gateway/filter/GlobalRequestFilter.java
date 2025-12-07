@@ -1,4 +1,4 @@
-package com.tu2l.gateway.config;
+package com.tu2l.gateway.filter;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -8,12 +8,11 @@ import org.springframework.core.Ordered;
 import org.springframework.http.HttpHeaders;
 import org.springframework.stereotype.Component;
 import org.springframework.web.server.ServerWebExchange;
-
 import reactor.core.publisher.Mono;
 
 @Component
-public class RequestFilter implements GlobalFilter, Ordered {
-    private static final Logger logger = LoggerFactory.getLogger(RequestFilter.class);
+public class GlobalRequestFilter implements GlobalFilter, Ordered {
+    private static final Logger logger = LoggerFactory.getLogger(GlobalRequestFilter.class);
 
     @Override
     public int getOrder() {
@@ -22,7 +21,7 @@ public class RequestFilter implements GlobalFilter, Ordered {
 
     @Override
     public Mono<Void> filter(ServerWebExchange exchange, GatewayFilterChain chain) {
-        logger.info("RequestFilter applied to request: {}", exchange.getRequest().getURI());
+//        logger.info("RequestFilter applied to request: {}", exchange.getRequest().getURI());
 
         String authHeader = exchange.getRequest().getHeaders().getFirst(HttpHeaders.AUTHORIZATION);
 

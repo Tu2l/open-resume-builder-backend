@@ -1,4 +1,4 @@
-package com.tu2l.user.exception;
+package com.tu2l.common.exception;
 
 public class AuthenticationException extends RuntimeException {
     public AuthenticationException(String message) {

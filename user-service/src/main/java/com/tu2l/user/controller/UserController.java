@@ -15,7 +15,7 @@ import com.tu2l.common.model.base.BaseResponse;
 import com.tu2l.common.model.states.ResponseProcessingStatus;
 import com.tu2l.common.model.states.UserRole;
 import com.tu2l.user.entity.UserEntity;
-import com.tu2l.user.exception.AuthenticationException;
+import com.tu2l.common.exception.AuthenticationException;
 import com.tu2l.user.exception.UserException;
 import com.tu2l.user.model.request.ChangePasswordRequest;
 import com.tu2l.user.model.request.UpdateUserRequest;
