@@ -1,3 +1,6 @@
+server:
+  port: 8080
+
 spring:
   cloud:
     gateway:
@@ -5,12 +8,16 @@ spring:
         - id: user-service
           uri: http://localhost:8091
           predicates:
-            - Path=/user/**
+            - Path=/api/user/**
+          filters:
+          - StripPrefix=1
         
         - id: pdf-service
           uri: http://localhost:8090
           predicates:
-            - Path=/pdf/**
+            - Path=/api/pdf/**
+          filters:
+            - StripPrefix=1
             
 # Common configuration
 logging:
