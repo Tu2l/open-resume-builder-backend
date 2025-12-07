@@ -23,7 +23,7 @@ logging:
       tu2l:
         pdf: INFO
   file:
-    name: ./logs/pdf-service/app.log
+    name: ./../etc/logs/pdf-service/app.log
   logback:
     rollingpolicy:
       max-file-size: 10MB

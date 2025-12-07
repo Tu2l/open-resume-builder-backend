@@ -47,4 +47,11 @@ buildNumber.properties
 .classpath
 .env*
 
-# End of https://www.toptal.com/developers/gitignore/api/java,maven
+### STS ###
+.apt_generated
+.classpath
+.factorypath
+.project
+.settings
+.springBeans
+.sts4-cache

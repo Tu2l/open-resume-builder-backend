@@ -6,7 +6,7 @@ spring:
   jackson:
     default-property-inclusion: non_null
   datasource:
-    url: jdbc:sqlite:./databases/generated_pdfs.db
+    url: jdbc:sqlite:./../etc/databases/generated_pdfs.db
     driver-class-name: org.sqlite.JDBC
   jpa:
     database-platform: org.hibernate.community.dialect.SQLiteDialect
@@ -20,7 +20,7 @@ logging:
       tu2l:
         pdf: DEBUG
   file:
-    name: ./logs/pdf-service/app.log
+    name: ./../etc/logs/pdf-service/app.log
   logback:
     rollingpolicy:
       max-file-size: 10MB

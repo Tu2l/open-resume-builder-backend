@@ -11,5 +11,13 @@ server:
 # Common configuration
 logging:
   level:
-    org.springframework.cloud.gateway: INFO
-    com.tu2l.gateway: DEBUG
+    org:
+      springframework: INFO
+    com:
+      tu2l: DEBUG
+  file:
+    name: ./../etc/logs/pdf-service/app.log
+  logback:
+    rollingpolicy:
+      max-file-size: 10MB
+      max-history: 1

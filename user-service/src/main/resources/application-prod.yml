@@ -22,7 +22,7 @@ logging:
       tu2l:
         user: INFO
   file:
-    name: ./logs/user-service/app.log
+    name: ./../etc/logs/user-service/app.log
   logback:
     rollingpolicy:
       max-file-size: 10MB
