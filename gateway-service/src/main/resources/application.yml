@@ -7,17 +7,3 @@ spring:
 # Gateway runs on port 8080 by default
 server:
   port: 8080
-
-# Common configuration
-logging:
-  level:
-    org:
-      springframework: INFO
-    com:
-      tu2l: DEBUG
-  file:
-    name: ./../etc/logs/pdf-service/app.log
-  logback:
-    rollingpolicy:
-      max-file-size: 10MB
-      max-history: 1

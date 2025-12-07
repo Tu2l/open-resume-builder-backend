@@ -11,3 +11,18 @@ spring:
           uri: http://localhost:8090
           predicates:
             - Path=/pdf/**
+            
+# Common configuration
+logging:
+  level:
+    org:
+      springframework: INFO
+    com:
+      tu2l:
+        pdf: DEBUG
+  file:
+    name: ./../etc/logs/gateway-service/app.log
+  logback:
+    rollingpolicy:
+      max-file-size: 10MB
+      max-history: 1
