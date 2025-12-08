@@ -4,6 +4,7 @@ import org.springframework.boot.autoconfigure.web.ErrorProperties;
 import org.springframework.boot.autoconfigure.web.WebProperties;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.util.AntPathMatcher;
 
 @Configuration
 public class BeanConfig {
@@ -15,5 +16,10 @@ public class BeanConfig {
     @Bean
     public ErrorProperties errorProperties() {
         return new ErrorProperties();
+    }
+
+    @Bean
+    public AntPathMatcher matcher() {
+        return new AntPathMatcher();
     }
 }

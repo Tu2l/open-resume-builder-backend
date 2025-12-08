@@ -18,7 +18,11 @@ spring:
             - Path=/api/pdf/**
           filters:
             - StripPrefix=1
-            
+gateway: # Custom gateway configuration
+  public-routes:
+    - /api/user/auth/**
+    - /api/pdf/**
+
 # Common configuration
 logging:
   level:

@@ -1,5 +1,6 @@
 package com.tu2l.gateway.exception;
 
+import com.tu2l.common.exception.AuthenticationException;
 import org.springframework.boot.web.error.ErrorAttributeOptions;
 import org.springframework.boot.web.reactive.error.DefaultErrorAttributes;
 import org.springframework.http.HttpStatus;
@@ -27,6 +28,10 @@ public class GlobalErrorAttributes extends DefaultErrorAttributes {
             attributes.put("status", HttpStatus.SERVICE_UNAVAILABLE.value());
             attributes.put("error", HttpStatus.SERVICE_UNAVAILABLE.getReasonPhrase());
             attributes.put("message", "Downstream service is unavailable. Please try again later.");
+        } else if (throwable instanceof AuthenticationException) {
+            attributes.put("status", HttpStatus.UNAUTHORIZED.value());
+            attributes.put("error", HttpStatus.UNAUTHORIZED.getReasonPhrase());
+            attributes.put("message", throwable.getMessage());
         }
         return attributes;
     }
