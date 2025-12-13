@@ -1,5 +1,6 @@
 package com.tu2l.common.constant;
 
+
 import lombok.AccessLevel;
 import lombok.NoArgsConstructor;
 
@@ -14,7 +15,7 @@ public final class CommonConstants {
     }
 
     // ============ HTTP Headers ============
-    @NoArgsConstructor(access = lombok.AccessLevel.PRIVATE)
+    @NoArgsConstructor(access = AccessLevel.PRIVATE)
     public static final class Headers {
         public static final String AUTHORIZATION = "Authorization";
         public static final String CONTENT_TYPE = "Content-Type";
@@ -28,7 +29,7 @@ public final class CommonConstants {
     }
 
     // ============ Content Types ============
-    @NoArgsConstructor(access = lombok.AccessLevel.PRIVATE)
+    @NoArgsConstructor(access = AccessLevel.PRIVATE)
     public static final class ContentType {
         public static final String APPLICATION_JSON = "application/json";
         public static final String APPLICATION_PDF = "application/pdf";
@@ -51,7 +52,7 @@ public final class CommonConstants {
     }
 
     // ============ JWT Claims ============
-    @NoArgsConstructor(access = lombok.AccessLevel.PRIVATE)
+    @NoArgsConstructor(access = AccessLevel.PRIVATE)
     public static final class JwtClaims {
         public static final String USER_ID = "userId";
         public static final String EMAIL = "email";
@@ -64,7 +65,7 @@ public final class CommonConstants {
     }
 
     // ============ API Path Prefixes ============
-    @NoArgsConstructor(access = lombok.AccessLevel.PRIVATE)
+    @NoArgsConstructor(access = AccessLevel.PRIVATE)
     public static final class ApiPath {
         public static final String API_PREFIX = "/api";
         public static final String USER_API = "/api/user";
@@ -78,7 +79,7 @@ public final class CommonConstants {
     }
 
     // ============ Service Context Paths ============
-    @NoArgsConstructor(access = lombok.AccessLevel.PRIVATE)
+    @NoArgsConstructor(access = AccessLevel.PRIVATE)
     public static final class ServiceContext {
         public static final String USER_SERVICE = "/user";
         public static final String PDF_SERVICE = "/pdf";
@@ -86,7 +87,7 @@ public final class CommonConstants {
     }
 
     // ============ Validation Constants ============
-    @NoArgsConstructor(access = lombok.AccessLevel.PRIVATE)
+    @NoArgsConstructor(access = AccessLevel.PRIVATE)
     public static final class Validation {
         // Username validation
         public static final int USERNAME_MIN_LENGTH = 3;
@@ -105,7 +106,7 @@ public final class CommonConstants {
     }
 
     // ============ Validation Messages ============
-    @NoArgsConstructor(access = lombok.AccessLevel.PRIVATE)
+    @NoArgsConstructor(access = AccessLevel.PRIVATE)
     public static final class ValidationMessage {
         // Username messages
         public static final String USERNAME_REQUIRED = "Username is required";
@@ -127,7 +128,7 @@ public final class CommonConstants {
     }
 
     // ============ HTTP Status Messages ============
-    @NoArgsConstructor(access = lombok.AccessLevel.PRIVATE)
+    @NoArgsConstructor(access = AccessLevel.PRIVATE)
     public static final class StatusMessage {
         // Success messages
         public static final String SUCCESS = "Success";
@@ -153,7 +154,7 @@ public final class CommonConstants {
     }
 
     // ============ Error Codes ============
-    @NoArgsConstructor(access = lombok.AccessLevel.PRIVATE)
+    @NoArgsConstructor(access = AccessLevel.PRIVATE)
     public static final class ErrorCode {
         // Authentication errors (1xxx)
         public static final String AUTH_INVALID_CREDENTIALS = "AUTH_1001";
@@ -176,7 +177,7 @@ public final class CommonConstants {
     }
 
     // ============ Date/Time Formats ============
-    @NoArgsConstructor(access = lombok.AccessLevel.PRIVATE)
+    @NoArgsConstructor(access = AccessLevel.PRIVATE)
     public static final class DateTimeFormat {
         public static final String ISO_8601 = "yyyy-MM-dd'T'HH:mm:ss.SSS'Z'";
         public static final String DATE_ONLY = "yyyy-MM-dd";
@@ -186,7 +187,7 @@ public final class CommonConstants {
     }
 
     // ============ Default Values ============
-    @NoArgsConstructor(access = lombok.AccessLevel.PRIVATE)
+    @NoArgsConstructor(access = AccessLevel.PRIVATE)
     public static final class Defaults {
         public static final String DEFAULT_TIMEZONE = "UTC";
         public static final String DEFAULT_LOCALE = "en_US";
@@ -197,7 +198,7 @@ public final class CommonConstants {
     }
 
     // ============ PDF Generation Constants ============
-    @NoArgsConstructor(access = lombok.AccessLevel.PRIVATE)
+    @NoArgsConstructor(access = AccessLevel.PRIVATE)
     public static final class PDF {
         public static final String DEFAULT_TOP_MARGIN = "6mm";
         public static final String DEFAULT_BOTTOM_MARGIN = "6mm";
@@ -208,7 +209,7 @@ public final class CommonConstants {
     }
 
     // ============ Cache Keys ============
-    @NoArgsConstructor(access = lombok.AccessLevel.PRIVATE)
+    @NoArgsConstructor(access = AccessLevel.PRIVATE)
     public static final class CacheKey {
         public static final String USER_PREFIX = "user:";
         public static final String TOKEN_PREFIX = "token:";
@@ -218,7 +219,7 @@ public final class CommonConstants {
     }
 
     // ============ Regex Patterns ============
-    @NoArgsConstructor(access = lombok.AccessLevel.PRIVATE)
+    @NoArgsConstructor(access = AccessLevel.PRIVATE)
     public static final class Pattern {
         public static final String EMAIL = "^[A-Za-z0-9+_.-]+@[A-Za-z0-9.-]+\\.[A-Za-z]{2,}$";
         public static final String UUID = "^[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12}$";

@@ -1,6 +1,5 @@
 package com.tu2l.gateway.config;
 
-import com.tu2l.common.constant.ServiceIdentifiers;
 import com.tu2l.gateway.filter.AuthGatewayFilter;
 import org.springframework.boot.autoconfigure.web.ErrorProperties;
 import org.springframework.boot.autoconfigure.web.WebProperties;

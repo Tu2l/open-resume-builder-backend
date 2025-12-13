@@ -5,6 +5,7 @@ import com.tu2l.gateway.config.CustomGatewayProperties;
 import com.tu2l.gateway.util.WebPathUtil;
 import jakarta.annotation.PostConstruct;
 import lombok.extern.slf4j.Slf4j;
+import org.jspecify.annotations.NonNull;
 import org.springframework.cloud.gateway.filter.GatewayFilterChain;
 import org.springframework.cloud.gateway.filter.GlobalFilter;
 import org.springframework.core.Ordered;
@@ -37,8 +38,9 @@ public class GlobalRequestFilter implements GlobalFilter, Ordered {
         return -1; // highest precedence
     }
 
+    @NonNull
     @Override
-    public Mono<Void> filter(ServerWebExchange exchange, GatewayFilterChain chain) {
+    public Mono<@NonNull Void> filter(ServerWebExchange exchange, @NonNull GatewayFilterChain chain) {
         // Check if path requires authentication
         String path = exchange.getRequest().getURI().getPath();
         String method = exchange.getRequest().getMethod().name();
