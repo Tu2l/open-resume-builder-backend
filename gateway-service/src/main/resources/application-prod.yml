@@ -6,8 +6,8 @@ gateway: # Custom gateway configuration
     - /api/user/auth/**
     - /api/pdf/**
   service-urls:
-    user-service: http://localhost:8091
-    pdf-service: http://localhost:8090
+    user-service: http://user-service:8091
+    pdf-service: http://pdf-service:8090
 
 # Common configuration
 logging:
@@ -15,17 +15,18 @@ logging:
     org:
       springframework:
         cloud:
-          gateway: DEBUG
-        web: DEBUG
+          gateway: INFO
+        web: INFO
     com:
       tu2l:
-        gateway: DEBUG
-        pdf: DEBUG
+        gateway: INFO
+        pdf: INFO
     reactor:
       netty: INFO
   file:
-    name: ./etc/logs/gateway-service/app.log
+    name: ./logs/gateway-service/app.log
   logback:
     rollingpolicy:
       max-file-size: 10MB
-      max-history: 1
+      max-history: 7
+

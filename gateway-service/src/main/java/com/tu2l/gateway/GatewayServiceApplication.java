@@ -1,11 +1,14 @@
 package com.tu2l.gateway;
 
+import com.tu2l.gateway.config.CustomGatewayProperties;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
+import org.springframework.boot.context.properties.EnableConfigurationProperties;
 
 @SpringBootApplication
+@EnableConfigurationProperties(CustomGatewayProperties.class)
 public class GatewayServiceApplication {
 	private static final Logger logger = LoggerFactory.getLogger(GatewayServiceApplication.class);
 

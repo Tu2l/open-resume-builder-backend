@@ -1,13 +1,14 @@
 package com.tu2l.gateway.exception;
 
+import org.jspecify.annotations.NonNull;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.ObjectProvider;
 import org.springframework.boot.autoconfigure.web.ErrorProperties;
 import org.springframework.boot.autoconfigure.web.WebProperties;
-import org.springframework.boot.autoconfigure.web.reactive.error.DefaultErrorWebExceptionHandler;
 import org.springframework.boot.web.error.ErrorAttributeOptions;
-import org.springframework.boot.web.reactive.error.ErrorAttributes;
+import org.springframework.boot.webflux.autoconfigure.error.DefaultErrorWebExceptionHandler;
+import org.springframework.boot.webflux.error.ErrorAttributes;
 import org.springframework.context.ApplicationContext;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
@@ -39,7 +40,7 @@ public class GlobalExceptionHandler extends DefaultErrorWebExceptionHandler {
                                   WebProperties.Resources resources,
                                   ErrorProperties errorProperties,
                                   ApplicationContext applicationContext,
-                                  ObjectProvider<ViewResolver> viewResolvers,
+                                  @NonNull ObjectProvider<ViewResolver> viewResolvers,
                                   ServerCodecConfigurer serverCodecConfigurer) {
         super(errorAttributes, resources, errorProperties, applicationContext);
         setViewResolvers(viewResolvers.orderedStream().collect(Collectors.toList()));
@@ -48,13 +49,15 @@ public class GlobalExceptionHandler extends DefaultErrorWebExceptionHandler {
     }
 
 
+    @NonNull
     @Override
-    protected RouterFunction<ServerResponse> getRoutingFunction(ErrorAttributes errorAttributes) {
+    protected RouterFunction<ServerResponse> getRoutingFunction(@NonNull ErrorAttributes errorAttributes) {
         return RouterFunctions.route(RequestPredicates.all(), this::renderErrorResponse);
     }
 
+    @NonNull
     @Override
-    protected Mono<ServerResponse> renderErrorResponse(ServerRequest request) {
+    protected Mono<ServerResponse> renderErrorResponse(@NonNull ServerRequest request) {
         ErrorAttributeOptions options = ErrorAttributeOptions.of(ErrorAttributeOptions.Include.MESSAGE);
         Map<String, Object> errorPropertiesMap = getErrorAttributes(request, options);
         return ServerResponse.status(Objects.requireNonNull(HttpStatus.resolve((Integer) errorPropertiesMap.get("status"))))

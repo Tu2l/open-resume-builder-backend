@@ -1,23 +1,16 @@
 package com.tu2l.gateway.config;
 
+import lombok.Data;
 import org.springframework.boot.context.properties.ConfigurationProperties;
-import org.springframework.stereotype.Component;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
 
-@Component
+@Data
 @ConfigurationProperties(prefix = "gateway")
 public class CustomGatewayProperties {
-
     private List<String> publicRoutes = new ArrayList<>();
-
-    public List<String> getPublicRoutes() {
-        return publicRoutes;
-    }
-
-    public void setPublicRoutes(List<String> publicRoutes) {
-        this.publicRoutes = publicRoutes;
-    }
+    private Map<String, String> serviceUrls = Map.of();
 }
 
