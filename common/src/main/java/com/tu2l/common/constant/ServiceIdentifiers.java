@@ -4,7 +4,7 @@ import lombok.Getter;
 
 public enum ServiceIdentifiers {
     USER_SERVICE(CommonConstants.ServiceContext.USER_SERVICE),
-    PDF_SERVICE(CommonConstants.ServiceContext.USER_SERVICE);
+    PDF_SERVICE(CommonConstants.ServiceContext.PDF_SERVICE);
 
     @Getter
     private final String serviceName;
