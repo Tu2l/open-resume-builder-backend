@@ -17,12 +17,14 @@ resume-builder-backend/
 ## 🚀 Technology Stack
 
 ### Core Technologies
+
 - **Java 17** - LTS version with modern language features
 - **Spring Boot 3.4.0** - Latest Spring Boot framework
 - **Maven** - Dependency management and build automation
 - **SQLite** (dev) / **PostgreSQL** (production) - Database options
 
 ### Key Libraries
+
 - **Lombok 1.18.36** - Reduce boilerplate code with annotations
 - **Hibernate 6.6.3** - ORM with community dialects support
 - **MapStruct 1.5.5** - Type-safe bean mapping
@@ -30,18 +32,22 @@ resume-builder-backend/
 - **SLF4J/Logback** - Logging framework
 
 ### External Tools
+
 - **wkhtmltopdf** - HTML to PDF conversion engine
 
 ## 📦 Services
 
 ### 1. Common Module
+
 Shared library containing:
+
 - Base request/response models
 - Utility classes (Base64, HTML sanitization)
 - Common enums and constants
 - Response processing status
 
 **Key Features:**
+
 - HTML sanitization with XSS protection
 - Base64 encoding/decoding utilities
 - Marker interfaces for type safety
@@ -49,12 +55,14 @@ Shared library containing:
 ---
 
 ### 2. PDF Service (`/pdf`)
+
 **Port:** 8090  
 **Status:** ✅ Fully Implemented
 
 Generate PDFs from HTML content with comprehensive configuration options.
 
 #### Features
+
 - ✅ Synchronous PDF generation
 - ✅ Asynchronous PDF generation with background processing
 - ✅ PDF persistence to database
@@ -66,14 +74,16 @@ Generate PDFs from HTML content with comprehensive configuration options.
 - ✅ Request validation
 
 #### API Endpoints
-| Method | Endpoint | Description |
-|--------|----------|-------------|
-| POST | `/pdf/generate` | Generate PDF (sync, returns base64) |
-| POST | `/pdf/generate/save` | Generate and save PDF to DB |
-| POST | `/pdf/generate/async` | Generate and save PDF asynchronously |
-| GET | `/pdf/{id}` | Retrieve generated PDF by ID |
+
+| Method | Endpoint              | Description                          |
+|--------|-----------------------|--------------------------------------|
+| POST   | `/pdf/generate`       | Generate PDF (sync, returns base64)  |
+| POST   | `/pdf/generate/save`  | Generate and save PDF to DB          |
+| POST   | `/pdf/generate/async` | Generate and save PDF asynchronously |
+| GET    | `/pdf/{id}`           | Retrieve generated PDF by ID         |
 
 #### Technical Implementation
+
 - **Async Processing:** Separate `AsyncPDFService` class for proper Spring `@Async` proxy support
 - **Functional Interface:** `PDFGenerationFunction` for flexible async operations
 - **Custom Exception:** `PDFException` for domain-specific error handling
@@ -81,6 +91,7 @@ Generate PDFs from HTML content with comprehensive configuration options.
 - **Logging:** `@Slf4j` for consistent logging across all components
 
 #### Configuration
+
 ```properties
 server.port=8090
 server.servlet.context-path=/pdf
@@ -91,12 +102,14 @@ logging.file.name=logs/pdf-service/app.log
 ---
 
 ### 3. User Service (`/user`)
+
 **Port:** 8091  
 **Status:** 🚧 In Progress (API structure complete, implementation pending)
 
 Comprehensive user management, authentication, and authorization service.
 
 #### Features
+
 - ✅ RESTful API structure with industry-standard endpoints
 - ✅ Complete request/response DTOs with validation
 - ✅ User entity with security features
@@ -141,7 +154,9 @@ Comprehensive user management, authentication, and authorization service.
 | GET | `/authorize/me/permissions` | Get current user permissions | 🚧 TODO |
 
 #### User Entity
+
 Comprehensive user model with:
+
 - **Authentication:** Username, email, hashed password, refresh tokens
 - **Profile:** First name, last name, phone number
 - **Security:** Email verification, password reset tokens, account locking, failed login tracking
@@ -150,6 +165,7 @@ Comprehensive user model with:
 - **Helper Methods:** Account status checks, token validation, full name generation
 
 #### Configuration
+
 ```properties
 server.port=8091
 server.servlet.context-path=/user
@@ -162,6 +178,7 @@ logging.file.name=logs/user-service/app.log
 ## 🛠️ Setup & Installation
 
 ### Prerequisites
+
 - Java 17 or higher
 - Maven 3.8+
 - wkhtmltopdf (for PDF service)
@@ -170,17 +187,20 @@ logging.file.name=logs/user-service/app.log
 ### Installation Steps
 
 1. **Clone the repository**
+
 ```bash
 git clone https://github.com/Tu2l/open-resume-builder-backend.git
 cd resume-builder-backend
 ```
 
 2. **Build the project**
+
 ```bash
 mvn clean install
 ```
 
 3. **Run services individually**
+
 ```bash
 # PDF Service
 cd pdf-service
@@ -194,6 +214,7 @@ mvn spring-boot:run
 ## 🏃 Running the Application
 
 ### Development Mode
+
 Each service can be run independently:
 
 ```bash
@@ -203,6 +224,7 @@ mvn spring-boot:run -pl user-service
 ```
 
 ### Production Mode
+
 Build executable JARs:
 
 ```bash
@@ -216,7 +238,9 @@ java -jar user-service/target/user-service-1.0-SNAPSHOT.jar
 ## 📝 Project Structure
 
 ### Package Organization
+
 All services follow singular package naming convention:
+
 ```
 com.tu2l.{service}/
 ├── controller/          # REST controllers
@@ -229,11 +253,12 @@ com.tu2l.{service}/
 │   └── response/       # Response models
 ├── config/             # Configuration classes
 ├── exception/          # Custom exceptions
-├── util/               # Utility classes
+├── commonUtil/               # Utility classes
 └── generator/          # Generators (PDF service)
 ```
 
 ### Key Design Patterns
+
 - **Repository Pattern** - Data access abstraction
 - **DTO Pattern** - Separation of domain and API models
 - **Builder Pattern** - Fluent object construction (Lombok)
@@ -246,6 +271,7 @@ com.tu2l.{service}/
 ### Application Properties
 
 **Common Settings (both services):**
+
 ```properties
 # JSON serialization
 spring.jackson.default-property-inclusion=non_null
@@ -264,12 +290,14 @@ logging.file.max-history=30
 ### Database Configuration
 
 **Development (SQLite):**
+
 ```properties
 spring.datasource.url=jdbc:sqlite:databases/{service}.db
 spring.datasource.driver-class-name=org.sqlite.JDBC
 ```
 
 **Production (PostgreSQL - Recommended):**
+
 ```properties
 spring.datasource.url=jdbc:postgresql://localhost:5432/{database}
 spring.datasource.username=${DB_USERNAME}
@@ -281,11 +309,13 @@ spring.jpa.database-platform=org.hibernate.dialect.PostgreSQLDialect
 ### Environment Profiles
 
 The project supports multiple profiles:
+
 - `dev` - Development with SQLite
 - `prod` - Production with PostgreSQL
 - `test` - Testing environment
 
 Activate profiles:
+
 ```bash
 mvn spring-boot:run -Dspring-boot.run.profiles=prod
 ```
@@ -293,6 +323,7 @@ mvn spring-boot:run -Dspring-boot.run.profiles=prod
 ## 🧪 Testing
 
 ### Run Tests
+
 ```bash
 # All modules
 mvn test
@@ -303,6 +334,7 @@ mvn test -pl user-service
 ```
 
 ### Test Coverage
+
 ```bash
 mvn clean verify
 ```
@@ -310,35 +342,38 @@ mvn clean verify
 ## 📊 Current Status
 
 ### ✅ Completed Features
+
 - [x] Multi-module Maven project structure
 - [x] Parent POM with centralized dependency management
 - [x] Common utilities module
 - [x] PDF Service - Full implementation
-  - [x] Sync/Async PDF generation
-  - [x] Database persistence
-  - [x] 33+ page size configurations
-  - [x] HTML sanitization
-  - [x] Exception handling
-  - [x] Request validation
+    - [x] Sync/Async PDF generation
+    - [x] Database persistence
+    - [x] 33+ page size configurations
+    - [x] HTML sanitization
+    - [x] Exception handling
+    - [x] Request validation
 - [x] User Service - API structure
-  - [x] REST endpoints definition
-  - [x] Complete DTOs with validation
-  - [x] User entity with security features
+    - [x] REST endpoints definition
+    - [x] Complete DTOs with validation
+    - [x] User entity with security features
 - [x] Logging with @Slf4j
 - [x] Code refactoring (singular package names)
 - [x] Database schemas
 
 ### 🚧 In Progress
+
 - [ ] User Service - Implementation
-  - [ ] JWT token generation/validation
-  - [ ] Password hashing with BCrypt
-  - [ ] Authentication service logic
-  - [ ] Authorization/RBAC implementation
-  - [ ] Email service integration
-  - [ ] Password reset flow
-  - [ ] Email verification
+    - [ ] JWT token generation/validation
+    - [ ] Password hashing with BCrypt
+    - [ ] Authentication service logic
+    - [ ] Authorization/RBAC implementation
+    - [ ] Email service integration
+    - [ ] Password reset flow
+    - [ ] Email verification
 
 ### 📋 Planned Features
+
 - [ ] API Gateway (optional)
 - [ ] Service Discovery (Eureka)
 - [ ] Distributed tracing
@@ -354,12 +389,14 @@ mvn clean verify
 ## 🔒 Security
 
 ### Current Implementation
+
 - ✅ HTML sanitization (XSS protection)
 - ✅ Request validation with Bean Validation
 - ✅ Global exception handling
 - ✅ Prepared statements (SQL injection protection)
 
 ### Pending Implementation
+
 - 🚧 JWT authentication
 - 🚧 Password hashing (BCrypt)
 - 🚧 CORS configuration
@@ -373,6 +410,7 @@ mvn clean verify
 ### PDF Service Example
 
 **Generate PDF (Sync)**
+
 ```bash
 curl -X POST http://localhost:8090/pdf/generate \
   -H "Content-Type: application/json" \
@@ -389,6 +427,7 @@ curl -X POST http://localhost:8090/pdf/generate \
 ```
 
 **Response**
+
 ```json
 {
   "message": "PDF generated successfully",
@@ -408,6 +447,7 @@ curl -X POST http://localhost:8090/pdf/generate \
 5. Open a Pull Request
 
 ### Code Style
+
 - Follow Java naming conventions
 - Use singular package names
 - Add `@Slf4j` for logging
@@ -423,6 +463,7 @@ This project is licensed under the MIT License - see the LICENSE file for detail
 ## 👤 Author
 
 **Tu2l**
+
 - GitHub: [@Tu2l](https://github.com/Tu2l)
 - Repository: [open-resume-builder-backend](https://github.com/Tu2l/open-resume-builder-backend)
 
@@ -436,6 +477,7 @@ This project is licensed under the MIT License - see the LICENSE file for detail
 ## 📞 Support
 
 For issues and questions:
+
 - Create an issue in the GitHub repository
 - Check existing issues for solutions
 - Review the [ROADMAP.md](ROADMAP.md) for planned features

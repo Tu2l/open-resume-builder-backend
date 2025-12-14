@@ -1,6 +1,7 @@
 package com.tu2l.gateway.filter;
 
-import com.tu2l.common.exception.AuthenticationException;
+import com.tu2l.common.constant.CommonConstants;
+import com.tu2l.common.constant.RequestType;
 import com.tu2l.gateway.config.CustomGatewayProperties;
 import com.tu2l.gateway.util.WebPathUtil;
 import jakarta.annotation.PostConstruct;
@@ -9,7 +10,7 @@ import org.jspecify.annotations.NonNull;
 import org.springframework.cloud.gateway.filter.GatewayFilterChain;
 import org.springframework.cloud.gateway.filter.GlobalFilter;
 import org.springframework.core.Ordered;
-import org.springframework.http.HttpHeaders;
+import org.springframework.http.server.reactive.ServerHttpRequest;
 import org.springframework.stereotype.Component;
 import org.springframework.web.server.ServerWebExchange;
 import reactor.core.publisher.Mono;
@@ -28,14 +29,17 @@ public class GlobalRequestFilter implements GlobalFilter, Ordered {
 
     @PostConstruct
     public void init() {
-        log.info("GlobalRequestFilter initialized with order: {}", getOrder());
-        log.info("Public routes configured: {}", gatewayProperties.getPublicRoutes());
-        log.info("Service urls routes configured: {}", gatewayProperties.getServiceUrls());
+        log.info(
+                "GlobalRequestFilter initialized with order: {}, public routes: {}, service urls: {}",
+                getOrder(),
+                gatewayProperties.getPublicRoutes(),
+                gatewayProperties.getServiceUrls()
+        );
     }
 
     @Override
     public int getOrder() {
-        return -1; // highest precedence
+        return Ordered.HIGHEST_PRECEDENCE; // highest precedence
     }
 
     @NonNull
@@ -45,29 +49,17 @@ public class GlobalRequestFilter implements GlobalFilter, Ordered {
         String path = exchange.getRequest().getURI().getPath();
         String method = exchange.getRequest().getMethod().name();
 
-        log.debug("GlobalRequestFilter invoked for {} {}", method, path);
-        log.debug("Public routes configured: {}", gatewayProperties.getPublicRoutes());
+        RequestType requestType = pathUtil.isPublicRoute(path, gatewayProperties.getPublicRoutes())
+                ? RequestType.PUBLIC
+                : RequestType.PROTECTED;
 
-        if (pathUtil.isPublicRoute(path, gatewayProperties.getPublicRoutes())) {
-            // Public route, forward request without authentication
-            log.info("Public route accessed: {} {}", method, path);
-            return chain.filter(exchange);
-        }
+        log.debug("Processing {} {} as {}", method, path, requestType);
 
-        log.info("Protected route accessed: {} {}", method, path);
+        ServerHttpRequest mutatedRequest = exchange.getRequest().mutate()
+                .header(CommonConstants.Headers.X_REQUEST_TYPE, requestType.name())
+                .build();
 
-        // if protected: extract and validate token then add user info to exchange attributes and forward request
-        String authHeader = exchange.getRequest().getHeaders().getFirst(HttpHeaders.AUTHORIZATION);
-
-        if (authHeader == null || !authHeader.startsWith("Bearer ")) {
-            log.warn("Missing or invalid Authorization header for {} {}", method, path);
-            throw new AuthenticationException("Missing or invalid Authorization header");
-        }
-
-        String token = authHeader.substring(7);
-        log.debug("Token extracted successfully for {} {}", method, path);
-        // TODO: Validate token and add user information to exchange
-        exchange.getAttributes().put("token", token);
-        return chain.filter(exchange);
+        ServerWebExchange mutatedExchange = exchange.mutate().request(mutatedRequest).build();
+        return chain.filter(mutatedExchange);
     }
 }

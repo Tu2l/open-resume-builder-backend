@@ -1,5 +1,12 @@
 package com.tu2l.common.util;
 
+import com.tu2l.common.constant.CommonConstants;
+import io.jsonwebtoken.Claims;
+import io.jsonwebtoken.Jwts;
+import io.jsonwebtoken.security.Keys;
+import lombok.AllArgsConstructor;
+
+import javax.crypto.SecretKey;
 import java.nio.charset.StandardCharsets;
 import java.time.Instant;
 import java.time.temporal.ChronoUnit;
@@ -7,13 +14,6 @@ import java.util.Date;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.function.Function;
-
-import javax.crypto.SecretKey;
-
-import io.jsonwebtoken.Claims;
-import io.jsonwebtoken.Jwts;
-import io.jsonwebtoken.security.Keys;
-import lombok.AllArgsConstructor;
 
 @AllArgsConstructor
 public class JwtUtil {
@@ -33,9 +33,9 @@ public class JwtUtil {
      */
     public String generateAccessToken(Long userId, String username, String email, String role) {
         Map<String, Object> claims = new HashMap<>();
-        claims.put("userId", userId);
-        claims.put("email", email);
-        claims.put("role", role);
+        claims.put(CommonConstants.JwtClaims.USER_ID, userId);
+        claims.put(CommonConstants.JwtClaims.EMAIL, email);
+        claims.put(CommonConstants.JwtClaims.ROLE, role);
         return createToken(claims, username, accessTokenExpirationMinutes, ChronoUnit.MINUTES);
     }
 
@@ -44,8 +44,8 @@ public class JwtUtil {
      */
     public String generateRefreshToken(Long userId, String username) {
         Map<String, Object> claims = new HashMap<>();
-        claims.put("userId", userId);
-        claims.put("tokenType", "refresh");
+        claims.put(CommonConstants.JwtClaims.USER_ID, userId);
+        claims.put(CommonConstants.JwtClaims.TOKEN_TYPE, CommonConstants.Token.TOKEN_TYPE_REFRESH);
         return createToken(claims, username, refreshTokenExpirationDays, ChronoUnit.DAYS);
     }
 
@@ -54,9 +54,9 @@ public class JwtUtil {
      */
     public String generatePasswordResetToken(Long userId, String username, String email) {
         Map<String, Object> claims = new HashMap<>();
-        claims.put("userId", userId);
-        claims.put("email", email);
-        claims.put("tokenType", "password_reset");
+        claims.put(CommonConstants.JwtClaims.USER_ID, userId);
+        claims.put(CommonConstants.JwtClaims.EMAIL, email);
+        claims.put(CommonConstants.JwtClaims.TOKEN_TYPE, CommonConstants.Token.TOKEN_TYPE_PASSWORD_RESET);
         return createToken(claims, username, 1, ChronoUnit.HOURS);
     }
 
@@ -65,9 +65,9 @@ public class JwtUtil {
      */
     public String generateEmailVerificationToken(Long userId, String username, String email) {
         Map<String, Object> claims = new HashMap<>();
-        claims.put("userId", userId);
-        claims.put("email", email);
-        claims.put("tokenType", "email_verification");
+        claims.put(CommonConstants.JwtClaims.USER_ID, userId);
+        claims.put(CommonConstants.JwtClaims.EMAIL, email);
+        claims.put(CommonConstants.JwtClaims.TOKEN_TYPE, CommonConstants.Token.TOKEN_TYPE_EMAIL_VERIFICATION);
         return createToken(claims, username, 24, ChronoUnit.HOURS);
     }
 
@@ -101,28 +101,28 @@ public class JwtUtil {
      * Extract user ID from token
      */
     public Long extractUserId(String token) {
-        return extractClaim(token, claims -> claims.get("userId", Long.class));
+        return extractClaim(token, claims -> claims.get(CommonConstants.JwtClaims.USER_ID, Long.class));
     }
 
     /**
      * Extract email from token
      */
     public String extractEmail(String token) {
-        return extractClaim(token, claims -> claims.get("email", String.class));
+        return extractClaim(token, claims -> claims.get(CommonConstants.JwtClaims.EMAIL, String.class));
     }
 
     /**
      * Extract role from token
      */
     public String extractRole(String token) {
-        return extractClaim(token, claims -> claims.get("role", String.class));
+        return extractClaim(token, claims -> claims.get(CommonConstants.JwtClaims.ROLE, String.class));
     }
 
     /**
      * Extract token type from token
      */
     public String extractTokenType(String token) {
-        return extractClaim(token, claims -> claims.get("tokenType", String.class));
+        return extractClaim(token, claims -> claims.get(CommonConstants.JwtClaims.TOKEN_TYPE, String.class));
     }
 
     /**
@@ -141,9 +141,16 @@ public class JwtUtil {
     }
 
     /**
+     * Extract specific claim from token
+     */
+    public <T> T extractClaim(Claims claims, Function<Claims, T> claimsResolver) {
+        return claimsResolver.apply(claims);
+    }
+
+    /**
      * Extract all claims from token
      */
-    private Claims extractAllClaims(String token) {
+    public Claims extractAllClaims(String token) {
         return Jwts.parser()
                 .verifyWith(getSigningKey())
                 .build()
@@ -166,7 +173,7 @@ public class JwtUtil {
      */
     public boolean validateRefreshToken(String token) throws Exception {
         String tokenType = extractTokenType(token);
-        return "refresh".equals(tokenType) && !isTokenExpired(token);
+        return CommonConstants.Token.TOKEN_TYPE_REFRESH.equals(tokenType) && !isTokenExpired(token);
     }
 
     /**
@@ -174,7 +181,7 @@ public class JwtUtil {
      */
     public boolean validatePasswordResetToken(String token) throws Exception {
         String tokenType = extractTokenType(token);
-        return "password_reset".equals(tokenType) && !isTokenExpired(token);
+        return CommonConstants.Token.TOKEN_TYPE_PASSWORD_RESET.equals(tokenType) && !isTokenExpired(token);
     }
 
     /**
@@ -182,7 +189,7 @@ public class JwtUtil {
      */
     public boolean validateEmailVerificationToken(String token) throws Exception {
         String tokenType = extractTokenType(token);
-        return "email_verification".equals(tokenType) && !isTokenExpired(token);
+        return CommonConstants.Token.TOKEN_TYPE_EMAIL_VERIFICATION.equals(tokenType) && !isTokenExpired(token);
     }
 
     /**

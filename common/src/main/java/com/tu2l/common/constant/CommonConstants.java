@@ -17,14 +17,11 @@ public final class CommonConstants {
     // ============ HTTP Headers ============
     @NoArgsConstructor(access = AccessLevel.PRIVATE)
     public static final class Headers {
-        public static final String AUTHORIZATION = "Authorization";
-        public static final String CONTENT_TYPE = "Content-Type";
-        public static final String ACCEPT = "Accept";
-        public static final String USER_AGENT = "User-Agent";
         public static final String X_USER_ID = "X-User-Id";
         public static final String X_USER_EMAIL = "X-User-Email";
         public static final String X_USER_ROLE = "X-User-Role";
         public static final String X_REQUEST_ID = "X-Request-Id";
+        public static final String X_REQUEST_TYPE = "X-Request-Type";
         public static final String X_CORRELATION_ID = "X-Correlation-Id";
     }
 
@@ -40,6 +37,7 @@ public final class CommonConstants {
     }
 
     // ============ Token Constants ============
+    @NoArgsConstructor(access = AccessLevel.PRIVATE)
     public static final class Token {
         public static final String BEARER_PREFIX = "Bearer ";
         public static final String TOKEN_TYPE_BEARER = "Bearer";
@@ -47,8 +45,6 @@ public final class CommonConstants {
         public static final String TOKEN_TYPE_PASSWORD_RESET = "password_reset";
         public static final String TOKEN_TYPE_EMAIL_VERIFICATION = "email_verification";
         public static final int BEARER_PREFIX_LENGTH = 7;
-
-        private Token() {}
     }
 
     // ============ JWT Claims ============

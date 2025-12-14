@@ -1,12 +1,12 @@
-package com.tu2l.user.config;
+package com.tu2l.gateway.config;
 
-import com.tu2l.common.util.CommonUtil;
 import com.tu2l.common.util.JwtUtil;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.boot.autoconfigure.web.ErrorProperties;
+import org.springframework.boot.autoconfigure.web.WebProperties;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
-import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
-import org.springframework.security.crypto.password.PasswordEncoder;
+import org.springframework.util.AntPathMatcher;
 
 @Configuration
 public class BeansConfiguration {
@@ -20,17 +20,22 @@ public class BeansConfiguration {
     private String issuer;
 
     @Bean
-    PasswordEncoder passwordEncoder() {
-        return new BCryptPasswordEncoder();
-    }
-
-    @Bean
-    CommonUtil commonUtil() {
-        return new CommonUtil();
-    }
-
-    @Bean
     public JwtUtil jwtUtil() {
         return new JwtUtil(secretKey, accessTokenExpirationMinutes, refreshTokenExpirationDays, issuer);
+    }
+
+    @Bean
+    public WebProperties.Resources webPropertiesResources() {
+        return new WebProperties.Resources();
+    }
+
+    @Bean
+    public ErrorProperties errorProperties() {
+        return new ErrorProperties();
+    }
+
+    @Bean
+    public AntPathMatcher matcher() {
+        return new AntPathMatcher();
     }
 }

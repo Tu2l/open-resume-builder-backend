@@ -1,10 +1,7 @@
 package com.tu2l.pdf.service.impl;
 
-import org.springframework.beans.factory.annotation.Qualifier;
-import org.springframework.stereotype.Service;
-
 import com.tu2l.common.model.states.ResponseProcessingStatus;
-import com.tu2l.common.util.Util;
+import com.tu2l.common.util.CommonUtil;
 import com.tu2l.pdf.entity.GeneratedPDFEntity;
 import com.tu2l.pdf.exception.PDFException;
 import com.tu2l.pdf.generator.PDFGenerator;
@@ -16,24 +13,25 @@ import com.tu2l.pdf.model.response.GeneratePDFResponse;
 import com.tu2l.pdf.repository.PDFRepository;
 import com.tu2l.pdf.service.PDFService;
 import com.tu2l.pdf.util.EntityMapper;
-
 import jakarta.transaction.Transactional;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.beans.factory.annotation.Qualifier;
+import org.springframework.stereotype.Service;
 
 @Slf4j
 @Service
 public class PDFServiceImpl implements PDFService {
     private final PDFRepository repository;
-    private final Util util;
+    private final CommonUtil commonUtil;
     private final EntityMapper mapper;
     private final PDFGenerator pdfGenerator;
     private final AsyncPDFService asyncPDFService;
 
-    public PDFServiceImpl(PDFRepository repository, Util util, EntityMapper mapper,
-            @Qualifier("wkhtmlToPdfGenerator") PDFGenerator pdfGenerator,
-            AsyncPDFService asyncPDFService) {
+    public PDFServiceImpl(PDFRepository repository, CommonUtil commonUtil, EntityMapper mapper,
+                          @Qualifier("wkhtmlToPdfGenerator") PDFGenerator pdfGenerator,
+                          AsyncPDFService asyncPDFService) {
         this.repository = repository;
-        this.util = util;
+        this.commonUtil = commonUtil;
         this.mapper = mapper;
         this.pdfGenerator = pdfGenerator;
         this.asyncPDFService = asyncPDFService;
@@ -98,8 +96,8 @@ public class PDFServiceImpl implements PDFService {
 
         log.debug("Decoding and Sanitizing content for file: {}", pdfRequest.getFileName());
 
-        String content = util.decodeAndSanitizeBase64StringToString(pdfRequest.getContent());
-        String fileName = util.cleanExtension(pdfRequest.getFileName());
+        String content = commonUtil.decodeAndSanitizeBase64StringToString(pdfRequest.getContent());
+        String fileName = commonUtil.cleanExtension(pdfRequest.getFileName());
 
         log.debug("Cleaned filename: {}", fileName);
 
@@ -114,7 +112,7 @@ public class PDFServiceImpl implements PDFService {
 
         log.info("PDF generated successfully: fileName={}, size={} bytes", fileName, pdfBytes.length);
 
-        content = util.encodeByteArrayToBase64String(pdfBytes);
+        content = commonUtil.encodeByteArrayToBase64String(pdfBytes);
         response.setContent(content);
         response.setFileName(fileName);
         response.setStatus(ResponseProcessingStatus.SUCCESS);
