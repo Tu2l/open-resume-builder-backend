@@ -36,7 +36,6 @@ public class AuthGatewayServiceImpl implements AuthGatewayService {
         String role = jwtUtil.extractClaim(claims, claim -> claim.get(CommonConstants.JwtClaims.ROLE, String.class));
 
         ServerHttpRequest mutatedRequest = request.mutate()
-                .header(CommonConstants.Headers.X_REQUEST_ID, String.valueOf(System.currentTimeMillis()))
                 .header(CommonConstants.Headers.X_USER_ID, userId)
                 .header(CommonConstants.Headers.X_USER_EMAIL, email)
                 .header(CommonConstants.Headers.X_USER_ROLE, role)
