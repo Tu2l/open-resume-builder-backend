@@ -12,6 +12,9 @@ import static com.tu2l.common.constant.ServiceIdentifiers.USER_SERVICE;
 
 @Configuration
 public class GatewayConfig {
+    public static final String PREFIX_API = "/api";
+    public static final String PATTERN_MATCH_ALL = "/**";
+
     @Bean
     public AuthGatewayFilter authGatewayFilter(AuthGatewayService authGatewayService) {
         return new AuthGatewayFilter(authGatewayService);
@@ -22,7 +25,7 @@ public class GatewayConfig {
         return builder.routes()
                 // User Service Route
                 .route(USER_SERVICE.getServiceName(), r -> r
-                        .path("/api" + USER_SERVICE.getBasePath() + "/**")
+                        .path(PREFIX_API + USER_SERVICE.getBasePath() + PATTERN_MATCH_ALL)
                         .filters(f -> f
                                 .filter(authGatewayFilter)
                                 .stripPrefix(1))
@@ -30,7 +33,7 @@ public class GatewayConfig {
 
                 // PDF Service Route
                 .route(PDF_SERVICE.getServiceName(), r -> r
-                        .path("/api" + PDF_SERVICE.getBasePath() + "/**")
+                        .path(PREFIX_API + PDF_SERVICE.getBasePath() + PATTERN_MATCH_ALL)
                         .filters(f -> f
                                 .filter(authGatewayFilter)
                                 .stripPrefix(1))
