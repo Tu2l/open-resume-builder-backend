@@ -10,7 +10,7 @@ import org.springframework.util.AntPathMatcher;
 
 @Configuration
 public class BeansConfiguration {
-    @Value("${jwt.secret:asdsadsadsadsadsadsadsadsa}")
+    @Value("${jwt.secret-key:dev-default-secret-key-must-be-at-least-32-chars-long-for-HS256}")
     private String secretKey;
     @Value("${jwt.access-token.expiration-minutes:60}")
     private int accessTokenExpirationMinutes;

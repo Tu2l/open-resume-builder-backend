@@ -55,4 +55,14 @@ public interface UserService {
      *                   match
      */
     UserEntity updatePassword(Long id, String oldPassword, String newPassword) throws Exception;
+
+    /**
+     * Check if a user exists by username or email.
+     *
+     * @param username the username to check
+     * @param email    the email to check
+     * @return true if a user exists with the given username or email, false
+     *         otherwise
+     */
+    boolean existsByUsernameOrEmail(String username, String email);
 }

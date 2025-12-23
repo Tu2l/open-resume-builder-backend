@@ -28,7 +28,7 @@ logging:
       max-file-size: 10MB
       max-history: 1
 jwt:
-  secret-key: yourSecureSecretKeyAtLeast32CharactersLong
+  secret-key: ${JWT_SECRET_KEY}
   access-token:
     expiration-minutes: 30
   refresh-token:

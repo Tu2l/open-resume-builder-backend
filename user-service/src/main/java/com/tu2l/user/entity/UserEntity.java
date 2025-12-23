@@ -1,6 +1,7 @@
 package com.tu2l.user.entity;
 
 import java.time.LocalDateTime;
+import java.util.ArrayList;
 import java.util.List;
 
 import org.hibernate.annotations.CreationTimestamp;
@@ -189,6 +190,9 @@ public class UserEntity {
 
     public void addUserLogin(UserLogin login) {
         login.setUser(this);
+        if (this.userLogins == null) {
+            this.userLogins = new ArrayList<>();
+        }
         this.userLogins.add(login);
     }
 }

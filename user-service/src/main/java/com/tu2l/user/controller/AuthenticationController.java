@@ -2,9 +2,7 @@ package com.tu2l.user.controller;
 
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestBody;
-import org.springframework.web.bind.annotation.RequestHeader;
+import org.springframework.web.bind.annotation.*;
 
 import com.tu2l.common.model.base.BaseResponse;
 import com.tu2l.common.model.states.ResponseProcessingStatus;
@@ -26,8 +24,8 @@ import lombok.extern.slf4j.Slf4j;
  * Base path: /user/auth
  */
 @Slf4j
-// @RestController
-// @RequestMapping("/auth")
+@RestController
+@RequestMapping("/auth")
 public class AuthenticationController {
     private final AuthenticationService authenticationService;
 

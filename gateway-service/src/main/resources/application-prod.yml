@@ -31,7 +31,7 @@ logging:
       max-history: 7
 
 jwt:
-  secret-key: 6594c507-2129-4ae7-a569-ed54e00ca66b
+  secret-key: ${JWT_SECRET_KEY}
   access-token:
     expiration-minutes: 15
   refresh-token:

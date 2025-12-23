@@ -121,4 +121,10 @@ public class UserServiceImpl implements UserService {
         user.setPassword(passwordEncoder.encode(newPasswordPlainText));
         return userRepository.save(user);
     }
+
+    @Override
+    public boolean existsByUsernameOrEmail(String username, String email) {
+        log.info("Checking existence of user with username: {} or email: {}", username, email);
+        return userRepository.existsByUsernameOrEmail(username, email);
+    }
 }

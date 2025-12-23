@@ -31,7 +31,7 @@ logging:
       max-history: 1
 
 jwt:
-  secret-key: 6594c507-2129-4ae7-a569-ed54e00ca66b
+  secret-key: ${JWT_SECRET_KEY:dev-secret-key-must-be-at-least-256-bits-or-32-characters-long}
   access-token:
     expiration-minutes: 15
   refresh-token:
