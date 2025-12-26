@@ -38,13 +38,13 @@ public interface AuthenticationService {
     /**
      * Authenticates a user with credentials and optional session persistence.
      *
-     * @param username   the username or email of the user
+     * @param usernameOrEmail   the usernameOrEmail or email of the user
      * @param password   the user's password
      * @param rememberMe whether to create a persistent session
      * @return a UserEntity representing the authenticated user
      * @throws Exception if authentication fails (e.g., invalid credentials)
      */
-    UserEntity authenticate(String username, String password, boolean rememberMe) throws Exception;
+    UserEntity authenticate(String usernameOrEmail, String password, boolean rememberMe) throws Exception;
 
     /**
      * Issues a new authentication token using a valid refresh token.

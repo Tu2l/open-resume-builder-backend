@@ -47,20 +47,27 @@ public class AuthenticationServiceImpl implements AuthenticationService {
 
         // generate access-token and refresh-token
         user.setId(userId);
-        user.setRefreshToken(jwtUtil.generateRefreshToken(userId, user.getUsername()));
-        UserLogin userLogin = new UserLogin();
-        userLogin.setToken(jwtUtil.generateAccessToken(user.getId(), user.getUsername(), user.getEmail(), user.getRole().toString()));
-        userLogin.setExpiresIn(jwtUtil.getAccessTokenExpiration());
-        user.addUserLogin(userLogin);
+        generateTokens(user, userId);
 
         log.info("User registered successfully: {}", request.getUsername());
 
         return userRepository.save(user);
     }
 
+
+
     @Override
-    public UserEntity authenticate(String username, String password, boolean rememberMe) throws Exception {
-        return null;
+    public UserEntity authenticate(String usernameOrEmail, String password, boolean rememberMe) throws Exception {
+        // TODO - verify if email or username passed
+        // TODO - handle rememberMe functionality
+
+        UserEntity userEntity = userService.getUserByUsername(usernameOrEmail);
+        if (!passwordEncoder.matches(password, userEntity.getPassword())) {
+            throw new UserException("Invalid username or password");
+        }
+        generateTokens(userEntity, userEntity.getId());
+        log.info("User authenticated successfully: {}", usernameOrEmail);
+        return userRepository.save(userEntity);
     }
 
     @Override
@@ -86,5 +93,13 @@ public class AuthenticationServiceImpl implements AuthenticationService {
     @Override
     public UserEntity verifyEmail(String verificationToken) throws Exception {
         return null;
+    }
+
+    private void generateTokens(UserEntity user, Long userId) {
+        user.setRefreshToken(jwtUtil.generateRefreshToken(userId, user.getUsername()));
+        UserLogin userLogin = new UserLogin();
+        userLogin.setToken(jwtUtil.generateAccessToken(user.getId(), user.getUsername(), user.getEmail(), user.getRole().toString()));
+        userLogin.setExpiresIn(jwtUtil.getAccessTokenExpiration());
+        user.addUserLogin(userLogin);
     }
 }

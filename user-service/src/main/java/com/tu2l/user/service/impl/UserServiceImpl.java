@@ -47,6 +47,18 @@ public class UserServiceImpl implements UserService {
     }
 
     /**
+     * Retrieves a user by their username.
+     *
+     * @param username the username of the user
+     * @return the UserEntity corresponding to the provided username
+     * @throws Exception if the user is not found
+     */
+    @Override
+    public UserEntity getUserByUsername(String username) throws Exception {
+        return userRepository.findUserByUsername(username).orElseThrow(() -> new UserException("User not found with username: " + username));
+    }
+
+    /**
      * Updates user profile information.
      *
      * @param userDTO the UserDTO containing updated user information

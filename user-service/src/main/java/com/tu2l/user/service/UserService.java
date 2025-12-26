@@ -27,6 +27,15 @@ public interface UserService {
     UserEntity getUserById(Long id) throws Exception;
 
     /**
+     * UserEntity getUserByUsername(String username) throws Exception;
+     *
+     * @param username the username of the user
+     * @return a UserEntity containing user details
+     * @throws Exception if the user is not found
+     */
+    UserEntity getUserByUsername(String username) throws Exception;
+
+    /**
      * Updates user profile information.
      *
      * @param userDTO the UserDTO containing updated user information
