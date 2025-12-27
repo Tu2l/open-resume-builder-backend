@@ -31,9 +31,8 @@ public class JwtUtil {
     /**
      * Generate access token for user authentication
      */
-    public String generateAccessToken(Long userId, String username, String email, String role) {
+    public String generateAccessToken(String username, String email, String role) {
         Map<String, Object> claims = new HashMap<>();
-        claims.put(CommonConstants.JwtClaims.USER_ID, userId);
         claims.put(CommonConstants.JwtClaims.EMAIL, email);
         claims.put(CommonConstants.JwtClaims.ROLE, role);
         return createToken(claims, username, accessTokenExpirationMinutes, ChronoUnit.MINUTES);
@@ -42,9 +41,8 @@ public class JwtUtil {
     /**
      * Generate refresh token for obtaining new access tokens
      */
-    public String generateRefreshToken(Long userId, String username) {
+    public String generateRefreshToken(String username) {
         Map<String, Object> claims = new HashMap<>();
-        claims.put(CommonConstants.JwtClaims.USER_ID, userId);
         claims.put(CommonConstants.JwtClaims.TOKEN_TYPE, CommonConstants.Token.TOKEN_TYPE_REFRESH);
         return createToken(claims, username, refreshTokenExpirationDays, ChronoUnit.DAYS);
     }
@@ -52,9 +50,8 @@ public class JwtUtil {
     /**
      * Generate password reset token
      */
-    public String generatePasswordResetToken(Long userId, String username, String email) {
+    public String generatePasswordResetToken(String username, String email) {
         Map<String, Object> claims = new HashMap<>();
-        claims.put(CommonConstants.JwtClaims.USER_ID, userId);
         claims.put(CommonConstants.JwtClaims.EMAIL, email);
         claims.put(CommonConstants.JwtClaims.TOKEN_TYPE, CommonConstants.Token.TOKEN_TYPE_PASSWORD_RESET);
         return createToken(claims, username, 1, ChronoUnit.HOURS);
@@ -63,9 +60,8 @@ public class JwtUtil {
     /**
      * Generate email verification token
      */
-    public String generateEmailVerificationToken(Long userId, String username, String email) {
+    public String generateEmailVerificationToken(String username, String email) {
         Map<String, Object> claims = new HashMap<>();
-        claims.put(CommonConstants.JwtClaims.USER_ID, userId);
         claims.put(CommonConstants.JwtClaims.EMAIL, email);
         claims.put(CommonConstants.JwtClaims.TOKEN_TYPE, CommonConstants.Token.TOKEN_TYPE_EMAIL_VERIFICATION);
         return createToken(claims, username, 24, ChronoUnit.HOURS);
@@ -95,13 +91,6 @@ public class JwtUtil {
      */
     public String extractUsername(String token) {
         return extractClaim(token, Claims::getSubject);
-    }
-
-    /**
-     * Extract user ID from token
-     */
-    public Long extractUserId(String token) {
-        return extractClaim(token, claims -> claims.get(CommonConstants.JwtClaims.USER_ID, Long.class));
     }
 
     /**
@@ -196,7 +185,7 @@ public class JwtUtil {
      * Check if token is expired
      */
     public boolean isTokenExpired(String token) throws Exception {
-        return extractExpiration(token).before(new Date());
+        return extractExpiration(token).after(new Date());
     }
 
     /**

@@ -1,10 +1,11 @@
 package com.tu2l.user.model.response;
 
 import com.tu2l.common.model.base.BaseResponse;
-
+import lombok.Builder;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
 
+@Builder
 @Data
 @EqualsAndHashCode(callSuper = true)
 public class AuthResponse extends BaseResponse {

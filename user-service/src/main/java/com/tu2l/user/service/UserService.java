@@ -6,7 +6,7 @@ import com.tu2l.user.model.response.UserDTO;
 /**
  * Defines core user management operations including retrieval, profile updates,
  * account removal, and password changes within the user service layer.
- * 
+ *
  * <ul>
  * <li>{@link #getUserById(Long)} — Retrieves user details by their unique
  * ID.</li>
@@ -71,7 +71,15 @@ public interface UserService {
      * @param username the username to check
      * @param email    the email to check
      * @return true if a user exists with the given username or email, false
-     *         otherwise
+     * otherwise
      */
     boolean existsByUsernameOrEmail(String username, String email);
+
+    /**
+     * Retrieves user details by their email.
+     *
+     * @param email the email of the user
+     * @return a UserEntity containing user details
+     */
+    UserEntity getUserByEmail(String email);
 }

@@ -31,17 +31,13 @@ public class AuthGatewayServiceImpl implements AuthGatewayService {
     @Override
     public ServerHttpRequest mutateRequestWithUserInfo(ServerHttpRequest request, String token) throws Exception {
         Claims claims = jwtUtil.extractAllClaims(token);
-        String userId = jwtUtil.extractClaim(claims, claim -> claim.get(CommonConstants.JwtClaims.USER_ID, String.class));
         String email = jwtUtil.extractClaim(claims, claim -> claim.get(CommonConstants.JwtClaims.EMAIL, String.class));
         String role = jwtUtil.extractClaim(claims, claim -> claim.get(CommonConstants.JwtClaims.ROLE, String.class));
 
-        ServerHttpRequest mutatedRequest = request.mutate()
-                .header(CommonConstants.Headers.X_USER_ID, userId)
+        log.info("Request enriched with user info: email={}, role={}", email, role);
+        return request.mutate()
                 .header(CommonConstants.Headers.X_USER_EMAIL, email)
                 .header(CommonConstants.Headers.X_USER_ROLE, role)
                 .build();
-
-        log.info("Request enriched with user info: userId={}, email={}, role={}", userId, email, role);
-        return mutatedRequest;
     }
 }

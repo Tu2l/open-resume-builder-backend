@@ -1,30 +1,17 @@
 package com.tu2l.user.entity;
 
-import java.time.LocalDateTime;
-import java.util.ArrayList;
-import java.util.List;
-
-import org.hibernate.annotations.CreationTimestamp;
-import org.hibernate.annotations.UpdateTimestamp;
-
 import com.tu2l.common.model.states.UserRole;
-
-import jakarta.persistence.CascadeType;
-import jakarta.persistence.Column;
-import jakarta.persistence.Entity;
-import jakarta.persistence.EnumType;
-import jakarta.persistence.Enumerated;
-import jakarta.persistence.GeneratedValue;
-import jakarta.persistence.GenerationType;
-import jakarta.persistence.Id;
-import jakarta.persistence.Index;
-import jakarta.persistence.OneToMany;
-import jakarta.persistence.PrePersist;
-import jakarta.persistence.Table;
+import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
+import org.hibernate.annotations.CreationTimestamp;
+import org.hibernate.annotations.UpdateTimestamp;
+
+import java.time.LocalDateTime;
+import java.util.ArrayList;
+import java.util.List;
 
 @Data
 @Builder
@@ -111,8 +98,9 @@ public class UserEntity {
     @Column
     private LocalDateTime deletedAt; // For soft delete
 
+    @Builder.Default
     @OneToMany(mappedBy = "user", cascade = CascadeType.ALL, orphanRemoval = true)
-    private List<UserLogin> userLogins;
+    private List<UserLogin> userLogins = new ArrayList<>();
 
     @PrePersist
     protected void onCreate() {
@@ -129,7 +117,7 @@ public class UserEntity {
             failedLoginAttempts = 0;
         }
         if (userLogins == null) {
-            userLogins = List.of();
+            userLogins = new ArrayList<>();
         }
         userLogins.forEach(login -> login.setUser(this));
     }

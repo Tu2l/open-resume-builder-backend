@@ -1,7 +1,7 @@
 package com.tu2l.user.model.request;
 
+import com.tu2l.common.constant.CommonConstants;
 import com.tu2l.common.model.base.BaseRequest;
-
 import jakarta.validation.constraints.Email;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.Pattern;
@@ -11,40 +11,43 @@ import lombok.Data;
 @Data
 public class RegisterRequest implements BaseRequest {
 
-    @NotBlank(message = "Username is required")
+    @NotBlank(message = CommonConstants.ValidationMessage.USERNAME_REQUIRED)
     @Size(
-            min = 3, max = 50,
-            message = "Username must be between 3 and 50 characters"
+            min = CommonConstants.Validation.USERNAME_MIN_LENGTH,
+            max = CommonConstants.Validation.USERNAME_MAX_LENGTH,
+            message = CommonConstants.ValidationMessage.USERNAME_SIZE
     )
     @Pattern(
-            regexp = "^[a-zA-Z0-9._-]+$",
-            message = "Username can only contain letters, numbers, dots, underscores and hyphens"
+            regexp = CommonConstants.Pattern.USERNAME_PATTERN,
+            message = CommonConstants.ValidationMessage.USERNAME_PATTERN_MSG
     )
     private String username;
 
-    @NotBlank(message = "Email is required")
-    @Email(message = "Email must be valid")
+    @NotBlank(message = CommonConstants.ValidationMessage.EMAIL_REQUIRED)
+    @Email(message = CommonConstants.ValidationMessage.EMAIL_INVALID)
     private String email;
 
-    @NotBlank(message = "Password is required")
+    @NotBlank(message = CommonConstants.ValidationMessage.PASSWORD_REQUIRED)
     @Size(
-            min = 8,
-            max = 100,
-            message = "Password must be between 8 and 100 characters"
+            min = CommonConstants.Validation.PASSWORD_MIN_LENGTH,
+            max = CommonConstants.Validation.PASSWORD_MAX_LENGTH,
+            message = CommonConstants.ValidationMessage.PASSWORD_SIZE
     )
     @Pattern(
-            regexp = "^(?=.*[a-z])(?=.*[A-Z])(?=.*\\d)(?=.*[@$!%*?&])[A-Za-z\\d@$!%*?&]+$",
-            message = "Password must contain at least one uppercase letter, one lowercase letter, one number and one special character"
+            regexp = CommonConstants.Pattern.PASSWORD_PATTERN,
+            message = CommonConstants.ValidationMessage.PASSWORD_PATTERN_MSG
     )
     private String password;
 
-    @NotBlank(message = "First name is required")
+    @NotBlank(message = CommonConstants.ValidationMessage.FIRST_NAME_REQUIRED)
     private String firstName;
-    @NotBlank(message = "Last name is required")
+
+    @NotBlank(message = CommonConstants.ValidationMessage.LAST_NAME_REQUIRED)
     private String lastName;
+
     @Pattern(
-            regexp = "^[+]?[(]?[0-9]{1,4}[)]?[-\\s./0-9]*$",
-            message = "Phone number must be valid"
+            regexp = CommonConstants.Pattern.PHONE_PATTERN,
+            message = CommonConstants.ValidationMessage.PHONE_INVALID
     )
     private String phoneNumber;
 }

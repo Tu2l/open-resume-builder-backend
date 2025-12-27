@@ -1,5 +1,6 @@
 package com.tu2l.user.service.impl;
 
+import com.tu2l.common.util.CommonUtil;
 import com.tu2l.common.util.JwtUtil;
 import com.tu2l.user.entity.UserEntity;
 import com.tu2l.user.entity.UserLogin;
@@ -19,14 +20,17 @@ import java.util.Optional;
 @Service
 public class AuthenticationServiceImpl implements AuthenticationService {
     private final JwtUtil jwtUtil;
+    private final CommonUtil commonUtil;
     private final UserService userService;
     private final UserMapper userMapper;
     private final PasswordEncoder passwordEncoder;
     private final UserRepository userRepository;
 
-    public AuthenticationServiceImpl(JwtUtil jwtUtil, UserService userService, UserMapper userMapper,
-                                     PasswordEncoder passwordEncoder, UserRepository userRepository) {
+    public AuthenticationServiceImpl(JwtUtil jwtUtil, CommonUtil commonUtil, UserService userService,
+                                     UserMapper userMapper, PasswordEncoder passwordEncoder,
+                                     UserRepository userRepository) {
         this.jwtUtil = jwtUtil;
+        this.commonUtil = commonUtil;
         this.userService = userService;
         this.userMapper = userMapper;
         this.passwordEncoder = passwordEncoder;
@@ -47,7 +51,7 @@ public class AuthenticationServiceImpl implements AuthenticationService {
 
         // generate access-token and refresh-token
         user.setId(userId);
-        generateTokens(user, userId);
+        generateTokens(user);
 
         log.info("User registered successfully: {}", request.getUsername());
 
@@ -55,17 +59,16 @@ public class AuthenticationServiceImpl implements AuthenticationService {
     }
 
 
-
     @Override
     public UserEntity authenticate(String usernameOrEmail, String password, boolean rememberMe) throws Exception {
-        // TODO - verify if email or username passed
         // TODO - handle rememberMe functionality
+        UserEntity userEntity = commonUtil.isValidEmail(usernameOrEmail) ?
+                userService.getUserByEmail(usernameOrEmail) : userService.getUserByUsername(usernameOrEmail);
 
-        UserEntity userEntity = userService.getUserByUsername(usernameOrEmail);
         if (!passwordEncoder.matches(password, userEntity.getPassword())) {
             throw new UserException("Invalid username or password");
         }
-        generateTokens(userEntity, userEntity.getId());
+        generateTokens(userEntity);
         log.info("User authenticated successfully: {}", usernameOrEmail);
         return userRepository.save(userEntity);
     }
@@ -95,11 +98,13 @@ public class AuthenticationServiceImpl implements AuthenticationService {
         return null;
     }
 
-    private void generateTokens(UserEntity user, Long userId) {
-        user.setRefreshToken(jwtUtil.generateRefreshToken(userId, user.getUsername()));
-        UserLogin userLogin = new UserLogin();
-        userLogin.setToken(jwtUtil.generateAccessToken(user.getId(), user.getUsername(), user.getEmail(), user.getRole().toString()));
-        userLogin.setExpiresIn(jwtUtil.getAccessTokenExpiration());
+    private void generateTokens(UserEntity user) {
+        user.setRefreshToken(jwtUtil.generateRefreshToken(user.getUsername()));
+        UserLogin userLogin = UserLogin.builder()
+                .token(jwtUtil.generateAccessToken(user.getUsername(), user.getEmail(), user.getRole().toString()))
+                .expiresIn(jwtUtil.getAccessTokenExpiration())
+                .loggedInAt(java.time.LocalDateTime.now())
+                .build();
         user.addUserLogin(userLogin);
     }
 }

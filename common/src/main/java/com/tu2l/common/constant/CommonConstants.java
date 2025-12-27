@@ -88,17 +88,10 @@ public final class CommonConstants {
         // Username validation
         public static final int USERNAME_MIN_LENGTH = 3;
         public static final int USERNAME_MAX_LENGTH = 50;
-        public static final String USERNAME_PATTERN = "^[a-zA-Z0-9._-]+$";
 
         // Password validation
         public static final int PASSWORD_MIN_LENGTH = 8;
         public static final int PASSWORD_MAX_LENGTH = 100;
-        public static final String PASSWORD_PATTERN = "^(?=.*[a-z])(?=.*[A-Z])(?=.*\\d)(?=.*[@$!%*?&])[A-Za-z\\d@$!%*?&]+$";
-
-        // Email validation - using standard Jakarta Bean Validation @Email
-
-        // Phone number validation
-        public static final String PHONE_PATTERN = "^[+]?[(]?[0-9]{1,4}[)]?[-\\s\\.]?[(]?[0-9]{1,4}[)]?[-\\s\\.]?[0-9]{1,9}$";
     }
 
     // ============ Validation Messages ============
@@ -117,6 +110,13 @@ public final class CommonConstants {
         public static final String PASSWORD_REQUIRED = "Password is required";
         public static final String PASSWORD_SIZE = "Password must be between 8 and 100 characters";
         public static final String PASSWORD_PATTERN_MSG = "Password must contain at least one uppercase letter, one lowercase letter, one number and one special character";
+
+        // Name messages
+        public static final String FIRST_NAME_REQUIRED = "First name is required";
+        public static final String LAST_NAME_REQUIRED = "Last name is required";
+
+        // Phone messages
+        public static final String PHONE_INVALID = "Phone number must be valid";
 
         // Token messages
         public static final String TOKEN_REQUIRED = "Token is required";
@@ -222,5 +222,8 @@ public final class CommonConstants {
         public static final String ALPHANUMERIC = "^[a-zA-Z0-9]+$";
         public static final String NUMERIC = "^[0-9]+$";
         public static final String URL = "^(https?|ftp)://[^\\s/$.?#].[^\\s]*$";
+        public static final String PASSWORD_PATTERN = "^(?=.*[a-z])(?=.*[A-Z])(?=.*\\d)(?=.*[@$!%*?&])[A-Za-z\\d@$!%*?&]+$";
+        public static final String PHONE_PATTERN = "^[+]?[(]?[0-9]{1,4}[)]?[-\\s\\.]?[(]?[0-9]{1,4}[)]?[-\\s\\.]?[0-9]{1,9}$";
+        public static final String USERNAME_PATTERN = "^[a-zA-Z0-9._-]+$";
     }
 }

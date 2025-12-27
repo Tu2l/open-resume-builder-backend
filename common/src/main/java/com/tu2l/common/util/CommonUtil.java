@@ -1,5 +1,7 @@
 package com.tu2l.common.util;
 
+import com.tu2l.common.constant.CommonConstants;
+
 public class CommonUtil {
 
     public String decodeBase64StringToString(String base64String) {
@@ -63,6 +65,14 @@ public class CommonUtil {
             return fileName;
         }
         return fileName.substring(0, lastDotIndex);
+    }
+
+    public boolean isNullOrEmpty(String str) {
+        return str == null || str.isEmpty();
+    }
+
+    public boolean isValidEmail(String email) {
+        return !isNullOrEmpty(email) && email.matches(CommonConstants.Pattern.EMAIL);
     }
 
 }

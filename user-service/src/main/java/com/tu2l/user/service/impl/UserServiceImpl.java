@@ -139,4 +139,10 @@ public class UserServiceImpl implements UserService {
         log.info("Checking existence of user with username: {} or email: {}", username, email);
         return userRepository.existsByUsernameOrEmail(username, email);
     }
+
+    @Override
+    public UserEntity getUserByEmail(String email) {
+        log.info("Fetching user with email: {}", email);
+        return userRepository.findUserByEmail(email).orElseThrow(() -> new UserException("User not found with email: " + email));
+    }
 }
