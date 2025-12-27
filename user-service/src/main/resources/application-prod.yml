@@ -1,6 +1,6 @@
 server:
   servlet:
-    context-path: /user
+    context-path: /users
   port: 8091
 spring:
   jackson:

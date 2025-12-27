@@ -64,7 +64,7 @@ public final class CommonConstants {
     @NoArgsConstructor(access = AccessLevel.PRIVATE)
     public static final class ApiPath {
         public static final String API_PREFIX = "/api";
-        public static final String USER_API = "/api/user";
+        public static final String USER_API = "/api/users";
         public static final String PDF_API = "/api/pdf";
         public static final String AUTH_PATH = "/auth";
         public static final String AUTHORIZE_PATH = "/authorize";
@@ -77,7 +77,7 @@ public final class CommonConstants {
     // ============ Service Context Paths ============
     @NoArgsConstructor(access = AccessLevel.PRIVATE)
     public static final class ServiceContext {
-        public static final String USER_SERVICE = "/user";
+        public static final String USER_SERVICE = "/users";
         public static final String PDF_SERVICE = "/pdf";
         public static final String GATEWAY_SERVICE = "/";
     }

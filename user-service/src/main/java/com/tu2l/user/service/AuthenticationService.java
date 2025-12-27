@@ -38,9 +38,9 @@ public interface AuthenticationService {
     /**
      * Authenticates a user with credentials and optional session persistence.
      *
-     * @param usernameOrEmail   the usernameOrEmail or email of the user
-     * @param password   the user's password
-     * @param rememberMe whether to create a persistent session
+     * @param usernameOrEmail the usernameOrEmail or email of the user
+     * @param password        the user's password
+     * @param rememberMe      whether to create a persistent session
      * @return a UserEntity representing the authenticated user
      * @throws Exception if authentication fails (e.g., invalid credentials)
      */
@@ -59,7 +59,6 @@ public interface AuthenticationService {
      * Invalidates an existing authentication token to end a user session.
      *
      * @param token the authentication token to invalidate
-     * @return void
      * @throws Exception if logout fails (e.g., token not found)
      */
     void logout(String token) throws Exception;

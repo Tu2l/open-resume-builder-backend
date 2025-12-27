@@ -3,7 +3,7 @@ server:
 
 gateway: # Custom gateway configuration
   public-routes:
-    - /api/user/auth/**
+    - /api/users/auth/**
     - /api/pdf/**
   service-urls:
     user-service: http://localhost:8091

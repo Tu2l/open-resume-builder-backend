@@ -1,0 +1,19 @@
+### request - Login User
+POST http://localhost:8080/api/users/auth/login
+Content-Type: application/json
+Accept: application/json
+
+{
+  "usernameOrEmail": "john_doe999",
+  "email": "john.do99e@example.com",
+  "password": "SecurePass123!"
+}
+
+### request - Refresh Token
+POST http://localhost:8080/api/users/auth/refresh
+Content-Type: application/json
+Accept: application/json
+
+{
+  "refreshToken": "eyJhbGciOiJIUzM4NCJ9.eyJ0b2tlblR5cGUiOiJyZWZyZXNoIiwic3ViIjoiam9obl9kb2U5OTkiLCJpc3MiOiJyZXN1bWUtYnVpbGRlci1hcHAiLCJpYXQiOjE3NjY4NDQ2NTIsImV4cCI6MTc2NzQ0OTQ1Mn0.pIxFmoxi-9U2ljkFXtcHfcDOswpJfHMEM_qn6i7GlO33OOSwP4uk3xAS7KpPRDCm"
+}
