@@ -9,7 +9,7 @@ import lombok.Data;
  */
 @Data
 public abstract class BaseResponse {
-    private String id = null;
-    private String message = null;
-    private ResponseProcessingStatus status = ResponseProcessingStatus.UNDEFINED;
+    protected String id = null;
+    protected String message = null;
+    protected ResponseProcessingStatus status = ResponseProcessingStatus.UNDEFINED;
 }

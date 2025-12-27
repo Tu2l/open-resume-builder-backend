@@ -1,32 +1,23 @@
 package com.tu2l.user.controller;
 
-import org.springframework.http.ResponseEntity;
-import org.springframework.web.bind.annotation.DeleteMapping;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.PathVariable;
-import org.springframework.web.bind.annotation.PutMapping;
-import org.springframework.web.bind.annotation.RequestBody;
-import org.springframework.web.bind.annotation.RequestHeader;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RestController;
-
+import com.tu2l.common.exception.AuthenticationException;
 import com.tu2l.common.model.JwtTokenType;
 import com.tu2l.common.model.base.BaseResponse;
 import com.tu2l.common.model.states.ResponseProcessingStatus;
 import com.tu2l.common.model.states.UserRole;
 import com.tu2l.user.entity.UserEntity;
-import com.tu2l.common.exception.AuthenticationException;
 import com.tu2l.user.exception.UserException;
 import com.tu2l.user.model.request.ChangePasswordRequest;
 import com.tu2l.user.model.request.UpdateUserRequest;
 import com.tu2l.user.model.response.UserDTO;
 import com.tu2l.user.model.response.UserResponse;
-import com.tu2l.user.service.JwtService;
+import com.tu2l.user.service.AuthTokenService;
 import com.tu2l.user.service.UserService;
 import com.tu2l.user.utils.UserMapper;
-
 import jakarta.validation.Valid;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.http.ResponseEntity;
+import org.springframework.web.bind.annotation.*;
 
 /**
  * User Controller - Handles user profile management operations
@@ -36,12 +27,12 @@ import lombok.extern.slf4j.Slf4j;
 @RequestMapping("/")
 public class UserController {
     private final UserService userService;
-    private final JwtService jwtService;
+    private final AuthTokenService authTokenService;
     private final UserMapper userMapper;
 
-    public UserController(UserService userService, JwtService jwtService, UserMapper userMapper) {
+    public UserController(UserService userService, AuthTokenService authTokenService, UserMapper userMapper) {
         this.userService = userService;
-        this.jwtService = jwtService;
+        this.authTokenService = authTokenService;
         this.userMapper = userMapper;
     }
 
@@ -53,7 +44,7 @@ public class UserController {
             throws Exception {
         log.info("Fetching current user profile");
 
-        Long userId = jwtService.getUserId(authHeader);
+        Long userId = authTokenService.getUserId(authHeader);
         UserEntity user = userService.getUserById(userId);
         UserDTO userDTO = userMapper.toUserDTO(user);
         UserResponse response = new UserResponse();
@@ -69,10 +60,10 @@ public class UserController {
      */
     @GetMapping("/{id}")
     public ResponseEntity<UserResponse> getUserById(@RequestHeader("Authorization") String authHeader,
-            @PathVariable Long id) throws Exception {
+                                                    @PathVariable Long id) throws Exception {
         log.info("Fetching user profile for ID: {}", id);
 
-        if (!jwtService.verifyRole(authHeader, UserRole.ADMIN)) {
+        if (!authTokenService.verifyRole(authHeader, UserRole.ADMIN)) {
             log.warn("Unauthorized access attempt to fetch user ID: {}", id);
             return ResponseEntity.status(403).build();
         }
@@ -92,11 +83,11 @@ public class UserController {
      */
     @PutMapping("/me")
     public ResponseEntity<UserResponse> updateCurrentUser(@Valid @RequestBody UpdateUserRequest request,
-            @RequestHeader("Authorization") String authHeader) throws Exception {
+                                                          @RequestHeader("Authorization") String authHeader) throws Exception {
         log.info("Updating current user profile");
 
         UserDTO userDTO = userMapper.toUserDTO(request);
-        userDTO.setId(jwtService.getUserId(authHeader));
+        userDTO.setId(authTokenService.getUserId(authHeader));
 
         UserEntity user = userService.updateUser(userDTO);
 
@@ -114,11 +105,11 @@ public class UserController {
      */
     @PutMapping("/{id}")
     public ResponseEntity<UserResponse> updateUser(@PathVariable Long id,
-            @Valid @RequestBody UpdateUserRequest request,
-            @RequestHeader("Authorization") String authHeader) throws Exception {
+                                                   @Valid @RequestBody UpdateUserRequest request,
+                                                   @RequestHeader("Authorization") String authHeader) throws Exception {
 
         log.info("Updating user profile for ID: {}", id);
-        if (!jwtService.verifyRole(authHeader, UserRole.ADMIN)) {
+        if (!authTokenService.verifyRole(authHeader, UserRole.ADMIN)) {
             log.warn("Unauthorized access attempt to fetch user ID: {}", id);
             return ResponseEntity.status(403).build();
         }
@@ -142,13 +133,13 @@ public class UserController {
      */
     @PutMapping("/me/password")
     public ResponseEntity<UserResponse> changePassword(@Valid @RequestBody ChangePasswordRequest request,
-            @RequestHeader("Authorization") String authHeader) throws Exception {
+                                                       @RequestHeader("Authorization") String authHeader) throws Exception {
         log.info("Chnage password for current user request received");
-        if (!jwtService.validateToken(authHeader, JwtTokenType.ACCESS)) {
+        if (!authTokenService.validateToken(authHeader, JwtTokenType.ACCESS)) {
             throw new AuthenticationException("Invalid access token");
         }
 
-        long userId = jwtService.getUserId(authHeader);
+        long userId = authTokenService.getUserId(authHeader);
         UserEntity user = userService.updatePassword(userId, request.getCurrentPassword(), request.getNewPassword());
         UserResponse response = new UserResponse();
         response.setUser(userMapper.toUserDTO(user));
@@ -166,11 +157,11 @@ public class UserController {
     public ResponseEntity<BaseResponse> deleteCurrentUser(@RequestHeader("Authorization") String authHeader)
             throws Exception {
         log.info("Deleting/deactivating current user account");
-        if (!jwtService.validateToken(authHeader, JwtTokenType.ACCESS)) {
+        if (!authTokenService.validateToken(authHeader, JwtTokenType.ACCESS)) {
             throw new AuthenticationException("Invalid access token");
         }
 
-        long userId = jwtService.getUserId(authHeader);
+        long userId = authTokenService.getUserId(authHeader);
         boolean deleted = userService.deleteUser(userId);
 
         if (!deleted) {
@@ -190,9 +181,9 @@ public class UserController {
      */
     @DeleteMapping("/{id}")
     public ResponseEntity<BaseResponse> deleteUser(@PathVariable Long id,
-            @RequestHeader("Authorization") String authHeader) throws Exception {
+                                                   @RequestHeader("Authorization") String authHeader) throws Exception {
         log.info("Deleting user with ID: {}", id);
-        if (!jwtService.verifyRole(authHeader, UserRole.ADMIN)) {
+        if (!authTokenService.verifyRole(authHeader, UserRole.ADMIN)) {
             log.warn("Unauthorized access attempt to delete user ID: {}", id);
             return ResponseEntity.status(403).build();
         }

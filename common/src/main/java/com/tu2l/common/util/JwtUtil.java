@@ -152,7 +152,7 @@ public class JwtUtil {
     /**
      * Validate token against username
      */
-    public boolean validateToken(String token, String username) throws Exception {
+    public boolean validateToken(String token, String username) {
         final String tokenUsername = extractUsername(token);
         return tokenUsername.equals(username) && !isTokenExpired(token);
     }
@@ -184,8 +184,8 @@ public class JwtUtil {
     /**
      * Check if token is expired
      */
-    public boolean isTokenExpired(String token) throws Exception {
-        return extractExpiration(token).after(new Date());
+    public boolean isTokenExpired(String token) {
+        return extractExpiration(token).before(new Date());
     }
 
     /**

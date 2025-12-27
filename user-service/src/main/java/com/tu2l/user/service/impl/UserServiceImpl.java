@@ -36,14 +36,14 @@ public class UserServiceImpl implements UserService {
      *
      * @param id the unique identifier of the user
      * @return the UserEntity corresponding to the provided id
-     * @throws Exception if the user is not found
+     * @throws UserException if the user is not found
      */
     @Override
-    public UserEntity getUserById(Long id) throws Exception {
+    public UserEntity getUserById(Long id) throws UserException {
         log.info("Fetching user with id: {}", id);
 
         return userRepository.findById(id)
-                .orElseThrow(() -> new Exception(USER_NOT_FOUND_MSG + id));
+                .orElseThrow(() -> new UserException(USER_NOT_FOUND_MSG + id));
     }
 
     /**
@@ -51,10 +51,10 @@ public class UserServiceImpl implements UserService {
      *
      * @param username the username of the user
      * @return the UserEntity corresponding to the provided username
-     * @throws Exception if the user is not found
+     * @throws UserException if the user is not found
      */
     @Override
-    public UserEntity getUserByUsername(String username) throws Exception {
+    public UserEntity getUserByUsername(String username) throws UserException {
         return userRepository.findUserByUsername(username).orElseThrow(() -> new UserException("User not found with username: " + username));
     }
 
@@ -63,17 +63,17 @@ public class UserServiceImpl implements UserService {
      *
      * @param userDTO the UserDTO containing updated user information
      * @return the updated UserEntity
-     * @throws Exception if the user is not found or if the input is invalid
+     * @throws UserException if the user is not found or if the input is invalid
      */
     @Override
-    public UserEntity updateUser(UserDTO userDTO) throws Exception {
+    public UserEntity updateUser(UserDTO userDTO) throws UserException {
         if (userDTO == null || userDTO.getId() == null) {
             throw new UserException("UserDTO or User ID must not be null");
         }
 
         UserEntity updatedUser = userRepository.findById(userDTO.getId())
                 .map(user -> userMapper.updateUserFromDTO(userDTO, user))
-                .orElseThrow(() -> new Exception(USER_NOT_FOUND_MSG + userDTO.getId()));
+                .orElseThrow(() -> new UserException(USER_NOT_FOUND_MSG + userDTO.getId()));
 
         log.info("Updating user with id: {}", updatedUser.getId());
         return userRepository.save(updatedUser);
@@ -84,10 +84,10 @@ public class UserServiceImpl implements UserService {
      *
      * @param id the unique identifier of the user to delete
      * @return a Boolean indicating the outcome of the deletion
-     * @throws Exception if the user is not found
+     * @throws UserException if the user is not found
      */
     @Override
-    public Boolean deleteUser(Long id) throws Exception {
+    public Boolean deleteUser(Long id) throws UserException {
         if (id == null) {
             throw new UserException("User ID must not be null");
         }
@@ -107,11 +107,11 @@ public class UserServiceImpl implements UserService {
      * @param oldPassword the current password of the user
      * @param newPassword the new password to set
      * @return the updated UserEntity
-     * @throws Exception if the user is not found or if the old password does not
-     *                   match
+     * @throws UserException if the user is not found or if the old password does not
+     *                       match
      */
     @Override
-    public UserEntity updatePassword(Long id, String oldPassword, String newPassword) throws Exception {
+    public UserEntity updatePassword(Long id, String oldPassword, String newPassword) throws UserException {
         if (id == null) {
             throw new UserException("User ID must not be null");
         }

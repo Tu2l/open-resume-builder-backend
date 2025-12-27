@@ -1,5 +1,5 @@
 ### request - Login User
-POST http://localhost:8080/api/users/auth/login
+POST http://localhost:8080/api/users/auth/authenticate
 Content-Type: application/json
 Accept: application/json
 
@@ -10,10 +10,15 @@ Accept: application/json
 }
 
 ### request - Refresh Token
-POST http://localhost:8080/api/users/auth/refresh
+POST http://localhost:8080/api/users/auth/refresh-token
 Content-Type: application/json
 Accept: application/json
 
 {
-  "refreshToken": "eyJhbGciOiJIUzM4NCJ9.eyJ0b2tlblR5cGUiOiJyZWZyZXNoIiwic3ViIjoiam9obl9kb2U5OTkiLCJpc3MiOiJyZXN1bWUtYnVpbGRlci1hcHAiLCJpYXQiOjE3NjY4NDQ2NTIsImV4cCI6MTc2NzQ0OTQ1Mn0.pIxFmoxi-9U2ljkFXtcHfcDOswpJfHMEM_qn6i7GlO33OOSwP4uk3xAS7KpPRDCm"
+  "username": "john_doe999",
+  "refreshToken": "eyJhbGciOiJIUzM4NCJ9.eyJ0b2tlblR5cGUiOiJyZWZyZXNoIiwic3ViIjoiam9obl9kb2U5OTkiLCJpc3MiOiJyZXN1bWUtYnVpbGRlci1hcHAiLCJpYXQiOjE3NjY4NTgzODksImV4cCI6MTc2NzQ2MzE4OX0.WlH4AtsSivvcobLaprO-yZjzb6pJzqU39N_fV3PTdhxuWSuTycNcl5GNk9YZy4Nt"
 }
+
+### request - Get User Profile
+GET http://localhost:8080/api/users/me
+Authorization: Bearer eyJhbGciOiJIUzM4NCJ9.eyJzdWIiOiJqb2huX2RvZTk5OSIsImlzcyI6InJlc3VtZS1idWlsZGVyLWFwcCIsImlhdCI6MTc2Njg2MTkzOSwiZXhwIjoxNzY2ODYyODM5fQ.rtMsaBN8WdkrwCK2JNAfcJ808LsZveu8boaTlVyU9oT9MtbIZTygXJu8orHctyhi

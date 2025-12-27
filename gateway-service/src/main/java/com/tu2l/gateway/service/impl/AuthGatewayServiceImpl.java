@@ -19,7 +19,7 @@ public class AuthGatewayServiceImpl implements AuthGatewayService {
 
     @Override
     public boolean validateToken(String token) throws Exception {
-        return jwtUtil.isTokenExpired(token);
+        return !jwtUtil.isTokenExpired(token);
     }
 
     @Override
