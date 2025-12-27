@@ -48,23 +48,23 @@ public interface UserService {
     /**
      * Deletes a user account by ID.
      *
-     * @param id the unique identifier of the user to delete
+     * @param username the unique identifier of the user to delete
      * @return a Boolean indicating the outcome of the deletion
      * @throws UserException if the user is not found
      */
-    Boolean deleteUser(Long id) throws UserException;
+    boolean deleteUser(String username) throws UserException;
 
     /**
      * Changes the user's password given the old and new passwords.
      *
-     * @param id          the unique identifier of the user
+     * @param username    the unique identifier of the user
      * @param oldPassword the current password of the user
      * @param newPassword the new password to set
      * @return the updated UserEntity
      * @throws UserException if the user is not found or if the old password does not
      *                       match
      */
-    UserEntity updatePassword(Long id, String oldPassword, String newPassword) throws UserException;
+    UserEntity updatePassword(String username, String oldPassword, String newPassword) throws UserException;
 
     /**
      * Check if a user exists by username or email.

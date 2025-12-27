@@ -51,10 +51,13 @@ public interface AuthTokenService {
      * Refresh an access token using a refresh token
      *
      * @param refreshToken the refresh token used to generate a new access token
+     * @param username     the username of the user
+     * @param email        the email of the user
+     * @param role         the role of the user
      * @return the new access token as a String
      * @throws JwtException if the refresh token is invalid or expired
      */
-    String refreshAccessToken(String refreshToken, String username) throws JwtException;
+    String refreshAccessToken(String refreshToken, String username, String email, UserRole role) throws JwtException;
 
     /**
      * Get username from token

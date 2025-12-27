@@ -16,7 +16,7 @@ import java.time.LocalDateTime;
 @Slf4j
 @Service
 public class UserServiceImpl implements UserService {
-    private static final String USER_NOT_FOUND_MSG = "User not found with id: ";
+    private static final String USER_NOT_FOUND_MSG = "User not found with username: ";
 
     private final UserRepository userRepository;
     private final PasswordEncoder passwordEncoder;
@@ -82,28 +82,28 @@ public class UserServiceImpl implements UserService {
     /**
      * Deletes a user account by ID.
      *
-     * @param id the unique identifier of the user to delete
+     * @param username the unique identifier of the user to delete
      * @return a Boolean indicating the outcome of the deletion
      * @throws UserException if the user is not found
      */
     @Override
-    public Boolean deleteUser(Long id) throws UserException {
-        if (id == null) {
+    public boolean deleteUser(String username) throws UserException {
+        if (username == null) {
             throw new UserException("User ID must not be null");
         }
         // soft delete by setting deletedAt timestamp
-        return userRepository.findById(id).map(user -> {
-            log.info("Deleting user with id: {}", id);
+        return userRepository.findUserByUsername(username).map(user -> {
+            log.info("Deleting user with username: {}", username);
             user.setDeletedAt(LocalDateTime.now());
             userRepository.save(user);
             return true;
-        }).orElseThrow(() -> new UserException(USER_NOT_FOUND_MSG + id));
+        }).orElseThrow(() -> new UserException(USER_NOT_FOUND_MSG + username));
     }
 
     /**
      * Updates the user's password after validating the old password.
      *
-     * @param id          the unique identifier of the user
+     * @param username    the unique identifier of the user
      * @param oldPassword the current password of the user
      * @param newPassword the new password to set
      * @return the updated UserEntity
@@ -111,8 +111,8 @@ public class UserServiceImpl implements UserService {
      *                       match
      */
     @Override
-    public UserEntity updatePassword(Long id, String oldPassword, String newPassword) throws UserException {
-        if (id == null) {
+    public UserEntity updatePassword(String username, String oldPassword, String newPassword) throws UserException {
+        if (username == null) {
             throw new UserException("User ID must not be null");
         }
         if (oldPassword == null || newPassword == null || oldPassword.isEmpty() || newPassword.isEmpty()) {
@@ -121,14 +121,14 @@ public class UserServiceImpl implements UserService {
 
         String newPasswordPlainText = commonUtil.decodeBase64StringToString(newPassword);
 
-        UserEntity user = userRepository.findById(id)
-                .orElseThrow(() -> new UserException(USER_NOT_FOUND_MSG + id));
+        UserEntity user = userRepository.findUserByUsername(username)
+                .orElseThrow(() -> new UserException(USER_NOT_FOUND_MSG + username));
 
         if (!passwordEncoder.matches(commonUtil.decodeBase64StringToString(oldPassword), user.getPassword())) {
             throw new UserException("Old password does not match");
         }
 
-        log.info("Updating password for user with id: {}", id);
+        log.info("Updating password for user with username: {}", username);
 
         user.setPassword(passwordEncoder.encode(newPasswordPlainText));
         return userRepository.save(user);

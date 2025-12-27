@@ -44,8 +44,8 @@ public class UserController {
             throws Exception {
         log.info("Fetching current user profile");
 
-        Long userId = authTokenService.getUserId(authHeader);
-        UserEntity user = userService.getUserById(userId);
+        var username = authTokenService.getUsername(authHeader);
+        UserEntity user = userService.getUserByUsername(username);
         UserDTO userDTO = userMapper.toUserDTO(user);
         UserResponse response = new UserResponse();
         response.setUser(userDTO);
@@ -87,8 +87,6 @@ public class UserController {
         log.info("Updating current user profile");
 
         UserDTO userDTO = userMapper.toUserDTO(request);
-        userDTO.setId(authTokenService.getUserId(authHeader));
-
         UserEntity user = userService.updateUser(userDTO);
 
         UserResponse response = new UserResponse();
@@ -134,12 +132,12 @@ public class UserController {
     @PutMapping("/me/password")
     public ResponseEntity<UserResponse> changePassword(@Valid @RequestBody ChangePasswordRequest request,
                                                        @RequestHeader("Authorization") String authHeader) throws Exception {
-        log.info("Chnage password for current user request received");
+        log.info("Change password for current user request received");
         if (!authTokenService.validateToken(authHeader, JwtTokenType.ACCESS)) {
             throw new AuthenticationException("Invalid access token");
         }
 
-        long userId = authTokenService.getUserId(authHeader);
+        var userId = authTokenService.getUsername(authHeader);
         UserEntity user = userService.updatePassword(userId, request.getCurrentPassword(), request.getNewPassword());
         UserResponse response = new UserResponse();
         response.setUser(userMapper.toUserDTO(user));
@@ -161,11 +159,11 @@ public class UserController {
             throw new AuthenticationException("Invalid access token");
         }
 
-        long userId = authTokenService.getUserId(authHeader);
-        boolean deleted = userService.deleteUser(userId);
+        var username = authTokenService.getUsername(authHeader);
+        boolean deleted = userService.deleteUser(username);
 
         if (!deleted) {
-            throw new UserException("Failed to delete user account with ID: " + userId);
+            throw new UserException("Failed to delete user account with ID: " + username);
         }
 
         BaseResponse response = new BaseResponse() {
@@ -179,18 +177,18 @@ public class UserController {
     /**
      * DELETE /users/{id} - Delete user by ID (Admin only)
      */
-    @DeleteMapping("/{id}")
-    public ResponseEntity<BaseResponse> deleteUser(@PathVariable Long id,
+    @DeleteMapping("/{username}")
+    public ResponseEntity<BaseResponse> deleteUser(@PathVariable String username,
                                                    @RequestHeader("Authorization") String authHeader) throws Exception {
-        log.info("Deleting user with ID: {}", id);
+        log.info("Deleting user with username: {}", username);
         if (!authTokenService.verifyRole(authHeader, UserRole.ADMIN)) {
-            log.warn("Unauthorized access attempt to delete user ID: {}", id);
+            log.warn("Unauthorized access attempt to delete user ID: {}", username);
             return ResponseEntity.status(403).build();
         }
-        boolean deleted = userService.deleteUser(id);
+        boolean deleted = userService.deleteUser(username);
 
         if (!deleted) {
-            throw new UserException("Failed to delete user with ID: " + id);
+            throw new UserException("Failed to delete user with ID: " + username);
         }
 
         BaseResponse response = new BaseResponse() {
@@ -198,7 +196,7 @@ public class UserController {
         response.setStatus(ResponseProcessingStatus.SUCCESS);
         response.setMessage("User deleted successfully");
 
-        log.info("User deleted successfully: {}", id);
+        log.info("User deleted successfully: {}", username);
         return ResponseEntity.ok(response);
     }
 }

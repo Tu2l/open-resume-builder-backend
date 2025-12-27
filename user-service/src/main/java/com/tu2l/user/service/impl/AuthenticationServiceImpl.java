@@ -84,7 +84,7 @@ public class AuthenticationServiceImpl implements AuthenticationService {
             throw new AuthenticationException("Invalid refresh token");
         }
 
-        var accessToken = authTokenService.refreshAccessToken(refreshToken, username);
+        var accessToken = authTokenService.refreshAccessToken(refreshToken, username, user.getEmail(), user.getRole());
         UserLogin userLogin = generateUserLogin(accessToken);
 
         user.addUserLogin(userLogin);

@@ -1,12 +1,10 @@
 package com.tu2l.user.service.impl;
 
-import com.tu2l.common.constant.CommonConstants;
 import com.tu2l.common.model.JwtTokenType;
 import com.tu2l.common.model.states.UserRole;
 import com.tu2l.common.util.JwtUtil;
 import com.tu2l.user.entity.UserEntity;
 import com.tu2l.user.service.AuthTokenService;
-import io.jsonwebtoken.Claims;
 import io.jsonwebtoken.JwtException;
 import org.springframework.stereotype.Service;
 
@@ -35,12 +33,9 @@ public class JwtServiceImpl implements AuthTokenService {
     }
 
     @Override
-    public String refreshAccessToken(String refreshToken, String username) throws JwtException {
+    public String refreshAccessToken(String refreshToken, String username, String email, UserRole role) throws JwtException {
         if (jwtUtil.validateToken(refreshToken, username)) {
-            Claims claims = jwtUtil.extractAllClaims(refreshToken);
-            String email = jwtUtil.extractClaim(claims, claim -> claim.get(CommonConstants.JwtClaims.EMAIL, String.class));
-            String role = jwtUtil.extractClaim(claims, claim -> claim.get(CommonConstants.JwtClaims.ROLE, String.class));
-            return jwtUtil.generateAccessToken(username, email, role);
+            return jwtUtil.generateAccessToken(username, email, role.name());
         } else {
             throw new JwtException("Invalid refresh token");
         }
