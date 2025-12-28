@@ -42,12 +42,12 @@ public class GlobalExceptionHandler {
     }
 
     @ExceptionHandler({UserException.class})
-    public ResponseEntity<@NonNull BaseResponse> handleUserException(RuntimeException exception) {
+    public ResponseEntity<@NonNull BaseResponse> handleUserException(UserException exception) {
         return getResponse(exception.getMessage(), "UserException caught: {}", HttpStatus.OK);
     }
 
-    @ExceptionHandler({UserException.class, AuthenticationException.class})
-    public ResponseEntity<@NonNull BaseResponse> handleAuthenticationException(RuntimeException exception) {
+    @ExceptionHandler({AuthenticationException.class})
+    public ResponseEntity<@NonNull BaseResponse> handleAuthenticationException(AuthenticationException exception) {
         return getResponse(exception.getMessage(), "AuthenticationException caught: {}", HttpStatus.UNAUTHORIZED);
     }
 
