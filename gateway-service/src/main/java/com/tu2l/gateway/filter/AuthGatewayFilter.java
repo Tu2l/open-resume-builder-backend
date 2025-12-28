@@ -4,6 +4,8 @@ import com.tu2l.common.constant.CommonConstants;
 import com.tu2l.common.constant.RequestType;
 import com.tu2l.common.exception.AuthenticationException;
 import com.tu2l.gateway.service.AuthGatewayService;
+import io.jsonwebtoken.ExpiredJwtException;
+import io.jsonwebtoken.JwtException;
 import io.netty.util.internal.StringUtil;
 import lombok.extern.slf4j.Slf4j;
 import org.jspecify.annotations.NonNull;
@@ -82,12 +84,15 @@ public class AuthGatewayFilter implements GatewayFilter, Ordered {
     private void validateToken(String token, HttpMethod method, String path) {
         try {
             if (!authService.validateToken(token)) {
-                log.warn("Token validation failed for {} {}: invalid or expired", method, path);
                 throw new AuthenticationException("Invalid or expired token");
             }
             log.debug("Token validated for {} {}", method, path);
         } catch (AuthenticationException e) {
             throw e;
+        } catch (ExpiredJwtException expiredJwtException) {
+            throw new AuthenticationException("Token expired", expiredJwtException);
+        } catch (JwtException jwtException) {
+            throw new AuthenticationException("Token validation error", jwtException);
         } catch (Exception e) {
             log.error("Token validation error for {} {}", method, path, e);
             throw new AuthenticationException("Token validation error", e);
