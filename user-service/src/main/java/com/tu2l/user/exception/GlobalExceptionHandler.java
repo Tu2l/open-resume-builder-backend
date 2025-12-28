@@ -22,12 +22,12 @@ public class GlobalExceptionHandler {
     @ExceptionHandler(Exception.class)
     public ResponseEntity<@NonNull BaseResponse> handleGlobalExceptions(Exception exception) {
         log.error("Exception caught", exception);
-        return getResponse(exception.getMessage(), "Exception caught: {}", HttpStatus.INTERNAL_SERVER_ERROR);
+        return getResponse("Something went wrong", "Exception caught: {}", HttpStatus.INTERNAL_SERVER_ERROR);
     }
 
     @ExceptionHandler(NoResourceFoundException.class)
     public ResponseEntity<@NonNull BaseResponse> handleNoResourceFoundException(NoResourceFoundException exception) {
-        return getResponse(exception.getMessage(), "Resource not found: {}", HttpStatus.NOT_FOUND);
+        return getResponse("Resource not found", "Resource not found: {}", HttpStatus.NOT_FOUND);
     }
 
     @ExceptionHandler(MethodArgumentNotValidException.class)

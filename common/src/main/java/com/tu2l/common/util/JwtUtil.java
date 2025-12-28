@@ -13,6 +13,7 @@ import java.time.temporal.ChronoUnit;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.UUID;
 import java.util.function.Function;
 
 @AllArgsConstructor
@@ -78,6 +79,7 @@ public class JwtUtil {
                 .claims(claims)
                 .subject(subject)
                 .issuer(issuer)
+                .id(UUID.randomUUID().toString()) // Add unique JTI to prevent duplicate tokens
                 .issuedAt(Date.from(now))
                 .expiration(Date.from(expiration))
                 .signWith(getSigningKey())

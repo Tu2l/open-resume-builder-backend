@@ -1,5 +1,8 @@
 server:
   port: 8080
+  error:
+    whitelabel:
+      enabled: false
 
 gateway: # Custom gateway configuration
   public-routes:

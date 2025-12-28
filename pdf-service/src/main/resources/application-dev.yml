@@ -2,6 +2,9 @@ server:
   servlet:
     context-path: /pdf
   port: 8090
+  error:
+    whitelabel:
+      enabled: false
 spring:
   jackson:
     default-property-inclusion: non_null

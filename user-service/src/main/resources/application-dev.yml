@@ -2,6 +2,9 @@ server:
   servlet:
     context-path: /users
   port: 8091
+  error:
+    whitelabel:
+      enabled: false
 spring:
   jackson:
     default-property-inclusion: non_null

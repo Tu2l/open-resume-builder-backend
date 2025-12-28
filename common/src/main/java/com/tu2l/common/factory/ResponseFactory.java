@@ -13,7 +13,7 @@ public class ResponseFactory {
     public static ErrorResponse createErrorResponse(String message) {
         ErrorResponse errorResponse = ErrorResponse.builder().build();
         errorResponse.setMessage(message);
-        errorResponse.setStatus(ResponseProcessingStatus.SUCCESS);
+        errorResponse.setStatus(ResponseProcessingStatus.FAILURE);
         return errorResponse;
     }
 
