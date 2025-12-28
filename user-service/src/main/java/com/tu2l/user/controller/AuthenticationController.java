@@ -1,17 +1,14 @@
 package com.tu2l.user.controller;
 
-import com.tu2l.common.exception.AuthenticationException;
 import com.tu2l.common.factory.ResponseFactory;
 import com.tu2l.common.model.base.BaseResponse;
 import com.tu2l.common.model.states.ResponseProcessingStatus;
 import com.tu2l.user.controller.api.AuthenticationApi;
 import com.tu2l.user.entity.UserEntity;
 import com.tu2l.user.entity.UserLogin;
-import com.tu2l.user.exception.UserException;
 import com.tu2l.user.model.request.*;
 import com.tu2l.user.model.response.AuthResponse;
 import com.tu2l.user.service.AuthenticationService;
-import io.jsonwebtoken.JwtException;
 import jakarta.validation.Valid;
 import lombok.extern.slf4j.Slf4j;
 import org.jspecify.annotations.NonNull;
@@ -34,7 +31,7 @@ public class AuthenticationController implements AuthenticationApi {
     }
 
     @Override
-    public ResponseEntity<@NonNull AuthResponse> register(@Valid @RequestBody RegisterRequest request) throws UserException {
+    public ResponseEntity<@NonNull AuthResponse> register(@Valid @RequestBody RegisterRequest request) {
         log.info("Registration request received for username: {}", request.getUsername());
 
         UserEntity registeredUser = authenticationService.register(request);
@@ -54,7 +51,7 @@ public class AuthenticationController implements AuthenticationApi {
     }
 
     @Override
-    public ResponseEntity<@NonNull AuthResponse> authenticate(LoginRequest request) throws UserException, AuthenticationException {
+    public ResponseEntity<@NonNull AuthResponse> authenticate(LoginRequest request) {
         log.info("Login attempt for user: {}", request.getUsernameOrEmail());
 
         UserEntity loggedInUserEntity = authenticationService.authenticate(request.getUsernameOrEmail(),
@@ -76,7 +73,7 @@ public class AuthenticationController implements AuthenticationApi {
 
 
     @Override
-    public ResponseEntity<@NonNull AuthResponse> refreshToken(@Valid @RequestBody RefreshTokenRequest request) throws JwtException, AuthenticationException, UserException {
+    public ResponseEntity<@NonNull AuthResponse> refreshToken(@Valid @RequestBody RefreshTokenRequest request) {
         log.info("Token refresh request received");
 
         UserEntity refreshedUserEntity = authenticationService.refreshToken(request.getRefreshToken(), request.getUsername());
@@ -95,7 +92,7 @@ public class AuthenticationController implements AuthenticationApi {
     }
 
     @Override
-    public ResponseEntity<@NonNull BaseResponse> logout(String token) throws JwtException, AuthenticationException {
+    public ResponseEntity<@NonNull BaseResponse> logout(String token) {
         log.info("Logout request received");
 
         authenticationService.logout(token);
@@ -111,7 +108,7 @@ public class AuthenticationController implements AuthenticationApi {
 
 
     @Override
-    public ResponseEntity<@NonNull BaseResponse> forgotPassword(ForgotPasswordRequest request) throws JwtException, AuthenticationException {
+    public ResponseEntity<@NonNull BaseResponse> forgotPassword(ForgotPasswordRequest request) {
         log.info("Password reset request for email: {}", request.getEmail());
 
         authenticationService.forgotPassword(request.getEmail());
@@ -123,7 +120,7 @@ public class AuthenticationController implements AuthenticationApi {
     }
 
     @Override
-    public ResponseEntity<@NonNull BaseResponse> resetPassword(ResetPasswordRequest request) throws UserException {
+    public ResponseEntity<@NonNull BaseResponse> resetPassword(ResetPasswordRequest request) {
         log.info("Password reset attempt with token");
 
         authenticationService.resetPassword(request.getResetToken(), request.getNewPassword());
@@ -135,7 +132,7 @@ public class AuthenticationController implements AuthenticationApi {
     }
 
     @Override
-    public ResponseEntity<@NonNull BaseResponse> verifyEmail(String token) throws JwtException, AuthenticationException {
+    public ResponseEntity<@NonNull BaseResponse> verifyEmail(String token) {
         log.info("Email verification attempt");
 
         authenticationService.verifyEmail(token);

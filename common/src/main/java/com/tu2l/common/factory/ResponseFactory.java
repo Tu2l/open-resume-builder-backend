@@ -10,11 +10,10 @@ public class ResponseFactory {
         return responseClass.getDeclaredConstructor().newInstance();
     }
 
-    public static ErrorResponse createErrorResponse(String message, String id, ResponseProcessingStatus status) {
+    public static ErrorResponse createErrorResponse(String message) {
         ErrorResponse errorResponse = ErrorResponse.builder().build();
         errorResponse.setMessage(message);
-        errorResponse.setId(id);
-        errorResponse.setStatus(status);
+        errorResponse.setStatus(ResponseProcessingStatus.SUCCESS);
         return errorResponse;
     }
 

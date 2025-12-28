@@ -16,7 +16,7 @@ import io.jsonwebtoken.JwtException;
  * the supplied registration data.</li>
  * <li>{@link #authenticate(String, String, boolean)} — Authenticates a user
  * with credentials and optional session persistence.</li>
- * <li>{@link #refreshToken(String)} — Issues a new authentication token using a
+ * <li>{@link #refreshToken(String, String)} — Issues a new authentication token using a
  * valid refresh token.</li>
  * <li>{@link #logout(String)} — Invalidates an existing authentication token to
  * end a user session.</li>
