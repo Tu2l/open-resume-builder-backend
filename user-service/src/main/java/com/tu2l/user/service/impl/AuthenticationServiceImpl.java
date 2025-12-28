@@ -58,31 +58,13 @@ public class AuthenticationServiceImpl implements AuthenticationService {
         // generate access-token and refresh-token with retry mechanism
         user.setId(userId);
 
-        int maxRetries = 3;
-        int retryCount = 0;
-
-        while (retryCount < maxRetries) {
-            try {
-                generateTokens(user);
-                log.info("User registered successfully: {}", request.getUsername());
-                return userRepository.save(user);
-            } catch (DataIntegrityViolationException e) {
-                retryCount++;
-                if (retryCount >= maxRetries) {
-                    log.error("Failed to register user after {} retries due to unique constraint violation: {}", maxRetries, request.getUsername());
-                    throw new UserException("Registration failed due to concurrent requests. Please try again.");
-                }
-                log.warn("Token collision detected during registration for user: {}. Retry attempt {}/{}", request.getUsername(), retryCount, maxRetries);
-                try {
-                    Thread.sleep(50L * retryCount);
-                } catch (InterruptedException ie) {
-                    Thread.currentThread().interrupt();
-                    throw new UserException("Registration interrupted");
-                }
-            }
+        try {
+            generateTokens(user);
+            log.info("User registered successfully: {}", request.getUsername());
+            return userRepository.save(user);
+        } catch (DataIntegrityViolationException e) {
+            throw new UserException("Registration failed due to concurrent requests. Please try again.");
         }
-
-        throw new UserException("Registration failed after multiple retries");
     }
 
 
@@ -96,34 +78,15 @@ public class AuthenticationServiceImpl implements AuthenticationService {
             throw new UserException("Invalid username or password");
         }
 
-        // Retry mechanism to handle race conditions with token generation
-        int maxRetries = 3;
-        int retryCount = 0;
-
-        while (retryCount < maxRetries) {
-            try {
-                generateTokens(userEntity);
-                log.info("User authenticated successfully: {}", usernameOrEmail);
-                return userRepository.save(userEntity);
-            } catch (DataIntegrityViolationException e) {
-                retryCount++;
-                if (retryCount >= maxRetries) {
-                    log.error("Failed to authenticate user after {} retries due to unique constraint violation: {}", maxRetries, usernameOrEmail);
-                    throw new UserException("Authentication failed due to concurrent requests. Please try again.");
-                }
-                log.warn("Token collision detected for user: {}. Retry attempt {}/{}", usernameOrEmail, retryCount, maxRetries);
-                // Small delay before retry (exponential backoff)
-                try {
-                    Thread.sleep(50L * retryCount);
-                } catch (InterruptedException ie) {
-                    Thread.currentThread().interrupt();
-                    throw new UserException("Authentication interrupted");
-                }
-            }
+        try {
+            generateTokens(userEntity);
+            log.info("User authenticated successfully: {}", usernameOrEmail);
+            return userRepository.save(userEntity);
+        } catch (DataIntegrityViolationException e) {
+            throw new UserException("Authentication failed due to concurrent requests. Please try again.");
         }
-
-        throw new UserException("Authentication failed after multiple retries");
     }
+
 
     @Override
     public UserEntity refreshToken(String refreshToken, String username) throws JwtException, AuthenticationException, UserException {
@@ -133,34 +96,16 @@ public class AuthenticationServiceImpl implements AuthenticationService {
             throw new AuthenticationException("Invalid refresh token");
         }
 
-        int maxRetries = 3;
-        int retryCount = 0;
+        try {
+            var accessToken = authTokenService.refreshAccessToken(refreshToken, username, user.getEmail(), user.getRole());
+            UserLogin userLogin = generateUserLogin(accessToken);
 
-        while (retryCount < maxRetries) {
-            try {
-                var accessToken = authTokenService.refreshAccessToken(refreshToken, username, user.getEmail(), user.getRole());
-                UserLogin userLogin = generateUserLogin(accessToken);
-
-                user.addUserLogin(userLogin);
-                log.info("Token refreshed successfully for user: {}", username);
-                return userRepository.save(user);
-            } catch (DataIntegrityViolationException e) {
-                retryCount++;
-                if (retryCount >= maxRetries) {
-                    log.error("Failed to refresh token after {} retries due to unique constraint violation for user: {}", maxRetries, username);
-                    throw new UserException("Token refresh failed due to concurrent requests. Please try again.");
-                }
-                log.warn("Token collision detected during refresh for user: {}. Retry attempt {}/{}", username, retryCount, maxRetries);
-                try {
-                    Thread.sleep(50L * retryCount);
-                } catch (InterruptedException ie) {
-                    Thread.currentThread().interrupt();
-                    throw new UserException("Token refresh interrupted");
-                }
-            }
+            user.addUserLogin(userLogin);
+            log.info("Token refreshed successfully for user: {}", username);
+            return userRepository.save(user);
+        } catch (DataIntegrityViolationException e) {
+            throw new UserException("Token refresh failed due to concurrent requests. Please try again.");
         }
-
-        throw new UserException("Token refresh failed after multiple retries");
     }
 
     @Override
