@@ -8,6 +8,8 @@ import com.tu2l.user.service.AuthTokenService;
 import io.jsonwebtoken.JwtException;
 import org.springframework.stereotype.Service;
 
+import java.time.LocalDateTime;
+
 @Service
 public class JwtServiceImpl implements AuthTokenService {
     private final JwtUtil jwtUtil;
@@ -33,12 +35,11 @@ public class JwtServiceImpl implements AuthTokenService {
     }
 
     @Override
-    public String refreshAccessToken(String refreshToken, String username, String email, UserRole role) throws JwtException {
-        if (jwtUtil.validateToken(refreshToken, username)) {
-            return jwtUtil.generateAccessToken(username, email, role.name());
-        } else {
+    public String refreshAccessToken(String refreshToken, UserEntity user) throws JwtException {
+        if (!jwtUtil.validateToken(refreshToken, user.getUsername())) {
             throw new JwtException("Invalid refresh token");
         }
+        return generateToken(user, JwtTokenType.ACCESS);
     }
 
     @Override
@@ -49,5 +50,15 @@ public class JwtServiceImpl implements AuthTokenService {
     @Override
     public boolean verifyRole(String token, UserRole role) {
         return jwtUtil.extractRole(token).equals(role.name());
+    }
+
+    @Override
+    public long getTokenRemainingTime(String token) {
+        return jwtUtil.getTokenRemainingTime(token);
+    }
+
+    @Override
+    public LocalDateTime issuedAt(String token) {
+        return jwtUtil.issuedAt(token);
     }
 }

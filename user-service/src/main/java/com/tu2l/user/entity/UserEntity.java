@@ -122,9 +122,27 @@ public class UserEntity {
         userLogins.forEach(login -> login.setUser(this));
     }
 
+    public Integer incrementFailedLoginAttempts() {
+        if (this.failedLoginAttempts == null) {
+            this.failedLoginAttempts = 1;
+        } else {
+            this.failedLoginAttempts += 1;
+        }
+        return failedLoginAttempts;
+    }
+
     // Helper methods
     public boolean isAccountLocked() {
         return accountLockedUntil != null && accountLockedUntil.isAfter(LocalDateTime.now());
+    }
+
+    public void lockAccount(int lockDurationMinutes) {
+        this.accountLockedUntil = LocalDateTime.now().plusMinutes(lockDurationMinutes);
+    }
+
+    public void unlockAccount() {
+        this.accountLockedUntil = null;
+        this.failedLoginAttempts = 0;
     }
 
     public boolean isPasswordResetTokenValid() {

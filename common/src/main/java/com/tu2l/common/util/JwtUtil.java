@@ -9,6 +9,7 @@ import lombok.AllArgsConstructor;
 import javax.crypto.SecretKey;
 import java.nio.charset.StandardCharsets;
 import java.time.Instant;
+import java.time.LocalDateTime;
 import java.time.temporal.ChronoUnit;
 import java.util.Date;
 import java.util.HashMap;
@@ -35,6 +36,7 @@ public class JwtUtil {
     public String generateAccessToken(String username, String email, String role) {
         Map<String, Object> claims = new HashMap<>();
         claims.put(CommonConstants.JwtClaims.EMAIL, email);
+        claims.put(CommonConstants.JwtClaims.TOKEN_TYPE, CommonConstants.Token.TOKEN_TYPE_BEARER);
         claims.put(CommonConstants.JwtClaims.ROLE, role);
         return createToken(claims, username, accessTokenExpirationMinutes, ChronoUnit.MINUTES);
     }
@@ -193,7 +195,7 @@ public class JwtUtil {
     /**
      * Get remaining time before token expires (in seconds)
      */
-    public long getTokenRemainingTime(String token) throws Exception {
+    public long getTokenRemainingTime(String token) {
         Date expiration = extractExpiration(token);
         long expirationTime = expiration.getTime();
         long currentTime = System.currentTimeMillis();
@@ -222,5 +224,10 @@ public class JwtUtil {
      */
     public long getRefreshTokenExpiration() {
         return refreshTokenExpirationDays * 24 * 60 * 60 * 1000;
+    }
+
+    public LocalDateTime issuedAt(String accessToken) {
+        Date issuedAt = extractClaim(accessToken, Claims::getIssuedAt);
+        return LocalDateTime.ofInstant(issuedAt.toInstant(), java.time.ZoneId.systemDefault());
     }
 }

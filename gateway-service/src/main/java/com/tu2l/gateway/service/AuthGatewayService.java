@@ -1,5 +1,7 @@
 package com.tu2l.gateway.service;
 
+import com.tu2l.common.exception.AuthenticationException;
+import io.jsonwebtoken.JwtException;
 import org.springframework.http.server.reactive.ServerHttpRequest;
 
 public interface AuthGatewayService {
@@ -8,9 +10,10 @@ public interface AuthGatewayService {
      *
      * @param token JWT token string
      * @return true if the token is valid, false otherwise
-     * @throws Exception if there is an error during validation
+     * @throws JwtException            if there is an error during validation
+     * @throws AuthenticationException if authentication fails
      */
-    boolean validateToken(String token) throws Exception;
+    boolean validateToken(String token) throws JwtException, AuthenticationException;
 
     /**
      * Validate the given token both locally and remotely by checking its signature,
@@ -28,7 +31,7 @@ public interface AuthGatewayService {
      * @param request the original ServerHttpRequest
      * @param token   JWT token string
      * @return a new ServerHttpRequest enriched with user information
-     * @throws Exception if there is an error during the enrichment process
+     * @throws AuthenticationException if there is an error during the enrichment process
      */
-    ServerHttpRequest mutateRequestWithUserInfo(ServerHttpRequest request, String token) throws Exception;
+    ServerHttpRequest mutateRequestWithUserInfo(ServerHttpRequest request, String token) throws AuthenticationException;
 }

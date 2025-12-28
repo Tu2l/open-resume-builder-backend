@@ -94,14 +94,8 @@ public class AuthenticationController implements AuthenticationApi {
     @Override
     public ResponseEntity<@NonNull BaseResponse> logout(String token) {
         log.info("Logout request received");
-
         authenticationService.logout(token);
-
-        BaseResponse response = new BaseResponse() {
-        };
-        response.setMessage("Logout successful");
-        response.setStatus(ResponseProcessingStatus.SUCCESS);
-
+        BaseResponse response = ResponseFactory.createSuccessResponse("Logout successful");
         log.info("Logout successful");
         return ResponseEntity.ok(response);
     }

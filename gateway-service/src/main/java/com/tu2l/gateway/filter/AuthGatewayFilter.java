@@ -50,7 +50,7 @@ public class AuthGatewayFilter implements GatewayFilter, Ordered {
 
         if (requestType == RequestType.PROTECTED) {
             String authHeader = headers.getFirst(HttpHeaders.AUTHORIZATION);
-            if (StringUtil.isNullOrEmpty(authHeader) || !authHeader.startsWith(CommonConstants.Token.TOKEN_TYPE_BEARER)) {
+            if (StringUtil.isNullOrEmpty(authHeader) || !authHeader.startsWith(CommonConstants.Token.BEARER_PREFIX)) {
                 log.warn("Missing or invalid Authorization header for {} {}", method, path);
                 throw new AuthenticationException("Missing or invalid Authorization header");
             }
