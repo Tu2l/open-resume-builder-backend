@@ -15,6 +15,7 @@
         <module name="user-service" />
         <module name="common" />
         <module name="gateway-service" />
+        <module name="user-managerment-service" />
       </profile>
       <profile name="Maven default annotation processors profile" enabled="true">
         <sourceOutputDir name="target/generated-sources/annotations" />

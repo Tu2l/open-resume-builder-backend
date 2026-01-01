@@ -41,9 +41,9 @@ public interface AuthenticationService {
     /**
      * Authenticates a user with credentials and optional session persistence.
      *
-     * @param usernameOrEmail the usernameOrEmail or email of the user
-     * @param password        the user's password
-     * @param rememberMe      whether to create a persistent session
+     * @param email      the usernameOrEmail or email of the user
+     * @param password   the user's password
+     * @param rememberMe whether to create a persistent session
      * @return a UserEntity representing the authenticated user
      * @throws UserException           if user not found or other user-related issues
      * @throws AuthenticationException if authentication fails (e.g., invalid credentials)
@@ -66,39 +66,40 @@ public interface AuthenticationService {
      * Invalidates an existing authentication token to end a user session.
      *
      * @param token the authentication token to invalidate
+     * @return returns true if logout is successful
      * @throws AuthenticationException if logout fails (e.g., token not found)
      * @throws JwtException            if the token is invalid
      */
-    void logout(String token) throws JwtException, AuthenticationException;
+    boolean logout(String token) throws JwtException, AuthenticationException;
 
     /**
      * Initiates the password recovery flow for the specified email address.
      *
      * @param email the email address of the user
-     * @return a UserEntity representing the recovery outcome
+     * @return true if the password reset email was sent successfully
      * @throws AuthenticationException if the email is not associated with any user
      */
-    UserEntity forgotPassword(String email) throws JwtException, AuthenticationException;
+    boolean forgotPassword(String email) throws JwtException, AuthenticationException;
 
     /**
      * Resets the user password when provided with a valid reset token.
      *
      * @param passwordResetToken the password reset token
      * @param newPassword        the new password to set
-     * @return a UserEntity representing the reset outcome
+     * @return true if password reset is successful
      * @throws JwtException            if the reset token is invalid or expired
      * @throws AuthenticationException if password reset fails
      * @throws UserException           if user is not valid
      */
-    UserEntity resetPassword(String passwordResetToken, String newPassword) throws JwtException, UserException, AuthenticationException;
+    boolean resetPassword(String passwordResetToken, String newPassword) throws JwtException, UserException, AuthenticationException;
 
     /**
      * Confirms a user’s email address using a verification token.
      *
      * @param verificationToken the email verification token
-     * @return a UserEntity representing the verification outcome
+     * @return true if email verification is successful
      * @throws JwtException            if the token is invalid or expired
      * @throws AuthenticationException if email verification fails
      */
-    UserEntity verifyEmail(String verificationToken) throws JwtException, AuthenticationException;
+    boolean verifyEmail(String verificationToken) throws JwtException, AuthenticationException;
 }

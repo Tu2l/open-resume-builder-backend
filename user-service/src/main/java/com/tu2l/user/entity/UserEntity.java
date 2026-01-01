@@ -12,6 +12,7 @@ import org.hibernate.annotations.UpdateTimestamp;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Optional;
 
 @Data
 @Builder
@@ -185,13 +186,12 @@ public class UserEntity {
         this.refreshTokenExpiry = null;
     }
 
-    public UserLogin getMostRecentLogin() {
+    public Optional<UserLogin> getMostRecentLogin() {
         if (userLogins == null || userLogins.isEmpty()) {
-            return null;
+            return Optional.empty();
         }
         return userLogins.stream()
-                .max((login1, login2) -> login1.getLoggedInAt().compareTo(login2.getLoggedInAt()))
-                .orElse(null);
+                .max((login1, login2) -> login1.getLoggedInAt().compareTo(login2.getLoggedInAt()));
     }
 
     public void addUserLogin(UserLogin login) {
