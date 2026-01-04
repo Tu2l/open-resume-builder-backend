@@ -36,7 +36,7 @@ public class UserAccountStatus {
 
     @OneToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "user_id", nullable = false)
-    private UserEntityV2 user;
+    private UserEntity user;
 
     @Column(nullable = false, name = "enabled")
     private boolean enabled;

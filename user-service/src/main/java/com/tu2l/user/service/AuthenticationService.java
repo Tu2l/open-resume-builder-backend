@@ -3,7 +3,7 @@ package com.tu2l.user.service;
 import com.tu2l.common.exception.AuthenticationException;
 import com.tu2l.user.entity.UserEntity;
 import com.tu2l.user.exception.UserException;
-import com.tu2l.user.model.request.RegisterRequest;
+import com.tu2l.user.model.request.NewUserRegisterRequest;
 import io.jsonwebtoken.JwtException;
 
 /**
@@ -12,7 +12,7 @@ import io.jsonwebtoken.JwtException;
  * credential-based login, token management, and recovery operations.
  *
  * <ul>
- * <li>{@link #register(RegisterRequest)} — Creates a new user account based on
+ * <li>{@link #register(NewUserRegisterRequest)} — Creates a new user account based on
  * the supplied registration data.</li>
  * <li>{@link #authenticate(String, String, boolean)} — Authenticates a user
  * with credentials and optional session persistence.</li>
@@ -36,7 +36,7 @@ public interface AuthenticationService {
      * @return a UserEntity representing the newly registered user
      * @throws UserException if registration fails (e.g., username/email already exists)
      */
-    UserEntity register(RegisterRequest request) throws UserException;
+    UserEntity register(NewUserRegisterRequest request) throws UserException;
 
     /**
      * Authenticates a user with credentials and optional session persistence.
@@ -48,7 +48,7 @@ public interface AuthenticationService {
      * @throws UserException           if user not found or other user-related issues
      * @throws AuthenticationException if authentication fails (e.g., invalid credentials)
      */
-    UserEntity authenticate(String usernameOrEmail, String password, boolean rememberMe) throws UserException, AuthenticationException;
+    UserEntity authenticate(String email, String password, boolean rememberMe) throws UserException, AuthenticationException;
 
     /**
      * Issues a new authentication token using a valid refresh token.

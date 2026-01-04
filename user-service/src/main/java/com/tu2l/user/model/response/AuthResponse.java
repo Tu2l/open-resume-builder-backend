@@ -5,6 +5,8 @@ import lombok.Builder;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
 
+import java.time.LocalDateTime;
+
 @Builder
 @Data
 @EqualsAndHashCode(callSuper = true)
@@ -12,6 +14,6 @@ public class AuthResponse extends BaseResponse {
     private String accessToken;
     private String refreshToken;
     private String tokenType = "Bearer";
-    private Long expiresIn;
+    private LocalDateTime expiresIn;
     private UserDTO user;
 }

@@ -29,7 +29,7 @@ public class AuthenticationController implements AuthenticationApi {
     private final AuthResponseBuilder authResponseBuilder;
 
     @Override
-    public ResponseEntity<@NonNull AuthResponse> register(@Valid @RequestBody RegisterRequest request) {
+    public ResponseEntity<@NonNull AuthResponse> register(@Valid @RequestBody NewUserRegisterRequest request) {
         var registeredUser = authenticationService.register(request);
         AuthResponse response = authResponseBuilder.buildAuthResponse(
                 registeredUser,

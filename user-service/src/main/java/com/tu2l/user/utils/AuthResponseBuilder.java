@@ -2,9 +2,10 @@ package com.tu2l.user.utils;
 
 import com.tu2l.common.exception.AuthenticationException;
 import com.tu2l.common.factory.ResponseFactory;
+import com.tu2l.common.model.JwtTokenType;
 import com.tu2l.common.model.states.ResponseProcessingStatus;
+import com.tu2l.user.entity.UserCredential;
 import com.tu2l.user.entity.UserEntity;
-import com.tu2l.user.entity.UserLogin;
 import com.tu2l.user.model.response.AuthResponse;
 import org.springframework.stereotype.Component;
 
@@ -25,13 +26,13 @@ public class AuthResponseBuilder {
      * @throws AuthenticationException if login token is not found
      */
     public AuthResponse buildAuthResponse(UserEntity user, String message) throws AuthenticationException {
-        UserLogin userLogin = user.getMostRecentLogin()
+        UserCredential userCredential = user.getLatestCredentials()
                 .orElseThrow(() -> new AuthenticationException("Login token not found"));
 
         AuthResponse response = AuthResponse.builder()
-                .accessToken(userLogin.getToken())
-                .expiresIn(userLogin.getExpiresIn())
-                .refreshToken(user.getRefreshToken())
+                .accessToken(userCredential.getToken())
+                .expiresIn(userCredential.getExpiresAt())
+                .refreshToken(user.getTokenByType(JwtTokenType.REFRESH))
                 .build();
 
         return ResponseFactory.configureResponse(response, message, ResponseProcessingStatus.SUCCESS);

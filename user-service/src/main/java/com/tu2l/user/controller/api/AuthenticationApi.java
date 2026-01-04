@@ -16,7 +16,7 @@ import org.springframework.web.bind.annotation.RequestMapping;
 public interface AuthenticationApi {
     // register user
     @PostMapping("/register")
-    ResponseEntity<@NonNull AuthResponse> register(@Valid @RequestBody final RegisterRequest request);
+    ResponseEntity<@NonNull AuthResponse> register(@Valid @RequestBody final NewUserRegisterRequest request);
 
     // authenticate user
     @PostMapping("/authenticate")

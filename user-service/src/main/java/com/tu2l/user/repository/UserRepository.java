@@ -1,11 +1,10 @@
 package com.tu2l.user.repository;
 
-import java.util.Optional;
-
+import com.tu2l.user.entity.UserEntity;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.stereotype.Repository;
 
-import com.tu2l.user.entity.UserEntity;
+import java.util.Optional;
 
 @Repository
 public interface UserRepository extends JpaRepository<UserEntity, Long> {
@@ -32,7 +31,7 @@ public interface UserRepository extends JpaRepository<UserEntity, Long> {
      * @param username the username to check
      * @param email    the email to check
      * @return true if a user exists with the given username or email, false
-     *         otherwise
+     * otherwise
      */
     boolean existsByUsernameOrEmail(String username, String email);
 

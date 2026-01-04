@@ -2,17 +2,16 @@ package com.tu2l.user.service.facade;
 
 import com.tu2l.common.exception.AuthenticationException;
 import com.tu2l.common.model.JwtTokenType;
+import com.tu2l.user.entity.UserCredential;
 import com.tu2l.user.entity.UserEntity;
-import com.tu2l.user.entity.UserLogin;
 import com.tu2l.user.exception.UserException;
-import com.tu2l.user.model.request.RegisterRequest;
+import com.tu2l.user.model.request.NewUserRegisterRequest;
 import com.tu2l.user.service.AuthTokenService;
 import com.tu2l.user.service.EmailService;
 import com.tu2l.user.service.PasswordService;
 import com.tu2l.user.service.UserService;
 import com.tu2l.user.utils.UserMapper;
 import io.jsonwebtoken.JwtException;
-import io.micrometer.common.util.StringUtils;
 import lombok.AllArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.dao.DataIntegrityViolationException;
@@ -28,7 +27,7 @@ public class UserAuthenticationFacade {
     private final PasswordService passwordService;
     private final UserMapper userMapper;
 
-    public UserEntity register(RegisterRequest request) throws UserException {
+    public UserEntity register(NewUserRegisterRequest request) throws UserException {
         if (userService.existsByUsernameOrEmail(request.getUsername(), request.getEmail())) {
             throw new UserException("User already exists with username or email");
         }
@@ -48,15 +47,15 @@ public class UserAuthenticationFacade {
     public UserEntity authenticate(String email, String password, boolean rememberMe)
             throws UserException, AuthenticationException {
         var user = userService.getUserByEmail(email);
+        var accountStatus = user.getAccountStatus();
 
-
-        if (user.isAccountLocked() || !user.getEnabled()) {
+        if (accountStatus.isAccountLocked() || !accountStatus.isEnabled()) {
             throw new AuthenticationException("Account is locked or disabled");
         }
 
         if (!passwordService.verifyPassword(password, user.getPassword())) {
-            if (user.incrementFailedLoginAttempts() >= 5) { // TODO move max failed attempts and lock duration to application.yaml
-                user.lockAccount(15);
+            if (accountStatus.incrementFailedLoginAttempts() >= 5) { // TODO move max failed attempts and lock duration to application.yaml
+                accountStatus.lockAccount(15);
                 userService.saveUser(user);
                 log.warn("User account locked due to multiple failed login attempts: {}", email);
                 throw new AuthenticationException("Account locked due to multiple failed login attempts");
@@ -78,13 +77,15 @@ public class UserAuthenticationFacade {
             throws JwtException, AuthenticationException, UserException {
         var user = userService.getUserByUsername(username);
 
-        if (!refreshToken.equals(user.getRefreshToken())) {
+        var refreshTokenCredential = user.getCredentialByTokenTypeAndToken(JwtTokenType.REFRESH, refreshToken);
+
+        if (refreshTokenCredential == null || refreshTokenCredential.isTokenExpired()) {
             throw new AuthenticationException("Invalid refresh token");
         }
 
         try {
             var newAccessToken = authTokenService.refreshAccessToken(refreshToken, user);
-            user.addUserLogin(buildUserLogin(newAccessToken));
+            user.addUserCredential(buildUserCredential(newAccessToken, JwtTokenType.ACCESS));
             log.info("Token refreshed successfully for user: {}", username);
             return userService.saveUser(user);
         } catch (DataIntegrityViolationException e) {
@@ -94,26 +95,27 @@ public class UserAuthenticationFacade {
 
     private void attachLoginTokens(UserEntity user) {
         var refreshToken = authTokenService.generateToken(user, JwtTokenType.REFRESH);
-        user.setRefreshToken(refreshToken);
-        user.setRefreshTokenExpiry(authTokenService.issuedAt(refreshToken)
-                .plusSeconds(authTokenService.getTokenRemainingTime(refreshToken)));
+        user.addUserCredential(buildUserCredential(refreshToken, JwtTokenType.REFRESH));
 
         var accessToken = authTokenService.generateToken(user, JwtTokenType.ACCESS);
-        user.addUserLogin(buildUserLogin(accessToken));
+        user.addUserCredential(buildUserCredential(accessToken, JwtTokenType.ACCESS));
     }
 
-    private UserLogin buildUserLogin(String accessToken) {
-        return UserLogin.builder()
+    private UserCredential buildUserCredential(String accessToken, JwtTokenType tokenType) {
+        return UserCredential.builder()
                 .token(accessToken)
-                .expiresIn(authTokenService.getTokenRemainingTime(accessToken))
-                .loggedInAt(authTokenService.issuedAt(accessToken))
+                .active(true)
+                .issuedAt(authTokenService.issuedAt(accessToken))
+                .expiresAt(authTokenService.expiresAt(accessToken))
+                .issuer("internal-auth-service")
+                .tokenType(tokenType)
                 .build();
     }
 
     public boolean invalidateToken(String token) {
         var username = authTokenService.getUsername(token);
         var user = userService.getUserByUsername(username);
-        var removed = user.getUserLogins().removeIf(login -> login.getToken().equals(token));
+        var removed = user.removeCredentialByToken(token);
         userService.saveUser(user);
         return removed;
     }
@@ -130,7 +132,9 @@ public class UserAuthenticationFacade {
         var username = authTokenService.getUsername(passwordResetToken);
         var user = userService.getUserByUsername(username);
 
-        if (StringUtils.isBlank(user.getPasswordResetToken()) || !user.getPasswordResetToken().equals(passwordResetToken)) {
+        var userCredential = user.getCredentialByTokenTypeAndToken(JwtTokenType.PASSWORD_RESET, passwordResetToken);
+
+        if (userCredential == null) {
             log.warn("Invalid password reset token of user: {}", user.getUsername());
             return false;
         }

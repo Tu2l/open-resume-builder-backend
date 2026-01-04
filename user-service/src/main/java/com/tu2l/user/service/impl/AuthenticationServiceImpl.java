@@ -4,7 +4,7 @@ import com.tu2l.common.exception.AuthenticationException;
 import com.tu2l.common.model.JwtTokenType;
 import com.tu2l.user.entity.UserEntity;
 import com.tu2l.user.exception.UserException;
-import com.tu2l.user.model.request.RegisterRequest;
+import com.tu2l.user.model.request.NewUserRegisterRequest;
 import com.tu2l.user.service.AuthenticationService;
 import com.tu2l.user.service.facade.UserAuthenticationFacade;
 import io.jsonwebtoken.JwtException;
@@ -22,7 +22,7 @@ public class AuthenticationServiceImpl implements AuthenticationService {
     private final UserAuthenticationFacade userAuthenticationFacade;
 
     @Override
-    public UserEntity register(RegisterRequest request) throws UserException {
+    public UserEntity register(NewUserRegisterRequest request) throws UserException {
         return userAuthenticationFacade.register(request);
     }
 

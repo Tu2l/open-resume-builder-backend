@@ -61,4 +61,14 @@ public class JwtServiceImpl implements AuthTokenService {
     public LocalDateTime issuedAt(String token) {
         return jwtUtil.issuedAt(token);
     }
+
+    @Override
+    public LocalDateTime expiresAt(String token) {
+        return jwtUtil.expiresAt(token);
+    }
+
+    @Override
+    public JwtTokenType getTokenType(String token) {
+        return JwtTokenType.valueOf(jwtUtil.extractTokenType(token));
+    }
 }

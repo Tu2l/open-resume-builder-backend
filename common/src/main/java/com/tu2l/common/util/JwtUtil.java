@@ -1,6 +1,7 @@
 package com.tu2l.common.util;
 
 import com.tu2l.common.constant.CommonConstants;
+import com.tu2l.common.model.JwtTokenType;
 import io.jsonwebtoken.Claims;
 import io.jsonwebtoken.Jwts;
 import io.jsonwebtoken.security.Keys;
@@ -36,7 +37,7 @@ public class JwtUtil {
     public String generateAccessToken(String username, String email, String role) {
         Map<String, Object> claims = new HashMap<>();
         claims.put(CommonConstants.JwtClaims.EMAIL, email);
-        claims.put(CommonConstants.JwtClaims.TOKEN_TYPE, CommonConstants.Token.TOKEN_TYPE_BEARER);
+        claims.put(CommonConstants.JwtClaims.TOKEN_TYPE, JwtTokenType.ACCESS.getValue());
         claims.put(CommonConstants.JwtClaims.ROLE, role);
         return createToken(claims, username, accessTokenExpirationMinutes, ChronoUnit.MINUTES);
     }
@@ -46,7 +47,7 @@ public class JwtUtil {
      */
     public String generateRefreshToken(String username) {
         Map<String, Object> claims = new HashMap<>();
-        claims.put(CommonConstants.JwtClaims.TOKEN_TYPE, CommonConstants.Token.TOKEN_TYPE_REFRESH);
+        claims.put(CommonConstants.JwtClaims.TOKEN_TYPE, JwtTokenType.REFRESH.getValue());
         return createToken(claims, username, refreshTokenExpirationDays, ChronoUnit.DAYS);
     }
 
@@ -54,9 +55,9 @@ public class JwtUtil {
      * Generate password reset token
      */
     public String generatePasswordResetToken(String username, String email) {
-        Map<String, Object> claims = new HashMap<>();
+        Map<String, Object> claims = new HashMap<>(); // TODO update token claims for security
         claims.put(CommonConstants.JwtClaims.EMAIL, email);
-        claims.put(CommonConstants.JwtClaims.TOKEN_TYPE, CommonConstants.Token.TOKEN_TYPE_PASSWORD_RESET);
+        claims.put(CommonConstants.JwtClaims.TOKEN_TYPE, JwtTokenType.PASSWORD_RESET.getValue());
         return createToken(claims, username, 1, ChronoUnit.HOURS);
     }
 
@@ -66,7 +67,7 @@ public class JwtUtil {
     public String generateEmailVerificationToken(String username, String email) {
         Map<String, Object> claims = new HashMap<>();
         claims.put(CommonConstants.JwtClaims.EMAIL, email);
-        claims.put(CommonConstants.JwtClaims.TOKEN_TYPE, CommonConstants.Token.TOKEN_TYPE_EMAIL_VERIFICATION);
+        claims.put(CommonConstants.JwtClaims.TOKEN_TYPE, JwtTokenType.EMAIL_VERIFICATION.getValue());
         return createToken(claims, username, 24, ChronoUnit.HOURS);
     }
 
@@ -229,5 +230,10 @@ public class JwtUtil {
     public LocalDateTime issuedAt(String accessToken) {
         Date issuedAt = extractClaim(accessToken, Claims::getIssuedAt);
         return LocalDateTime.ofInstant(issuedAt.toInstant(), java.time.ZoneId.systemDefault());
+    }
+
+    public LocalDateTime expiresAt(String accessToken) {
+        Date expiration = extractClaim(accessToken, Claims::getExpiration);
+        return LocalDateTime.ofInstant(expiration.toInstant(), java.time.ZoneId.systemDefault());
     }
 }

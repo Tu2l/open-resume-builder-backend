@@ -69,4 +69,14 @@ public interface AuthTokenService {
      * Issued-at timestamp for the token.
      */
     LocalDateTime issuedAt(String token);
+
+    /**
+     * Expires at timestamp for the token.
+     */
+    LocalDateTime expiresAt(String token);
+
+    /**
+     * Get token type from token.
+     */
+    JwtTokenType getTokenType(String token);
 }

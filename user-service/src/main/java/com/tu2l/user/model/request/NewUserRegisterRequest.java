@@ -9,7 +9,7 @@ import jakarta.validation.constraints.Size;
 import lombok.Data;
 
 @Data
-public class RegisterRequest implements BaseRequest {
+public class NewUserRegisterRequest implements BaseRequest {
 
     @NotBlank(message = CommonConstants.ValidationMessage.USERNAME_REQUIRED)
     @Size(
@@ -38,16 +38,4 @@ public class RegisterRequest implements BaseRequest {
             message = CommonConstants.ValidationMessage.PASSWORD_PATTERN_MSG
     )
     private String password;
-
-    @NotBlank(message = CommonConstants.ValidationMessage.FIRST_NAME_REQUIRED)
-    private String firstName;
-
-    @NotBlank(message = CommonConstants.ValidationMessage.LAST_NAME_REQUIRED)
-    private String lastName;
-
-    @Pattern(
-            regexp = CommonConstants.Pattern.PHONE_PATTERN,
-            message = CommonConstants.ValidationMessage.PHONE_INVALID
-    )
-    private String phoneNumber;
 }

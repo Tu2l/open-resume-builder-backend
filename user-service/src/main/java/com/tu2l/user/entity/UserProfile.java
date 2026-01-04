@@ -36,7 +36,7 @@ public class UserProfile {
 
     @OneToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "user_id", nullable = false)
-    private UserEntityV2 user;
+    private UserEntity user;
 
     @Column(nullable = false, name = "first_name", length = 50)
     private String firstName;

@@ -60,7 +60,7 @@ public class UserServiceImpl implements UserService {
         // soft delete by setting deletedAt timestamp
         return userRepository.findUserByUsername(username).map(user -> {
             log.info("Deleting user with username: {}", username);
-            user.setDeletedAt(LocalDateTime.now());
+            user.getAccountStatus().setDeletedAt(LocalDateTime.now());
             userRepository.save(user);
             return true;
         }).orElseThrow(() -> new UserException(USER_NOT_FOUND_MSG + username));
