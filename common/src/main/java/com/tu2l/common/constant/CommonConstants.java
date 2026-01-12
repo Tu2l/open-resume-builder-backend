@@ -121,6 +121,9 @@ public final class CommonConstants {
         // Token messages
         public static final String TOKEN_REQUIRED = "Token is required";
         public static final String TOKEN_INVALID = "Token is invalid";
+
+        // Base64 messages
+        public static final String BASE64_INVALID = "Value must be a valid Base64 encoded string";
     }
 
     // ============ HTTP Status Messages ============
@@ -225,5 +228,6 @@ public final class CommonConstants {
         public static final String PASSWORD_PATTERN = "^(?=.*[a-z])(?=.*[A-Z])(?=.*\\d)(?=.*[@$!%*?&])[A-Za-z\\d@$!%*?&]+$";
         public static final String PHONE_PATTERN = "^[+]?[(]?[0-9]{1,4}[)]?[-\\s\\.]?[(]?[0-9]{1,4}[)]?[-\\s\\.]?[0-9]{1,9}$";
         public static final String USERNAME_PATTERN = "^[a-zA-Z0-9._-]+$";
+        public static final String BASE_64_PATTERN = "^(?:[A-Za-z0-9+/]{4})*(?:[A-Za-z0-9+/]{2}==|[A-Za-z0-9+/]{3}=)?$";
     }
 }

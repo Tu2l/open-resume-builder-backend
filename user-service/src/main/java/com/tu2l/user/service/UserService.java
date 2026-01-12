@@ -90,6 +90,46 @@ public interface UserService {
     UserEntity getUserByEmail(String email) throws UserException;
 
     /**
+     * Retrieves user with profile and account status eagerly loaded.
+     * Use this when you need to access user's profile or account status outside the transaction.
+     *
+     * @param username the username of the user to retrieve
+     * @return a UserEntity with profile and accountStatus eagerly loaded
+     * @throws UserException if the user is not found
+     */
+    UserEntity getUserWithDetails(String username) throws UserException;
+
+    /**
+     * Retrieves user by email with profile and account status eagerly loaded.
+     * Use this when you need to access user's profile or account status outside the transaction.
+     *
+     * @param email the email address of the user to retrieve
+     * @return a UserEntity with profile and accountStatus eagerly loaded
+     * @throws UserException if the user is not found
+     */
+    UserEntity getUserByEmailWithDetails(String email) throws UserException;
+
+    /**
+     * Retrieves user with ALL relationships (profile, accountStatus, credentials) eagerly loaded.
+     * Use this for authentication/authorization flows that need to access credentials.
+     *
+     * @param username the username of the user to retrieve
+     * @return a UserEntity with all relationships eagerly loaded
+     * @throws UserException if the user is not found
+     */
+    UserEntity getUserWithCredentials(String username) throws UserException;
+
+    /**
+     * Retrieves user by email with ALL relationships (profile, accountStatus, credentials) eagerly loaded.
+     * Use this for authentication/authorization flows that need to access credentials.
+     *
+     * @param email the email address of the user to retrieve
+     * @return a UserEntity with all relationships eagerly loaded
+     * @throws UserException if the user is not found
+     */
+    UserEntity getUserByEmailWithCredentials(String email) throws UserException;
+
+    /**
      * Persists a new or existing user entity to the database.
      *
      * <p>This method can be used to save a new user or update an existing user's

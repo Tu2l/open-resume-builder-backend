@@ -1,12 +1,22 @@
+### request - Register User
+POST http://localhost:8080/api/users/auth/register
+Content-Type: application/json
+Accept: application/json
+
+{
+  "username": "testuser",
+  "email": "test.user@email.com",
+  "password": "U2VjdXJlUGFzczEyMyE="
+}
+
 ### request - Login User
 POST http://localhost:8080/api/users/auth/authenticate
 Content-Type: application/json
 Accept: application/json
 
 {
-  "usernameOrEmail": "john_doe999",
-  "email": "john.do99e@example.com",
-  "password": "SecurePass123!"
+  "email":"test.user@email.com",
+  "password": "U2VjdXJlUGFzczEyMyE="
 }
 
 ### request - Refresh Token

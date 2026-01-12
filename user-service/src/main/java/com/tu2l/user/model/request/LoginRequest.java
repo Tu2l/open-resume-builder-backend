@@ -1,18 +1,25 @@
 package com.tu2l.user.model.request;
 
+import com.tu2l.common.constant.CommonConstants;
 import com.tu2l.common.model.base.BaseRequest;
-
+import jakarta.validation.constraints.Email;
 import jakarta.validation.constraints.NotBlank;
+import jakarta.validation.constraints.Pattern;
 import lombok.Data;
 
 @Data
 public class LoginRequest implements BaseRequest {
-    
-    @NotBlank(message = "Username or email is required")
-    private String usernameOrEmail;
-    
-    @NotBlank(message = "Password is required")
+
+    @NotBlank(message = CommonConstants.ValidationMessage.EMAIL_REQUIRED)
+    @Email(message = CommonConstants.ValidationMessage.EMAIL_INVALID)
+    private String email;
+
+    @NotBlank(message = CommonConstants.ValidationMessage.PASSWORD_REQUIRED)
+    @Pattern(
+            regexp = CommonConstants.Pattern.BASE_64_PATTERN,
+            message = "Password " + CommonConstants.ValidationMessage.BASE64_INVALID
+    )
     private String password;
-    
+
     private Boolean rememberMe = false;
 }

@@ -28,14 +28,9 @@ public class NewUserRegisterRequest implements BaseRequest {
     private String email;
 
     @NotBlank(message = CommonConstants.ValidationMessage.PASSWORD_REQUIRED)
-    @Size(
-            min = CommonConstants.Validation.PASSWORD_MIN_LENGTH,
-            max = CommonConstants.Validation.PASSWORD_MAX_LENGTH,
-            message = CommonConstants.ValidationMessage.PASSWORD_SIZE
-    )
     @Pattern(
-            regexp = CommonConstants.Pattern.PASSWORD_PATTERN,
-            message = CommonConstants.ValidationMessage.PASSWORD_PATTERN_MSG
+            regexp = CommonConstants.Pattern.BASE_64_PATTERN,
+            message = "Password " + CommonConstants.ValidationMessage.BASE64_INVALID
     )
     private String password;
 }

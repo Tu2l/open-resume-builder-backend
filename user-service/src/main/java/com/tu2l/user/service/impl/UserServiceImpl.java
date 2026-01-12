@@ -103,6 +103,34 @@ public class UserServiceImpl implements UserService {
     }
 
     @Override
+    public UserEntity getUserWithDetails(String username) throws UserException {
+        log.info("Fetching user with details for username: {}", username);
+        return userRepository.findByUsernameWithDetails(username)
+                .orElseThrow(() -> new UserException("User not found with username: " + username));
+    }
+
+    @Override
+    public UserEntity getUserByEmailWithDetails(String email) throws UserException {
+        log.info("Fetching user with details for email: {}", email);
+        return userRepository.findByEmailWithDetails(email)
+                .orElseThrow(() -> new UserException("User not found with email: " + email));
+    }
+
+    @Override
+    public UserEntity getUserWithCredentials(String username) throws UserException {
+        log.info("Fetching user with credentials for username: {}", username);
+        return userRepository.findByUsernameWithAll(username)
+                .orElseThrow(() -> new UserException("User not found with username: " + username));
+    }
+
+    @Override
+    public UserEntity getUserByEmailWithCredentials(String email) throws UserException {
+        log.info("Fetching user with credentials for email: {}", email);
+        return userRepository.findByEmailWithAll(email)
+                .orElseThrow(() -> new UserException("User not found with email: " + email));
+    }
+
+    @Override
     public UserEntity saveUser(UserEntity user) {
         return userRepository.save(user);
     }

@@ -9,7 +9,7 @@ import org.mapstruct.*;
 @Mapper(componentModel = MappingConstants.ComponentModel.SPRING, unmappedTargetPolicy = ReportingPolicy.IGNORE)
 public interface UserMapper {
 
-    @Mapping(target = "role", expression = "java(UserEntityV2.getRole().name())")
+    @Mapping(target = "role", expression = "java(UserEntity.getRole().name())")
     UserDTO toUserDTO(UserEntity UserEntity);
 
     @Mapping(target = "role", expression = "java(com.tu2l.common.model.states.UserRole.valueOf(userDTO.getRole()))")

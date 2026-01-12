@@ -59,11 +59,11 @@ public class UserEntity {
 
     @Builder.Default
     @OneToOne(mappedBy = "user", cascade = CascadeType.ALL, orphanRemoval = true)
-    private UserProfile profile = new UserProfile();
+    private UserProfile profile = null;
 
     @Builder.Default
     @OneToOne(mappedBy = "user", cascade = CascadeType.ALL, orphanRemoval = true)
-    private UserAccountStatus accountStatus = new UserAccountStatus();
+    private UserAccountStatus accountStatus = null;
 
     @Builder.Default
     @OneToMany(mappedBy = "user", cascade = CascadeType.ALL, orphanRemoval = true)
@@ -89,7 +89,6 @@ public class UserEntity {
         accountStatus.setUser(this);
         credentials.forEach(cred -> cred.setUser(this));
     }
-
 
     public void addUserCredential(UserCredential credential) {
         credential.setUser(this);

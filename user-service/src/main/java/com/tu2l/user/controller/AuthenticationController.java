@@ -42,10 +42,10 @@ public class AuthenticationController implements AuthenticationApi {
 
     @Override
     public ResponseEntity<@NonNull AuthResponse> authenticate(LoginRequest request) {
-        log.info("Login attempt for user: {}", request.getUsernameOrEmail());
+        log.info("Login attempt for user: {}", request.getEmail());
 
         var loggedInUserEntity = authenticationService.authenticate(
-                request.getUsernameOrEmail(),
+                request.getEmail(),
                 request.getPassword(),
                 request.getRememberMe()
         );
@@ -55,7 +55,7 @@ public class AuthenticationController implements AuthenticationApi {
                 AuthenticationMessages.LOGIN_SUCCESS
         );
 
-        log.info("Login successful for user: {}", request.getUsernameOrEmail());
+        log.info("Login successful for user: {}", request.getEmail());
         return ResponseEntity.ok(response);
     }
 
