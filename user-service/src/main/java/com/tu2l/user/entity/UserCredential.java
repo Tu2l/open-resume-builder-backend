@@ -41,7 +41,7 @@ public class UserCredential {
     @JoinColumn(name = "user_id", nullable = false)
     private UserEntity user;
 
-    @Column(nullable = false)
+    @Column(nullable = false, length = 2048)
     private String token;
 
     @Column(nullable = false, name = "expires_at")
@@ -63,6 +63,6 @@ public class UserCredential {
     public boolean isTokenExpired() {
         return token != null
                 && expiresAt != null
-                && expiresAt.isAfter(LocalDateTime.now());
+                && !expiresAt.isAfter(LocalDateTime.now());
     }
 }

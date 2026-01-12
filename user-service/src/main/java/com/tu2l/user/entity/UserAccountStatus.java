@@ -15,12 +15,7 @@ import java.time.LocalDateTime;
 @AllArgsConstructor
 @Data
 @Entity
-@Table(
-        name = "user_account_status",
-        uniqueConstraints = {
-                @UniqueConstraint(name = "uk_user_account_status", columnNames = "user_id")
-        }
-)
+@Table(name = "user_account_status")
 public class UserAccountStatus {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
@@ -34,12 +29,11 @@ public class UserAccountStatus {
     @Column(nullable = false, name = "updated_at")
     private LocalDateTime updatedAt;
 
-    @OneToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "user_id", nullable = false)
+    @OneToOne(mappedBy = "accountStatus")
     private UserEntity user;
 
     @Column(nullable = false, name = "enabled")
-    private boolean enabled;
+    private boolean enabled = true;
 
     @Column(nullable = false, name = "email_verified")
     private boolean emailVerified;
@@ -48,7 +42,7 @@ public class UserAccountStatus {
     private boolean phoneVerified;
 
     @Column(name = "failed_login_attempts")
-    private Integer failedLoginAttempts;
+    private int failedLoginAttempts;
 
     @Column(name = "account_locked_until")
     private LocalDateTime accountLockedUntil;
@@ -59,13 +53,8 @@ public class UserAccountStatus {
     @Column(name = "deleted_at")
     private LocalDateTime deletedAt;
 
-    public Integer incrementFailedLoginAttempts() {
-        if (this.failedLoginAttempts == null) {
-            this.failedLoginAttempts = 1;
-        } else {
-            this.failedLoginAttempts += 1;
-        }
-        return failedLoginAttempts;
+    public int incrementFailedLoginAttempts() {
+        return ++failedLoginAttempts;
     }
 
     public boolean isAccountLocked() {

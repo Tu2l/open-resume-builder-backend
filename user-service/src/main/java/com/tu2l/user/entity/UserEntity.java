@@ -3,22 +3,22 @@ package com.tu2l.user.entity;
 import com.tu2l.common.model.JwtTokenType;
 import com.tu2l.common.model.states.UserRole;
 import jakarta.persistence.*;
-import lombok.AllArgsConstructor;
-import lombok.Builder;
-import lombok.Data;
-import lombok.NoArgsConstructor;
+import lombok.*;
 import org.hibernate.annotations.CreationTimestamp;
 import org.hibernate.annotations.UpdateTimestamp;
 
 import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Objects;
 import java.util.Optional;
 
 @Data
 @Builder
 @NoArgsConstructor
 @AllArgsConstructor
+@ToString(exclude = {"profile", "accountStatus", "credentials"})
+@EqualsAndHashCode(exclude = {"profile", "accountStatus", "credentials"})
 @Entity
 @Table(
         name = "users",
@@ -58,15 +58,17 @@ public class UserEntity {
     private String password;
 
     @Builder.Default
-    @OneToOne(mappedBy = "user", cascade = CascadeType.ALL, orphanRemoval = true)
+    @OneToOne(fetch = FetchType.LAZY, cascade = CascadeType.ALL, orphanRemoval = true)
+    @JoinColumn(name = "profile_id", unique = true, nullable = false)
     private UserProfile profile = null;
 
     @Builder.Default
-    @OneToOne(mappedBy = "user", cascade = CascadeType.ALL, orphanRemoval = true)
+    @OneToOne(fetch = FetchType.LAZY, cascade = CascadeType.ALL, orphanRemoval = true)
+    @JoinColumn(name = "account_status_id", unique = true, nullable = false)
     private UserAccountStatus accountStatus = null;
 
     @Builder.Default
-    @OneToMany(mappedBy = "user", cascade = CascadeType.ALL, orphanRemoval = true)
+    @OneToMany(mappedBy = "user", fetch = FetchType.LAZY, cascade = CascadeType.ALL, orphanRemoval = true)
     private List<UserCredential> credentials = new ArrayList<>();
 
     @PrePersist
@@ -87,12 +89,26 @@ public class UserEntity {
 
         profile.setUser(this);
         accountStatus.setUser(this);
-        credentials.forEach(cred -> cred.setUser(this));
+    }
+
+    @PreUpdate
+    void onUpdate() {
+        if (isOAuthUser && password != null) {
+            throw new IllegalStateException("OAuth users should not have a password set.");
+        }
+        if (profile != null && !Objects.equals(profile.getUser(), this)) {
+            profile.setUser(this);
+        }
+        if (accountStatus != null && !Objects.equals(accountStatus.getUser(), this)) {
+            accountStatus.setUser(this);
+        }
     }
 
     public void addUserCredential(UserCredential credential) {
-        credential.setUser(this);
-        this.credentials.add(credential);
+        if (credential != null) {
+            credential.setUser(this);
+            this.credentials.add(credential);
+        }
     }
 
     public Optional<UserCredential> getLatestCredentials() {

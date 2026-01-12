@@ -15,12 +15,7 @@ import java.time.LocalDateTime;
 @AllArgsConstructor
 @Data
 @Entity
-@Table(
-        name = "user_profiles",
-        uniqueConstraints = {
-                @UniqueConstraint(name = "uk_user_profile", columnNames = "user_id")
-        }
-)
+@Table(name = "user_profiles")
 public class UserProfile {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
@@ -34,8 +29,7 @@ public class UserProfile {
     @Column(nullable = false, name = "updated_at")
     private LocalDateTime updatedAt;
 
-    @OneToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "user_id", nullable = false)
+    @OneToOne(mappedBy = "profile")
     private UserEntity user;
 
     @Column(name = "first_name", length = 50)
