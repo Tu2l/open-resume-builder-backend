@@ -8,6 +8,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.jspecify.annotations.NonNull;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.web.HttpRequestMethodNotSupportedException;
 import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
@@ -54,6 +55,11 @@ public class GlobalExceptionHandler {
     @ExceptionHandler({JwtException.class})
     public ResponseEntity<@NonNull BaseResponse> handleJwtException(JwtException exception) {
         return getResponse(exception.getMessage(), "JwtException caught: {}", HttpStatus.UNAUTHORIZED);
+    }
+
+    @ExceptionHandler({HttpRequestMethodNotSupportedException.class})
+    public ResponseEntity<@NonNull BaseResponse> handleHttpRequestMethodNotSupportedException(HttpRequestMethodNotSupportedException exception) {
+        return getResponse(exception.getMessage(), "HttpRequestMethodNotSupportedException caught: {}", HttpStatus.METHOD_NOT_ALLOWED);
     }
 
     private ResponseEntity<@NonNull BaseResponse> getResponse(String message, String format, HttpStatus ok) {

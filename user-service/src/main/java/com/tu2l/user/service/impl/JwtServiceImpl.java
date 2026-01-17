@@ -36,7 +36,7 @@ public class JwtServiceImpl implements AuthTokenService {
 
     @Override
     public String refreshAccessToken(String refreshToken, UserEntity user) throws JwtException {
-        if (!jwtUtil.validateToken(refreshToken, user.getUsername())) {
+        if (!jwtUtil.validateRefreshToken(refreshToken, user.getUsername())) {
             throw new JwtException("Invalid refresh token");
         }
         return generateToken(user, JwtTokenType.ACCESS);

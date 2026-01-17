@@ -3,6 +3,7 @@ package com.tu2l.common.util;
 import com.tu2l.common.constant.CommonConstants;
 import com.tu2l.common.model.JwtTokenType;
 import io.jsonwebtoken.Claims;
+import io.jsonwebtoken.JwtException;
 import io.jsonwebtoken.Jwts;
 import io.jsonwebtoken.security.Keys;
 import lombok.AllArgsConstructor;
@@ -165,9 +166,9 @@ public class JwtUtil {
     /**
      * Validate refresh token
      */
-    public boolean validateRefreshToken(String token) throws Exception {
-        String tokenType = extractTokenType(token);
-        return CommonConstants.Token.TOKEN_TYPE_REFRESH.equals(tokenType) && !isTokenExpired(token);
+    public boolean validateRefreshToken(String token, String username) throws JwtException {
+        final String tokenType = extractTokenType(token);
+        return CommonConstants.Token.TOKEN_TYPE_REFRESH.equals(tokenType) && validateToken(token, username);
     }
 
     /**
