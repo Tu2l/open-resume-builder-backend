@@ -25,8 +25,8 @@ Content-Type: application/json
 Accept: application/json
 
 {
-  "username": "john_doe999",
-  "refreshToken": "eyJhbGciOiJIUzM4NCJ9.eyJ0b2tlblR5cGUiOiJyZWZyZXNoIiwic3ViIjoiam9obl9kb2U5OTkiLCJpc3MiOiJyZXN1bWUtYnVpbGRlci1hcHAiLCJqdGkiOiJhMmEzYjY2OC1jNTY0LTQzZjItOWRlMC02ZjY3ZDFmYjYzOTgiLCJpYXQiOjE3NjY5Mzk0MDIsImV4cCI6MTc2NzU0NDIwMn0.wLhvZmd0Wv6A5YQIBBwcJ3hCqM85-0utZ8_XXFp21Jsbx2fZ6Bck1Lzdisy0pONa"
+  "username": "testuser",
+  "refreshToken": "eyJhbGciOiJIUzM4NCJ9.eyJ0b2tlblR5cGUiOiJyZWZyZXNoIiwic3ViIjoidGVzdHVzZXIiLCJpc3MiOiJyZXN1bWUtYnVpbGRlci1hcHAiLCJqdGkiOiIyNDc1NWY4OS0wZmMyLTRlMDAtOGVhMS1iY2IxODY0YTA5YTgiLCJpYXQiOjE3Njk4ODczNTMsImV4cCI6MTc3MDQ5MjE1M30.WmNGhpSN5C9DhSP4yFym8bechm8TMw0j2JX3ppbNNr7IC2JKrF0xuDoFDi6LQSBr"
 }
 
 ### request - Get User Profile

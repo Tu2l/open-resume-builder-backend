@@ -9,12 +9,15 @@ spring:
   jackson:
     default-property-inclusion: non_null
   datasource:
-    url: jdbc:sqlite:./etc/databases/generated_pdfs.db
-    driver-class-name: org.sqlite.JDBC
-  jpa:
-    database-platform: org.hibernate.community.dialect.SQLiteDialect
-    hibernate:
-      ddl-auto: update
+    url: jdbc:postgresql://localhost:5432/postgres
+    username: postgres
+    password: postgres
+    driver-class-name: org.postgresql.Driver
+    jpa:
+      database-platform: org.hibernate.dialect.PostgreSQLDialect
+      hibernate:
+        ddl-auto: create
+      show-sql: true
 logging:
   level:
     org:
