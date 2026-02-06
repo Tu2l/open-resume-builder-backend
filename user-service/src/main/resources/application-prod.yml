@@ -38,6 +38,9 @@ jwt:
   refresh-token:
     expiration-days: 1
   issuer: resume-builder-app
+auth:
+  max-login-attempts: 5
+  lockout-duration-minutes: 15
 app:
   cors:
     allowed-origins:

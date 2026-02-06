@@ -12,6 +12,7 @@ import io.jsonwebtoken.JwtException;
 import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.stereotype.Service;
 
@@ -25,6 +26,11 @@ public class AuthenticationServiceImpl implements AuthenticationService {
     private final EmailService emailService;
     private final PasswordService passwordService;
     private final UserMapper userMapper;
+
+    @Value("${auth.max-login-attempts:5}")
+    private int maxFailedLoginAttempts;
+    @Value("${auth.lockout-duration-minutes:15}")
+    private int accountLockDurationMinutes;
 
     @Override
     public UserEntity register(NewUserRegisterRequest request) throws UserException {
@@ -53,8 +59,8 @@ public class AuthenticationServiceImpl implements AuthenticationService {
         }
 
         if (!passwordService.verifyPassword(password, user.getPassword())) {
-            if (accountStatus.incrementFailedLoginAttempts() >= 5) { // TODO move max failed attempts and lock duration to application.yaml
-                accountStatus.lockAccount(15);
+            if (accountStatus.incrementFailedLoginAttempts() >= maxFailedLoginAttempts) { // TODO move max failed attempts and lock duration to application.yaml
+                accountStatus.lockAccount(accountLockDurationMinutes);
                 userService.saveUser(user);
                 log.warn("User account locked due to multiple failed login attempts: {}", email);
                 throw new AuthenticationException("Account locked due to multiple failed login attempts");
