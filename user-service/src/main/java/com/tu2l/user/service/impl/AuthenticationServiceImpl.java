@@ -2,6 +2,7 @@ package com.tu2l.user.service.impl;
 
 import com.tu2l.common.exception.AuthenticationException;
 import com.tu2l.common.model.JwtTokenType;
+import com.tu2l.user.config.AuthConfigValues;
 import com.tu2l.user.entity.UserCredential;
 import com.tu2l.user.entity.UserEntity;
 import com.tu2l.user.exception.UserException;
@@ -12,7 +13,6 @@ import io.jsonwebtoken.JwtException;
 import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.beans.factory.annotation.Value;
 import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.stereotype.Service;
 
@@ -26,11 +26,7 @@ public class AuthenticationServiceImpl implements AuthenticationService {
     private final EmailService emailService;
     private final PasswordService passwordService;
     private final UserMapper userMapper;
-
-    @Value("${auth.max-login-attempts:5}")
-    private int maxFailedLoginAttempts;
-    @Value("${auth.lockout-duration-minutes:15}")
-    private int accountLockDurationMinutes;
+    private final AuthConfigValues authConfigValues;
 
     @Override
     public UserEntity register(NewUserRegisterRequest request) throws UserException {
@@ -59,8 +55,8 @@ public class AuthenticationServiceImpl implements AuthenticationService {
         }
 
         if (!passwordService.verifyPassword(password, user.getPassword())) {
-            if (accountStatus.incrementFailedLoginAttempts() >= maxFailedLoginAttempts) { // TODO move max failed attempts and lock duration to application.yaml
-                accountStatus.lockAccount(accountLockDurationMinutes);
+            if (accountStatus.incrementFailedLoginAttempts() >= authConfigValues.maxFailedLoginAttempts()) {
+                accountStatus.lockAccount(authConfigValues.getAccountLockDurationMinutes(rememberMe));
                 userService.saveUser(user);
                 log.warn("User account locked due to multiple failed login attempts: {}", email);
                 throw new AuthenticationException("Account locked due to multiple failed login attempts");

@@ -31,7 +31,7 @@ public class AuthenticationController implements AuthenticationApi {
     @Override
     public ResponseEntity<@NonNull AuthResponse> register(@Valid @RequestBody NewUserRegisterRequest request) {
         var registeredUser = authenticationService.register(request);
-        AuthResponse response = authResponseBuilder.buildAuthResponse(
+        var response = authResponseBuilder.buildAuthResponse(
                 registeredUser,
                 AuthenticationMessages.USER_REGISTERED_SUCCESS
         );
@@ -50,7 +50,7 @@ public class AuthenticationController implements AuthenticationApi {
                 request.getRememberMe()
         );
 
-        AuthResponse response = authResponseBuilder.buildAuthResponse(
+        var response = authResponseBuilder.buildAuthResponse(
                 loggedInUserEntity,
                 AuthenticationMessages.LOGIN_SUCCESS
         );
@@ -67,7 +67,7 @@ public class AuthenticationController implements AuthenticationApi {
                 request.getUsername()
         );
 
-        AuthResponse response = authResponseBuilder.buildAuthResponse(
+        var response = authResponseBuilder.buildAuthResponse(
                 refreshedUserEntity,
                 AuthenticationMessages.TOKEN_REFRESHED_SUCCESS
         );

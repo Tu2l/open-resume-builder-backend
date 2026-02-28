@@ -2,8 +2,8 @@ package com.tu2l.user.config;
 
 import com.tu2l.common.util.CommonUtil;
 import com.tu2l.common.util.JwtUtil;
+import lombok.RequiredArgsConstructor;
 import org.jspecify.annotations.NonNull;
-import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.http.HttpMethod;
@@ -12,22 +12,11 @@ import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.web.servlet.config.annotation.CorsRegistry;
 import org.springframework.web.servlet.config.annotation.WebMvcConfigurer;
 
+@RequiredArgsConstructor
 @Configuration
 public class BeansConfiguration {
     private final CorsProperties corsProperties;
-
-    @Value("${jwt.secret-key:dev-default-secret-key-must-be-at-least-32-chars-long-for-HS256}")
-    private String secretKey;
-    @Value("${jwt.access-token.expiration-minutes:60}")
-    private int accessTokenExpirationMinutes;
-    @Value("${jwt.refresh-token.expiration-days:30}")
-    private int refreshTokenExpirationDays;
-    @Value("${jwt.issuer:resume-builder-app}")
-    private String issuer;
-
-    public BeansConfiguration(CorsProperties corsProperties) {
-        this.corsProperties = corsProperties;
-    }
+    private final JwtConfig jwtConfig;
 
     @Bean
     PasswordEncoder passwordEncoder() {
@@ -41,7 +30,7 @@ public class BeansConfiguration {
 
     @Bean
     public JwtUtil jwtUtil() {
-        return new JwtUtil(secretKey, accessTokenExpirationMinutes, refreshTokenExpirationDays, issuer);
+        return new JwtUtil(jwtConfig.secretKey(), jwtConfig.accessTokenExpirationMinutes(), jwtConfig.refreshTokenExpirationDays(), jwtConfig.issuer());
     }
 
     @Bean
@@ -51,7 +40,7 @@ public class BeansConfiguration {
             public void addCorsMappings(@NonNull CorsRegistry registry) {
                 WebMvcConfigurer.super.addCorsMappings(registry);
                 registry.addMapping("/**")
-                        .allowedOrigins(corsProperties.getAllowedOrigins().toArray(new String[0]))
+                        .allowedOrigins(corsProperties.allowedOrigins().toArray(new String[0]))
                         .allowedMethods(HttpMethod.GET.name(), HttpMethod.POST.name(), HttpMethod.PUT.name(), HttpMethod.DELETE.name(), HttpMethod.OPTIONS.name(), HttpMethod.PATCH.name())
                         .allowedHeaders("*")
                         .allowCredentials(true)
