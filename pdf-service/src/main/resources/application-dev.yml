@@ -6,6 +6,11 @@ server:
     whitelabel:
       enabled: false
 spring:
+  docker:
+    compose:
+      enabled: true
+      file: ../compose.yaml
+      lifecycle-management: start-only
   jackson:
     default-property-inclusion: non_null
   datasource:

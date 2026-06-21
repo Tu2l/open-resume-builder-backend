@@ -57,6 +57,14 @@
       <optional>true</optional>
     </dependency>
 
+    <!-- Auto-manage the local Postgres container (compose.yaml) in the dev profile -->
+    <dependency>
+      <groupId>org.springframework.boot</groupId>
+      <artifactId>spring-boot-docker-compose</artifactId>
+      <scope>runtime</scope>
+      <optional>true</optional>
+    </dependency>
+
     <!-- Lombok - version inherited from parent -->
     <dependency>
       <groupId>org.projectlombok</groupId>

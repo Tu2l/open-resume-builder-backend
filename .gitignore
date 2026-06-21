@@ -57,3 +57,7 @@ buildNumber.properties
 .sts4-cache
 /etc/logs
 /etc/databases
+/.idea
+
+### Service-local runtime logs ###
+gateway-service/etc/logs/

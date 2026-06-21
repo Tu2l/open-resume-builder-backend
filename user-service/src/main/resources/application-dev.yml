@@ -3,6 +3,11 @@ server:
     context-path: /users
   port: 8091
 spring:
+  docker:
+    compose:
+      enabled: true
+      file: ../compose.yaml
+      lifecycle-management: start-only
   jackson:
     default-property-inclusion: non_null
   datasource:
