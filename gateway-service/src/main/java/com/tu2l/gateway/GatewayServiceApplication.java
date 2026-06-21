@@ -1,20 +1,21 @@
 package com.tu2l.gateway;
 
-import com.tu2l.gateway.config.CustomGatewayProperties;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
 import org.springframework.boot.context.properties.EnableConfigurationProperties;
 
+import com.tu2l.gateway.config.CustomGatewayProperties;
+
+import lombok.extern.slf4j.Slf4j;
+
+@Slf4j
 @SpringBootApplication
 @EnableConfigurationProperties(CustomGatewayProperties.class)
 public class GatewayServiceApplication {
-	private static final Logger logger = LoggerFactory.getLogger(GatewayServiceApplication.class);
 
 	public static void main(String[] args) {
-		logger.info("Starting Gateway Service Application...");
+		log.info("Starting Gateway Service Application...");
 		SpringApplication.run(GatewayServiceApplication.class, args);
-		logger.info("Gateway Service Application started successfully.");
+		log.info("Gateway Service Application started successfully.");
 	}
 }
