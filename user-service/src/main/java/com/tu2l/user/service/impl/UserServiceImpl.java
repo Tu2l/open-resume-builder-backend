@@ -12,6 +12,8 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.cache.annotation.CacheEvict;
 import org.springframework.cache.annotation.Cacheable;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -152,5 +154,12 @@ public class UserServiceImpl implements UserService {
     @Override
     public UserEntity saveUser(UserEntity user) {
         return userRepository.save(user);
+    }
+
+    @Override
+    @Transactional(readOnly = true)
+    public Page<UserEntity> getAllUsers(Pageable pageable) {
+        log.info("Fetching users page: {}", pageable);
+        return userRepository.findAll(pageable);
     }
 }

@@ -3,6 +3,8 @@ package com.tu2l.user.service;
 import com.tu2l.user.entity.UserEntity;
 import com.tu2l.user.exception.UserException;
 import com.tu2l.user.model.response.UserDTO;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 
 /**
  * Defines core user management operations including retrieval, profile updates,
@@ -140,4 +142,12 @@ public interface UserService {
      * @return the saved UserEntity with updated information (e.g., generated ID)
      */
     UserEntity saveUser(UserEntity user);
+
+    /**
+     * Retrieves a page of users (soft-deleted users are excluded automatically).
+     *
+     * @param pageable pagination and sorting information
+     * @return a page of UserEntity
+     */
+    Page<UserEntity> getAllUsers(Pageable pageable);
 }

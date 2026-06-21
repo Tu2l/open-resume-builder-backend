@@ -18,6 +18,9 @@ import com.tu2l.user.service.UserService;
 import com.tu2l.user.utils.UserMapper;
 import jakarta.validation.Valid;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.web.PageableDefault;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
@@ -58,6 +61,21 @@ public class UserController {
 
         log.info("User profile retrieved successfully");
         return ResponseEntity.ok(response);
+    }
+
+    /**
+     * GET /users/v1/all - List users with pagination (Admin only)
+     */
+    @GetMapping("/all")
+    public ResponseEntity<Page<UserDTO>> getAllUsers(@RequestHeader("Authorization") String authHeader,
+                                                     @PageableDefault(size = 20) Pageable pageable) {
+        log.info("Fetching users page: {}", pageable);
+        if (!authTokenService.verifyRole(authHeader, UserRole.ADMIN)) {
+            log.warn("Unauthorized access attempt to list all users");
+            return ResponseEntity.status(403).build();
+        }
+        Page<UserDTO> users = userService.getAllUsers(pageable).map(userMapper::toUserDTO);
+        return ResponseEntity.ok(users);
     }
 
     /**
