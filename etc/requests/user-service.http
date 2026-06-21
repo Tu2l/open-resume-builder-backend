@@ -1,5 +1,5 @@
 ### request - Register User
-POST http://localhost:8080/api/users/auth/register
+POST http://localhost:8080/api/users/v1/auth/register
 Content-Type: application/json
 Accept: application/json
 
@@ -10,25 +10,72 @@ Accept: application/json
 }
 
 ### request - Login User
-POST http://localhost:8080/api/users/auth/authenticate
+POST http://localhost:8080/api/users/v1/auth/authenticate
 Content-Type: application/json
 Accept: application/json
 
 {
   "email":"test.user@email.com",
-  "password": "U2VjdXJlUGFzczEyMyE="
+  "password": "U2VjdXJlUGFzczEyMyE=",
+  "rememberMe": false
 }
 
 ### request - Refresh Token
-POST http://localhost:8080/api/users/auth/refresh-token
+POST http://localhost:8080/api/users/v1/auth/refresh-token
 Content-Type: application/json
 Accept: application/json
 
 {
   "username": "testuser",
-  "refreshToken": "eyJhbGciOiJIUzM4NCJ9.eyJ0b2tlblR5cGUiOiJyZWZyZXNoIiwic3ViIjoidGVzdHVzZXIiLCJpc3MiOiJyZXN1bWUtYnVpbGRlci1hcHAiLCJqdGkiOiIyNDc1NWY4OS0wZmMyLTRlMDAtOGVhMS1iY2IxODY0YTA5YTgiLCJpYXQiOjE3Njk4ODczNTMsImV4cCI6MTc3MDQ5MjE1M30.WmNGhpSN5C9DhSP4yFym8bechm8TMw0j2JX3ppbNNr7IC2JKrF0xuDoFDi6LQSBr"
+  "refreshToken": "<paste-refresh-token-from-login-response>"
 }
 
-### request - Get User Profile
-GET http://localhost:8080/api/users/me
-Authorization: Bearer eyJhbGciOiJIUzM4NCJ9.eyJ0b2tlblR5cGUiOiJyZWZyZXNoIiwic3ViIjoiam9obl9kb2U5OTkiLCJpc3MiOiJyZXN1bWUtYnVpbGRlci1hcHAiLCJqdGkiOiJkN2VmYWZkNS1hNDhlLTQ3NWMtYjQ5Yy01NmY4OWNhNDA2MjkiLCJpYXQiOjE3NjY5MzkxODEsImV4cCI6MTc2NzU0Mzk4MX0.uFWtWmzsecObBY46cLnt5wuHAtRzAzd12wWRosYlDvH1-A72V7hQ4_IgyWD1m176
+### request - Forgot Password (dev: reset link is logged by LoggingEmailService)
+POST http://localhost:8080/api/users/v1/auth/forgot-password
+Content-Type: application/json
+Accept: application/json
+
+{
+  "email": "test.user@email.com"
+}
+
+### request - Reset Password (token from the logged reset link)
+POST http://localhost:8080/api/users/v1/auth/reset-password
+Content-Type: application/json
+Accept: application/json
+
+{
+  "resetToken": "<paste-password-reset-token>",
+  "newPassword": "TmV3U2VjdXJlUGFzczQ1NiE="
+}
+
+### request - Verify Email (token from the logged verification link)
+POST http://localhost:8080/api/users/v1/auth/verify-email
+Authorization: Bearer <paste-email-verification-token>
+
+### request - Logout
+POST http://localhost:8080/api/users/v1/auth/logout
+Authorization: Bearer <paste-access-token>
+
+### request - Get Current User Profile
+GET http://localhost:8080/api/users/v1/me
+Authorization: Bearer <paste-access-token>
+
+### request - List Users (Admin only, paginated)
+GET http://localhost:8080/api/users/v1/all?page=0&size=20&sort=createdAt,desc
+Authorization: Bearer <paste-admin-access-token>
+
+### request - Current user's permissions (RBAC)
+GET http://localhost:8080/api/users/v1/authorize/me/permissions
+Authorization: Bearer <paste-access-token>
+
+### request - Check a permission (RBAC)
+GET http://localhost:8080/api/users/v1/authorize/check?resource=user&action=read
+Authorization: Bearer <paste-access-token>
+
+### request - Assign a role to a user (Admin only)
+POST http://localhost:8080/api/users/v1/authorize/roles/1
+Authorization: Bearer <paste-admin-access-token>
+Content-Type: application/json
+
+"MODERATOR"

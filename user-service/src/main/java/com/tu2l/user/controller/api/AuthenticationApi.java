@@ -12,7 +12,7 @@ import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestHeader;
 import org.springframework.web.bind.annotation.RequestMapping;
 
-@RequestMapping("/auth")
+@RequestMapping("/v1/auth")
 public interface AuthenticationApi {
     // register user
     @PostMapping("/register")

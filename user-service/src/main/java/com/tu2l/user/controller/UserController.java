@@ -16,6 +16,7 @@ import com.tu2l.user.model.response.UserResponse;
 import com.tu2l.user.service.AuthTokenService;
 import com.tu2l.user.service.UserService;
 import com.tu2l.user.utils.UserMapper;
+import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.domain.Page;
@@ -29,7 +30,8 @@ import org.springframework.web.bind.annotation.*;
  */
 @Slf4j
 @RestController
-@RequestMapping("/")
+@RequestMapping("/v1")
+@Tag(name = "Users", description = "User profile management")
 public class UserController {
     private final UserService userService;
     private final AuthTokenService authTokenService;
