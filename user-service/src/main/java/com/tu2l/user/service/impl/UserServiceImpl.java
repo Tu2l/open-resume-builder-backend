@@ -1,6 +1,7 @@
 package com.tu2l.user.service.impl;
 
 import com.tu2l.common.util.CommonUtil;
+import com.tu2l.user.config.CacheConfig;
 import com.tu2l.user.entity.UserEntity;
 import com.tu2l.user.exception.UserException;
 import com.tu2l.user.model.response.UserDTO;
@@ -9,14 +10,18 @@ import com.tu2l.user.service.UserService;
 import com.tu2l.user.utils.UserMapper;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.cache.annotation.CacheEvict;
+import org.springframework.cache.annotation.Cacheable;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDateTime;
 
 @RequiredArgsConstructor
 @Slf4j
 @Service
+@Transactional
 public class UserServiceImpl implements UserService {
     private static final String USER_NOT_FOUND_MSG = "User not found with username: ";
 
@@ -26,6 +31,7 @@ public class UserServiceImpl implements UserService {
     private final UserMapper userMapper;
 
     @Override
+    @Transactional(readOnly = true)
     public UserEntity getUserById(Long id) throws UserException {
         log.info("Fetching user with id: {}", id);
 
@@ -34,11 +40,16 @@ public class UserServiceImpl implements UserService {
     }
 
     @Override
+    @Transactional(readOnly = true)
+    // Caches only eager top-level fields; current callers (profile mapping, role
+    // checks) never touch the lazy associations on a cache hit.
+    @Cacheable(value = CacheConfig.USERS_CACHE, key = "#username")
     public UserEntity getUserByUsername(String username) throws UserException {
         return userRepository.findUserByUsername(username).orElseThrow(() -> new UserException("User not found with username: " + username));
     }
 
     @Override
+    @CacheEvict(value = CacheConfig.USERS_CACHE, allEntries = true)
     public UserEntity updateUser(UserDTO userDTO) throws UserException {
         if (userDTO == null || userDTO.getId() == null) {
             throw new UserException("UserDTO or User ID must not be null");
@@ -53,6 +64,7 @@ public class UserServiceImpl implements UserService {
     }
 
     @Override
+    @CacheEvict(value = CacheConfig.USERS_CACHE, key = "#username")
     public boolean deleteUser(String username) throws UserException {
         if (username == null) {
             throw new UserException("User ID must not be null");
@@ -67,6 +79,7 @@ public class UserServiceImpl implements UserService {
     }
 
     @Override
+    @CacheEvict(value = CacheConfig.USERS_CACHE, key = "#username")
     public UserEntity updatePassword(String username, String oldPassword, String newPassword) throws UserException {
         if (username == null) {
             throw new UserException("User ID must not be null");
@@ -91,18 +104,21 @@ public class UserServiceImpl implements UserService {
     }
 
     @Override
+    @Transactional(readOnly = true)
     public boolean existsByUsernameOrEmail(String username, String email) {
         log.info("Checking existence of user with username: {} or email: {}", username, email);
         return userRepository.existsByUsernameOrEmail(username, email);
     }
 
     @Override
+    @Transactional(readOnly = true)
     public UserEntity getUserByEmail(String email) throws UserException {
         log.info("Fetching user with email: {}", email);
         return userRepository.findUserByEmail(email).orElseThrow(() -> new UserException("User not found with email: " + email));
     }
 
     @Override
+    @Transactional(readOnly = true)
     public UserEntity getUserWithDetails(String username) throws UserException {
         log.info("Fetching user with details for username: {}", username);
         return userRepository.findByUsernameWithDetails(username)
@@ -110,6 +126,7 @@ public class UserServiceImpl implements UserService {
     }
 
     @Override
+    @Transactional(readOnly = true)
     public UserEntity getUserByEmailWithDetails(String email) throws UserException {
         log.info("Fetching user with details for email: {}", email);
         return userRepository.findByEmailWithDetails(email)
@@ -117,6 +134,7 @@ public class UserServiceImpl implements UserService {
     }
 
     @Override
+    @Transactional(readOnly = true)
     public UserEntity getUserWithCredentials(String username) throws UserException {
         log.info("Fetching user with credentials for username: {}", username);
         return userRepository.findByUsernameWithAll(username)
@@ -124,6 +142,7 @@ public class UserServiceImpl implements UserService {
     }
 
     @Override
+    @Transactional(readOnly = true)
     public UserEntity getUserByEmailWithCredentials(String email) throws UserException {
         log.info("Fetching user with credentials for email: {}", email);
         return userRepository.findByEmailWithAll(email)
