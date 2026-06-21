@@ -45,6 +45,10 @@ app:
     password-reset-path: /reset-password?token=
     verification-subject: "Verify your email"
     password-reset-subject: "Reset your password"
+  rate-limit:
+    enabled: true
+    capacity: 5
+    window-seconds: 60
   cors:
     allowed-origins:
       - http://localhost:3000
