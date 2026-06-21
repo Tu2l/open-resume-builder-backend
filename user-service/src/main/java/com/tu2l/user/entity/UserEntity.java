@@ -17,8 +17,8 @@ import java.util.Optional;
 @Builder
 @NoArgsConstructor
 @AllArgsConstructor
-@ToString(exclude = {"profile", "accountStatus", "credentials"})
-@EqualsAndHashCode(exclude = {"profile", "accountStatus", "credentials"})
+@ToString(exclude = {"profile", "accountStatus", "credentials", "plainAccessToken", "plainRefreshToken"})
+@EqualsAndHashCode(exclude = {"profile", "accountStatus", "credentials", "plainAccessToken", "plainRefreshToken"})
 @Entity
 @Table(
         name = "users",
@@ -70,6 +70,17 @@ public class UserEntity {
     @Builder.Default
     @OneToMany(mappedBy = "user", fetch = FetchType.LAZY, cascade = CascadeType.ALL, orphanRemoval = true)
     private List<UserCredential> credentials = new ArrayList<>();
+
+    /**
+     * Raw (un-hashed) access/refresh tokens for the current operation. Not persisted
+     * ({@link Transient}) — only stored hashes live in {@link UserCredential}. These
+     * carry the real JWTs back to the auth response after token hashing.
+     */
+    @Transient
+    private String plainAccessToken;
+
+    @Transient
+    private String plainRefreshToken;
 
     @PrePersist
     void onCreate() {

@@ -40,7 +40,11 @@ public class UserCredential {
     @ManyToOne(fetch = FetchType.LAZY)
     private UserEntity user;
 
-    @Column(nullable = false, length = 2048)
+    /**
+     * SHA-256 hex hash of the issued token (never the raw token). Lookups hash the
+     * incoming token and compare, so tokens are never stored at rest in plaintext.
+     */
+    @Column(nullable = false, length = 64)
     private String token;
 
     @Column(nullable = false, name = "expires_at")

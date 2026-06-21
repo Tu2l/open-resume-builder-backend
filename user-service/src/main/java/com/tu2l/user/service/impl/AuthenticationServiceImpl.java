@@ -2,6 +2,7 @@ package com.tu2l.user.service.impl;
 
 import com.tu2l.common.exception.AuthenticationException;
 import com.tu2l.common.model.JwtTokenType;
+import com.tu2l.common.util.CommonUtil;
 import com.tu2l.user.config.AuthConfigValues;
 import com.tu2l.user.entity.UserCredential;
 import com.tu2l.user.entity.UserEntity;
@@ -27,6 +28,7 @@ public class AuthenticationServiceImpl implements AuthenticationService {
     private final PasswordService passwordService;
     private final UserMapper userMapper;
     private final AuthConfigValues authConfigValues;
+    private final CommonUtil commonUtil;
 
     @Override
     public UserEntity register(NewUserRegisterRequest request) throws UserException {
@@ -78,7 +80,7 @@ public class AuthenticationServiceImpl implements AuthenticationService {
     public UserEntity refreshToken(String refreshToken, String username) throws JwtException, AuthenticationException, UserException {
         var user = userService.getUserWithCredentials(username);
 
-        var refreshTokenCredential = user.getCredentialByTokenTypeAndToken(JwtTokenType.REFRESH, refreshToken);
+        var refreshTokenCredential = user.getCredentialByTokenTypeAndToken(JwtTokenType.REFRESH, commonUtil.sha256Hex(refreshToken));
 
         if (refreshTokenCredential == null || refreshTokenCredential.isTokenExpired()) {
             throw new AuthenticationException("Invalid refresh token");
@@ -87,6 +89,9 @@ public class AuthenticationServiceImpl implements AuthenticationService {
         try {
             var newAccessToken = authTokenService.refreshAccessToken(refreshToken, user);
             user.addUserCredential(buildUserCredential(newAccessToken, JwtTokenType.ACCESS));
+            // The refresh token is unchanged; carry both raw tokens back for the response.
+            user.setPlainAccessToken(newAccessToken);
+            user.setPlainRefreshToken(refreshToken);
             log.info("Token refreshed successfully for user: {}", username);
             return userService.saveUser(user);
         } catch (DataIntegrityViolationException e) {
@@ -98,7 +103,7 @@ public class AuthenticationServiceImpl implements AuthenticationService {
     public boolean logout(String token) throws JwtException, AuthenticationException {
         var username = authTokenService.getUsername(token);
         var user = userService.getUserWithCredentials(username);
-        var removed = user.removeCredentialByToken(token);
+        var removed = user.removeCredentialByToken(commonUtil.sha256Hex(token));
         userService.saveUser(user);
         return removed;
     }
@@ -117,7 +122,7 @@ public class AuthenticationServiceImpl implements AuthenticationService {
         var username = authTokenService.getUsername(passwordResetToken);
         var user = userService.getUserWithCredentials(username);
 
-        var userCredential = user.getCredentialByTokenTypeAndToken(JwtTokenType.PASSWORD_RESET, passwordResetToken);
+        var userCredential = user.getCredentialByTokenTypeAndToken(JwtTokenType.PASSWORD_RESET, commonUtil.sha256Hex(passwordResetToken));
 
         if (userCredential == null) {
             log.warn("Invalid password reset token of user: {}", user.getUsername());
@@ -141,14 +146,18 @@ public class AuthenticationServiceImpl implements AuthenticationService {
 
         var accessToken = authTokenService.generateToken(user, JwtTokenType.ACCESS);
         user.addUserCredential(buildUserCredential(accessToken, JwtTokenType.ACCESS));
+
+        // Carry the raw tokens back for the auth response (only hashes are persisted).
+        user.setPlainRefreshToken(refreshToken);
+        user.setPlainAccessToken(accessToken);
     }
 
-    private UserCredential buildUserCredential(String accessToken, JwtTokenType tokenType) {
+    private UserCredential buildUserCredential(String rawToken, JwtTokenType tokenType) {
         return UserCredential.builder()
-                .token(accessToken)
+                .token(commonUtil.sha256Hex(rawToken))
                 .active(true)
-                .issuedAt(authTokenService.issuedAt(accessToken))
-                .expiresAt(authTokenService.expiresAt(accessToken))
+                .issuedAt(authTokenService.issuedAt(rawToken))
+                .expiresAt(authTokenService.expiresAt(rawToken))
                 .issuer("internal-auth-service")
                 .tokenType(tokenType)
                 .build();

@@ -2,11 +2,11 @@ package com.tu2l.user.utils;
 
 import com.tu2l.common.exception.AuthenticationException;
 import com.tu2l.common.factory.ResponseFactory;
-import com.tu2l.common.model.JwtTokenType;
 import com.tu2l.common.model.states.ResponseProcessingStatus;
-import com.tu2l.user.entity.UserCredential;
 import com.tu2l.user.entity.UserEntity;
 import com.tu2l.user.model.response.AuthResponse;
+import com.tu2l.user.service.AuthTokenService;
+import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Component;
 
 /**
@@ -14,25 +14,34 @@ import org.springframework.stereotype.Component;
  * Reduces code duplication in authentication operations.
  */
 @Component
+@RequiredArgsConstructor
 public class AuthResponseBuilder {
+
+    private final AuthTokenService authTokenService;
 
     /**
      * Builds an AuthResponse from a UserEntity.
-     * Extracts the most recent login token and refresh token.
+     * <p>
+     * The persisted {@link com.tu2l.user.entity.UserCredential} only holds token
+     * <em>hashes</em>, so the raw JWTs are read from the entity's transient
+     * {@code plainAccessToken}/{@code plainRefreshToken} fields (populated by the
+     * authentication service for the current operation).
      *
-     * @param user    The user entity containing login information
+     * @param user    The user entity containing the current operation's tokens
      * @param message The success message for the response
      * @return Configured AuthResponse with tokens and metadata
-     * @throws AuthenticationException if login token is not found
+     * @throws AuthenticationException if no access token is present for this operation
      */
     public AuthResponse buildAuthResponse(UserEntity user, String message) throws AuthenticationException {
-        UserCredential userCredential = user.getLatestCredentials()
-                .orElseThrow(() -> new AuthenticationException("Login token not found"));
+        String accessToken = user.getPlainAccessToken();
+        if (accessToken == null) {
+            throw new AuthenticationException("Login token not found");
+        }
 
         AuthResponse response = AuthResponse.builder()
-                .accessToken(userCredential.getToken())
-                .expiresIn(userCredential.getExpiresAt())
-                .refreshToken(user.getTokenByType(JwtTokenType.REFRESH))
+                .accessToken(accessToken)
+                .refreshToken(user.getPlainRefreshToken())
+                .expiresIn(authTokenService.expiresAt(accessToken))
                 .build();
 
         return ResponseFactory.configureResponse(response, message, ResponseProcessingStatus.SUCCESS);
@@ -49,4 +58,3 @@ public class AuthResponseBuilder {
         return buildAuthResponse(user, "Operation successful");
     }
 }
-

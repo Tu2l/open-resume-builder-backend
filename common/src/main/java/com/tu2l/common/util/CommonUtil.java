@@ -75,4 +75,32 @@ public class CommonUtil {
         return !isNullOrEmpty(email) && email.matches(CommonConstants.Pattern.EMAIL);
     }
 
+    /**
+     * Computes a deterministic SHA-256 hash of the given value and returns it as a
+     * lowercase hex string (64 chars). Used to store opaque tokens (refresh/reset/
+     * verification) at rest instead of plaintext, while still allowing direct
+     * lookups by hashing the incoming token and comparing.
+     *
+     * @param value the value to hash (e.g. a JWT)
+     * @return lowercase hex-encoded SHA-256 digest, or {@code null} if value is null
+     */
+    public String sha256Hex(String value) {
+        if (value == null) {
+            return null;
+        }
+        try {
+            java.security.MessageDigest digest = java.security.MessageDigest.getInstance("SHA-256");
+            byte[] hash = digest.digest(value.getBytes(java.nio.charset.StandardCharsets.UTF_8));
+            StringBuilder hex = new StringBuilder(hash.length * 2);
+            for (byte b : hash) {
+                hex.append(Character.forDigit((b >> 4) & 0xF, 16));
+                hex.append(Character.forDigit(b & 0xF, 16));
+            }
+            return hex.toString();
+        } catch (java.security.NoSuchAlgorithmException e) {
+            // SHA-256 is guaranteed to be available on every JVM.
+            throw new IllegalStateException("SHA-256 algorithm not available", e);
+        }
+    }
+
 }
