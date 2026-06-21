@@ -11,11 +11,13 @@ import com.tu2l.user.model.request.NewUserRegisterRequest;
 import com.tu2l.user.service.*;
 import com.tu2l.user.utils.UserMapper;
 import io.jsonwebtoken.JwtException;
-import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
+
+import java.time.LocalDateTime;
 
 @RequiredArgsConstructor
 @Slf4j
@@ -48,6 +50,9 @@ public class AuthenticationServiceImpl implements AuthenticationService {
     }
 
     @Override
+    // Do not roll back on AuthenticationException, otherwise the failed-attempt
+    // increment / account lock below would be undone and accounts would never lock.
+    @Transactional(noRollbackFor = AuthenticationException.class)
     public UserEntity authenticate(String email, String password, boolean rememberMe) throws UserException, AuthenticationException {
         var user = userService.getUserByEmailWithDetails(email);
         var accountStatus = user.getAccountStatus();
@@ -68,6 +73,9 @@ public class AuthenticationServiceImpl implements AuthenticationService {
         }
 
         try {
+            // Successful login: clear any prior failed attempts and record the time.
+            accountStatus.unlockAccount();
+            accountStatus.setLastLoginAt(LocalDateTime.now());
             attachLoginTokens(user);
             log.info("User authenticated successfully: {}", email);
             return userService.saveUser(user);
