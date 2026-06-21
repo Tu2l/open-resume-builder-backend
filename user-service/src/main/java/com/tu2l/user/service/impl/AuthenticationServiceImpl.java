@@ -46,7 +46,10 @@ public class AuthenticationServiceImpl implements AuthenticationService {
 
         try {
             attachLoginTokens(user);
+            var verificationToken = authTokenService.generateToken(user, JwtTokenType.EMAIL_VERIFICATION);
+            user.addUserCredential(buildUserCredential(verificationToken, JwtTokenType.EMAIL_VERIFICATION));
             var saved = userService.saveUser(user);
+            emailService.sendVerificationEmail(saved.getEmail(), verificationToken);
             auditService.log(AuditEventType.USER_REGISTERED, saved.getId(), saved.getUsername());
             return saved;
         } catch (DataIntegrityViolationException e) {
@@ -131,8 +134,12 @@ public class AuthenticationServiceImpl implements AuthenticationService {
 
     @Override
     public boolean forgotPassword(String email) throws JwtException, AuthenticationException {
-        var userName = userService.getUserByEmailWithDetails(email);
-        var passwordResetToken = authTokenService.generateToken(userName, JwtTokenType.PASSWORD_RESET);
+        var user = userService.getUserByEmailWithCredentials(email);
+        var passwordResetToken = authTokenService.generateToken(user, JwtTokenType.PASSWORD_RESET);
+        // Persist the reset-token credential (hashed) so resetPassword can validate it.
+        user.addUserCredential(buildUserCredential(passwordResetToken, JwtTokenType.PASSWORD_RESET));
+        userService.saveUser(user);
+        auditService.log(AuditEventType.PASSWORD_RESET_REQUESTED, user.getId(), null);
         return emailService.sendPasswordResetEmail(email, passwordResetToken);
     }
 
@@ -159,7 +166,16 @@ public class AuthenticationServiceImpl implements AuthenticationService {
 
     @Override
     public boolean verifyEmail(String verificationToken) throws JwtException, AuthenticationException {
-        return authTokenService.validateToken(verificationToken, JwtTokenType.EMAIL_VERIFICATION);
+        if (!authTokenService.validateToken(verificationToken, JwtTokenType.EMAIL_VERIFICATION)) {
+            return false;
+        }
+        var username = authTokenService.getUsername(verificationToken);
+        var user = userService.getUserWithDetails(username);
+        user.getAccountStatus().setEmailVerified(true);
+        userService.saveUser(user);
+        auditService.log(AuditEventType.EMAIL_VERIFIED, user.getId(), null);
+        log.info("Email verified for user: {}", username);
+        return true;
     }
 
     private void attachLoginTokens(UserEntity user) {

@@ -32,6 +32,12 @@
             <artifactId>spring-boot-starter-validation</artifactId>
         </dependency>
 
+        <!-- Email delivery (SMTP via JavaMailSender) -->
+        <dependency>
+            <groupId>org.springframework.boot</groupId>
+            <artifactId>spring-boot-starter-mail</artifactId>
+        </dependency>
+
         <!-- Spring Security Crypto - Only for PasswordEncoder (BCrypt) -->
         <dependency>
             <groupId>org.springframework.security</groupId>

@@ -5,6 +5,17 @@ server:
 spring:
   jackson:
     default-property-inclusion: non_null
+  mail:
+    host: ${MAIL_HOST}
+    port: ${MAIL_PORT:587}
+    username: ${MAIL_USERNAME}
+    password: ${MAIL_PASSWORD}
+    properties:
+      mail:
+        smtp:
+          auth: true
+          starttls:
+            enable: true
   datasource:
     url: ${DATABASE_URL}
     username: ${DATABASE_USERNAME}
@@ -32,6 +43,13 @@ logging:
       max-file-size: 10MB
       max-history: 1
 app:
+  mail:
+    from-address: ${MAIL_FROM_ADDRESS:no-reply@resume-builder.app}
+    frontend-base-url: ${FRONTEND_BASE_URL}
+    verification-path: /verify-email?token=
+    password-reset-path: /reset-password?token=
+    verification-subject: "Verify your email"
+    password-reset-subject: "Reset your password"
   cors:
     allowed-origins:
       - http://localhost:3000
