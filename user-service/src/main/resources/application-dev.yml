@@ -32,11 +32,12 @@ logging:
       tu2l:
         user: DEBUG
   file:
-    name: ./etc/logs/user-service/app.log
+    name: ../etc/logs/user-service/app.log
   logback:
     rollingpolicy:
+      file-name-pattern: ../etc/logs/user-service/%d{yyyy-MM-dd}.%i.log
       max-file-size: 10MB
-      max-history: 1
+      max-history: 7
 springdoc:
   swagger-ui:
     enabled: false

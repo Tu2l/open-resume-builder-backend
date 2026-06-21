@@ -37,11 +37,12 @@ logging:
       tu2l:
         user: INFO
   file:
-    name: /var/log/resume-builder/user-service/app.log
+    name: ../etc/logs/user-service/app.log
   logback:
     rollingpolicy:
+      file-name-pattern: ../etc/logs/user-service/%d{yyyy-MM-dd}.%i.log
       max-file-size: 10MB
-      max-history: 1
+      max-history: 30
 springdoc:
   swagger-ui:
     enabled: false

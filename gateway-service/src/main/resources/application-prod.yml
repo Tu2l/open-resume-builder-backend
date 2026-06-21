@@ -42,11 +42,12 @@ logging:
     reactor:
       netty: INFO
   file:
-    name: ./logs/gateway-service/app.log
+    name: ../etc/logs/gateway-service/app.log
   logback:
     rollingpolicy:
+      file-name-pattern: ../etc/logs/gateway-service/%d{yyyy-MM-dd}.%i.log
       max-file-size: 10MB
-      max-history: 7
+      max-history: 30
 
 jwt:
   secret-key: ${JWT_SECRET_KEY}
