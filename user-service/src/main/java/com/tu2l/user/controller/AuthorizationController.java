@@ -1,146 +1,118 @@
 package com.tu2l.user.controller;
 
-import org.springframework.http.ResponseEntity;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.PathVariable;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestBody;
-import org.springframework.web.bind.annotation.RequestHeader;
-import org.springframework.web.bind.annotation.RequestParam;
-
-import com.tu2l.common.model.base.BaseResponse;
+import com.tu2l.common.factory.ResponseFactory;
+import com.tu2l.common.model.states.ResponseProcessingStatus;
+import com.tu2l.common.model.states.UserRole;
+import com.tu2l.user.authorization.Permission;
+import com.tu2l.user.controller.api.AuthorizationApi;
+import com.tu2l.user.model.response.AuthorizationResponse;
+import com.tu2l.user.service.AuthTokenService;
 import com.tu2l.user.service.AuthorizationService;
-
+import com.tu2l.user.service.UserService;
+import io.swagger.v3.oas.annotations.tags.Tag;
+import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseEntity;
+import org.springframework.web.bind.annotation.RestController;
+
+import java.util.Set;
+import java.util.stream.Collectors;
 
 /**
- * Authorization Controller - Handles role-based access control (RBAC)
- * operations
+ * Authorization Controller - Handles role-based access control (RBAC) operations.
  */
 @Slf4j
-// @RestController
-// @RequestMapping("/authorize")
-public class AuthorizationController {
+@RestController
+@RequiredArgsConstructor
+@Tag(name = "Authorization", description = "Role-based access control (RBAC)")
+public class AuthorizationController implements AuthorizationApi {
+
     private final AuthorizationService authorizationService;
+    private final AuthTokenService authTokenService;
+    private final UserService userService;
 
-    public AuthorizationController(AuthorizationService authorizationService) {
-        this.authorizationService = authorizationService;
-    }
-
-    /**
-     * GET /authorize/check - Check if user has specific permission
-     * Query params: resource, action
-     */
-    @GetMapping("/check")
-    public ResponseEntity<BaseResponse> checkPermission(
-            @RequestParam String resource,
-            @RequestParam String action,
-            @RequestHeader("Authorization") String authHeader) {
+    @Override
+    public ResponseEntity<AuthorizationResponse> checkPermission(String resource, String action, String authHeader) {
         log.info("Checking permission - resource: {}, action: {}", resource, action);
-        // TODO: Implement permission check
-        // 1. Extract user from JWT token
-        // 2. Get user roles and permissions
-        // 3. Check if user has permission for resource and action
-        // 4. Return authorization result
-        BaseResponse response = new BaseResponse() {
-        };
-        response.setMessage("Authorization check completed");
-        log.info("Authorization check completed - resource: {}, action: {}", resource, action);
-        return ResponseEntity.ok(response);
+        UserRole role = currentRole(authHeader);
+        boolean allowed = authorizationService.hasPermission(role, resource, action);
+        return ok(AuthorizationResponse.builder().allowed(allowed).build(), "Authorization check completed");
     }
 
-    /**
-     * GET /authorize/roles - Get all available roles (Admin only)
-     */
-    @GetMapping("/roles")
-    public ResponseEntity<BaseResponse> getAllRoles() {
-        log.info("Fetching all roles");
-        // TODO: Implement role listing
-        // Return list of all available roles in the system
-        BaseResponse response = new BaseResponse() {
-        };
-        response.setMessage("Roles retrieved successfully");
-        log.info("Roles retrieved successfully");
-        return ResponseEntity.ok(response);
+    @Override
+    public ResponseEntity<AuthorizationResponse> getAllRoles(String authHeader) {
+        if (!isAdmin(authHeader)) {
+            return forbidden();
+        }
+        Set<String> roles = authorizationService.getAllRoles().stream().map(Enum::name).collect(Collectors.toSet());
+        return ok(AuthorizationResponse.builder().roles(roles).build(), "Roles retrieved successfully");
     }
 
-    /**
-     * GET /authorize/roles/{userId} - Get user roles (Admin only)
-     */
-    @GetMapping("/roles/{userId}")
-    public ResponseEntity<BaseResponse> getUserRoles(@PathVariable Long userId) {
-        log.info("Fetching roles for user: {}", userId);
-        // TODO: Implement user role retrieval
-        // Return roles assigned to specific user
-        BaseResponse response = new BaseResponse() {
-        };
-        response.setMessage("User roles retrieved successfully");
-        log.info("User roles retrieved for user: {}", userId);
-        return ResponseEntity.ok(response);
+    @Override
+    public ResponseEntity<AuthorizationResponse> getUserRoles(Long userId, String authHeader) {
+        if (!isAdmin(authHeader)) {
+            return forbidden();
+        }
+        UserRole role = authorizationService.getUserRole(userId);
+        return ok(AuthorizationResponse.builder().role(role.name()).build(), "User role retrieved successfully");
     }
 
-    /**
-     * POST /authorize/roles/{userId} - Assign role to user (Admin only)
-     */
-    @PostMapping("/roles/{userId}")
-    public ResponseEntity<BaseResponse> assignRole(
-            @PathVariable Long userId,
-            @RequestBody String roleName) {
-        log.info("Assigning role {} to user: {}", roleName, userId);
-        // TODO: Implement role assignment
-        // 1. Validate role exists
-        // 2. Validate user exists
-        // 3. Assign role to user
-        // 4. Handle duplicate assignments
-        BaseResponse response = new BaseResponse() {
-        };
-        response.setMessage("Role assigned successfully");
-        log.info("Role assigned successfully - user: {}, role: {}", userId, roleName);
-        return ResponseEntity.ok(response);
+    @Override
+    public ResponseEntity<AuthorizationResponse> assignRole(Long userId, String roleName, String authHeader) {
+        if (!isAdmin(authHeader)) {
+            return forbidden();
+        }
+        UserRole role = authorizationService.assignRole(userId, roleName);
+        return ok(AuthorizationResponse.builder().role(role.name()).build(), "Role assigned successfully");
     }
 
-    /**
-     * GET /authorize/permissions - Get all available permissions (Admin only)
-     */
-    @GetMapping("/permissions")
-    public ResponseEntity<BaseResponse> getAllPermissions() {
-        log.info("Fetching all permissions");
-        // TODO: Implement permission listing
-        // Return list of all available permissions in the system
-        BaseResponse response = new BaseResponse() {
-        };
-        response.setMessage("Permissions retrieved successfully");
-        log.info("Permissions retrieved successfully");
-        return ResponseEntity.ok(response);
+    @Override
+    public ResponseEntity<AuthorizationResponse> getAllPermissions(String authHeader) {
+        if (!isAdmin(authHeader)) {
+            return forbidden();
+        }
+        return ok(AuthorizationResponse.builder().permissions(toNames(authorizationService.getAllPermissions())).build(),
+                "Permissions retrieved successfully");
     }
 
-    /**
-     * GET /authorize/permissions/{userId} - Get user permissions (Admin only)
-     */
-    @GetMapping("/permissions/{userId}")
-    public ResponseEntity<BaseResponse> getUserPermissions(@PathVariable Long userId) {
-        log.info("Fetching permissions for user: {}", userId);
-        // TODO: Implement user permission retrieval
-        // Return all permissions for user (direct + role-based)
-        BaseResponse response = new BaseResponse() {
-        };
-        response.setMessage("User permissions retrieved successfully");
-        log.info("User permissions retrieved for user: {}", userId);
-        return ResponseEntity.ok(response);
+    @Override
+    public ResponseEntity<AuthorizationResponse> getUserPermissions(Long userId, String authHeader) {
+        if (!isAdmin(authHeader)) {
+            return forbidden();
+        }
+        return ok(AuthorizationResponse.builder().permissions(toNames(authorizationService.getPermissionsForUser(userId))).build(),
+                "User permissions retrieved successfully");
     }
 
-    /**
-     * GET /authorize/me/permissions - Get current user's permissions
-     */
-    @GetMapping("/me/permissions")
-    public ResponseEntity<BaseResponse> getMyPermissions(
-            @RequestHeader("Authorization") String authHeader) {
-        log.info("Fetching permissions for current user");
-        // TODO: Extract user from JWT and return their permissions
-        BaseResponse response = new BaseResponse() {
-        };
-        response.setMessage("Permissions retrieved successfully");
-        log.info("Permissions retrieved for current user");
-        return ResponseEntity.ok(response);
+    @Override
+    public ResponseEntity<AuthorizationResponse> getMyPermissions(String authHeader) {
+        UserRole role = currentRole(authHeader);
+        return ok(AuthorizationResponse.builder().permissions(toNames(authorizationService.getPermissionsForRole(role))).build(),
+                "Permissions retrieved successfully");
+    }
+
+    // --- helpers ---
+
+    private UserRole currentRole(String authHeader) {
+        String username = authTokenService.getUsername(authHeader);
+        return userService.getUserByUsername(username).getRole();
+    }
+
+    private boolean isAdmin(String authHeader) {
+        return authTokenService.verifyRole(authHeader, UserRole.ADMIN);
+    }
+
+    private Set<String> toNames(Set<Permission> permissions) {
+        return permissions.stream().map(Enum::name).collect(Collectors.toSet());
+    }
+
+    private ResponseEntity<AuthorizationResponse> ok(AuthorizationResponse response, String message) {
+        return ResponseEntity.ok(ResponseFactory.configureResponse(response, message, ResponseProcessingStatus.SUCCESS));
+    }
+
+    private ResponseEntity<AuthorizationResponse> forbidden() {
+        log.warn("Unauthorized access attempt to an admin-only authorization endpoint");
+        return ResponseEntity.status(HttpStatus.FORBIDDEN).build();
     }
 }
