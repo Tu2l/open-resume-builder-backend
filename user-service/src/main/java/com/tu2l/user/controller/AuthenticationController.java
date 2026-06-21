@@ -1,6 +1,5 @@
 package com.tu2l.user.controller;
 
-import com.tu2l.common.factory.ResponseFactory;
 import com.tu2l.common.model.base.BaseResponse;
 import com.tu2l.user.constants.AuthenticationMessages;
 import com.tu2l.user.controller.api.AuthenticationApi;
@@ -17,25 +16,18 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RestController;
 
-/**
- * Authentication Controller - Handles authentication operations
- * Base path: /users/auth
- */
 @Slf4j
 @RequiredArgsConstructor
 @RestController
-public class AuthenticationController implements AuthenticationApi {
+public class AuthenticationController extends BaseController implements AuthenticationApi {
+
     private final AuthenticationService authenticationService;
     private final AuthResponseBuilder authResponseBuilder;
 
     @Override
     public ResponseEntity<@NonNull AuthResponse> register(@Valid @RequestBody NewUserRegisterRequest request) {
         var registeredUser = authenticationService.register(request);
-        var response = authResponseBuilder.buildAuthResponse(
-                registeredUser,
-                AuthenticationMessages.USER_REGISTERED_SUCCESS
-        );
-
+        var response = authResponseBuilder.buildAuthResponse(registeredUser, AuthenticationMessages.USER_REGISTERED_SUCCESS);
         log.info("User registered successfully: {}", request.getUsername());
         return ResponseEntity.status(HttpStatus.CREATED).body(response);
     }
@@ -43,35 +35,17 @@ public class AuthenticationController implements AuthenticationApi {
     @Override
     public ResponseEntity<@NonNull AuthResponse> authenticate(LoginRequest request) {
         log.info("Login attempt for user: {}", request.getEmail());
-
         var loggedInUserEntity = authenticationService.authenticate(
-                request.getEmail(),
-                request.getPassword(),
-                request.getRememberMe()
-        );
-
-        var response = authResponseBuilder.buildAuthResponse(
-                loggedInUserEntity,
-                AuthenticationMessages.LOGIN_SUCCESS
-        );
-
+                request.getEmail(), request.getPassword(), request.getRememberMe());
+        var response = authResponseBuilder.buildAuthResponse(loggedInUserEntity, AuthenticationMessages.LOGIN_SUCCESS);
         log.info("Login successful for user: {}", request.getEmail());
         return ResponseEntity.ok(response);
     }
 
-
     @Override
     public ResponseEntity<@NonNull AuthResponse> refreshToken(@Valid @RequestBody RefreshTokenRequest request) {
-        var refreshedUserEntity = authenticationService.refreshToken(
-                request.getRefreshToken(),
-                request.getUsername()
-        );
-
-        var response = authResponseBuilder.buildAuthResponse(
-                refreshedUserEntity,
-                AuthenticationMessages.TOKEN_REFRESHED_SUCCESS
-        );
-
+        var refreshedUserEntity = authenticationService.refreshToken(request.getRefreshToken(), request.getUsername());
+        var response = authResponseBuilder.buildAuthResponse(refreshedUserEntity, AuthenticationMessages.TOKEN_REFRESHED_SUCCESS);
         log.info("Token refreshed successfully");
         return ResponseEntity.ok(response);
     }
@@ -87,7 +61,6 @@ public class AuthenticationController implements AuthenticationApi {
     public ResponseEntity<@NonNull BaseResponse> forgotPassword(ForgotPasswordRequest request) {
         var success = authenticationService.forgotPassword(request.getEmail());
         log.info("Forgot password attempt: {}", success ? "successful" : "failed");
-
         return getResponse(success, AuthenticationMessages.PASSWORD_RESET_EMAIL_SENT, AuthenticationMessages.PASSWORD_RESET_EMAIL_FAILED);
     }
 
@@ -95,7 +68,6 @@ public class AuthenticationController implements AuthenticationApi {
     public ResponseEntity<@NonNull BaseResponse> resetPassword(ResetPasswordRequest request) {
         var success = authenticationService.resetPassword(request.getResetToken(), request.getNewPassword());
         log.info("Reset password attempt: {}", success ? "successful" : "failed");
-
         return getResponse(success, AuthenticationMessages.PASSWORD_RESET_SUCCESS, AuthenticationMessages.PASSWORD_RESET_FAILED);
     }
 
@@ -103,24 +75,6 @@ public class AuthenticationController implements AuthenticationApi {
     public ResponseEntity<@NonNull BaseResponse> verifyEmail(String token) {
         var success = authenticationService.verifyEmail(token);
         log.info("Verify email attempt: {}", success ? "successful" : "failed");
-
         return getResponse(success, AuthenticationMessages.EMAIL_VERIFIED_SUCCESS, AuthenticationMessages.EMAIL_VERIFICATION_FAILED);
-    }
-
-    /**
-     * Helper method to generate standardized API responses based on operation success.
-     *
-     * @param success        Indicates if the operation was successful
-     * @param successMessage Message to return on success
-     * @param failureMessage Message to return on failure
-     * @return ResponseEntity with appropriate status and message
-     */
-    private @NonNull ResponseEntity<@NonNull BaseResponse> getResponse(boolean success, String successMessage, String failureMessage) {
-        if (!success) {
-            return ResponseEntity
-                    .status(HttpStatus.BAD_REQUEST)
-                    .body(ResponseFactory.createErrorResponse(failureMessage));
-        }
-        return ResponseEntity.ok(ResponseFactory.createSuccessResponse(successMessage));
     }
 }

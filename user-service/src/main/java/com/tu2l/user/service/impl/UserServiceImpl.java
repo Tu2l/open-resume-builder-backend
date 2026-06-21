@@ -6,6 +6,7 @@ import com.tu2l.user.entity.UserEntity;
 import com.tu2l.user.exception.UserException;
 import com.tu2l.user.model.response.UserDTO;
 import com.tu2l.user.repository.UserRepository;
+import com.tu2l.user.service.AdminUserService;
 import com.tu2l.user.service.UserService;
 import com.tu2l.user.utils.UserMapper;
 import lombok.RequiredArgsConstructor;
@@ -24,7 +25,7 @@ import java.time.LocalDateTime;
 @Slf4j
 @Service
 @Transactional
-public class UserServiceImpl implements UserService {
+public class UserServiceImpl implements UserService, AdminUserService {
     private static final String USER_NOT_FOUND_MSG = "User not found with username: ";
 
     private final UserRepository userRepository;

@@ -8,6 +8,7 @@ import com.tu2l.user.authorization.RolePermissions;
 import com.tu2l.user.config.CacheConfig;
 import com.tu2l.user.entity.UserEntity;
 import com.tu2l.user.exception.UserException;
+import com.tu2l.user.service.AdminAuthorizationService;
 import com.tu2l.user.service.AuthorizationService;
 import com.tu2l.user.service.UserService;
 import lombok.RequiredArgsConstructor;
@@ -21,7 +22,7 @@ import java.util.Set;
 @Slf4j
 @Service
 @RequiredArgsConstructor
-public class AuthorizationServiceImpl implements AuthorizationService {
+public class AuthorizationServiceImpl implements AuthorizationService, AdminAuthorizationService {
 
     private final UserService userService;
     private final AuditService auditService;

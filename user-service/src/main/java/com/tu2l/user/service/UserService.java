@@ -3,28 +3,16 @@ package com.tu2l.user.service;
 import com.tu2l.user.entity.UserEntity;
 import com.tu2l.user.exception.UserException;
 import com.tu2l.user.model.response.UserDTO;
-import org.springframework.data.domain.Page;
-import org.springframework.data.domain.Pageable;
 
 /**
- * Defines core user management operations including retrieval, profile updates,
- * account removal, and password changes within the user service layer.
- *
- * <p>This service provides comprehensive user management functionality including:</p>
- * <ul>
- * <li>{@link #getUserById(Long)} — Retrieves user details by their unique ID.</li>
- * <li>{@link #getUserByUsername(String)} — Retrieves user details by username.</li>
- * <li>{@link #getUserByEmail(String)} — Retrieves user details by email.</li>
- * <li>{@link #updateUser(UserDTO)} — Updates user profile information.</li>
- * <li>{@link #deleteUser(String)} — Deletes a user account by username.</li>
- * <li>{@link #updatePassword(String, String, String)} — Changes the user's password.</li>
- * <li>{@link #existsByUsernameOrEmail(String, String)} — Checks if a user exists.</li>
- * <li>{@link #saveUser(UserEntity)} — Persists a new or existing user entity.</li>
- * </ul>
+ * Self-service and internal user operations.
+ * Admin-only bulk/cross-user lookups live in {@link AdminUserService}.
  */
 public interface UserService {
+
     /**
      * Retrieves user details by their unique ID.
+     * Used internally by other services (e.g. authorization flows).
      *
      * @param id the unique identifier of the user
      * @return a UserEntity containing user details
@@ -142,12 +130,4 @@ public interface UserService {
      * @return the saved UserEntity with updated information (e.g., generated ID)
      */
     UserEntity saveUser(UserEntity user);
-
-    /**
-     * Retrieves a page of users (soft-deleted users are excluded automatically).
-     *
-     * @param pageable pagination and sorting information
-     * @return a page of UserEntity
-     */
-    Page<UserEntity> getAllUsers(Pageable pageable);
 }
