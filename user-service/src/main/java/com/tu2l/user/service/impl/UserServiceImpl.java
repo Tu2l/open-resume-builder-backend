@@ -57,10 +57,10 @@ public class UserServiceImpl implements UserService {
         if (username == null) {
             throw new UserException("User ID must not be null");
         }
-        // soft delete by setting deletedAt timestamp
+        // soft delete by setting deletedAt timestamp (hidden by @SQLRestriction thereafter)
         return userRepository.findUserByUsername(username).map(user -> {
             log.info("Deleting user with username: {}", username);
-            user.getAccountStatus().setDeletedAt(LocalDateTime.now());
+            user.setDeletedAt(LocalDateTime.now());
             userRepository.save(user);
             return true;
         }).orElseThrow(() -> new UserException(USER_NOT_FOUND_MSG + username));

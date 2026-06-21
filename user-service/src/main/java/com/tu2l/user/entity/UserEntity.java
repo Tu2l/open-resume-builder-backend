@@ -5,6 +5,7 @@ import com.tu2l.common.model.states.UserRole;
 import jakarta.persistence.*;
 import lombok.*;
 import org.hibernate.annotations.CreationTimestamp;
+import org.hibernate.annotations.SQLRestriction;
 import org.hibernate.annotations.UpdateTimestamp;
 
 import java.time.LocalDateTime;
@@ -27,6 +28,7 @@ import java.util.Optional;
                 @UniqueConstraint(name = "uk_email", columnNames = "email")
         }
 )
+@SQLRestriction("deleted_at IS NULL")
 public class UserEntity {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
@@ -70,6 +72,13 @@ public class UserEntity {
     @Builder.Default
     @OneToMany(mappedBy = "user", fetch = FetchType.LAZY, cascade = CascadeType.ALL, orphanRemoval = true)
     private List<UserCredential> credentials = new ArrayList<>();
+
+    /**
+     * Soft-delete marker. When set, {@link SQLRestriction} on this entity hides the
+     * row from all standard queries. {@code null} means the user is active.
+     */
+    @Column(name = "deleted_at")
+    private LocalDateTime deletedAt;
 
     /**
      * Raw (un-hashed) access/refresh tokens for the current operation. Not persisted
