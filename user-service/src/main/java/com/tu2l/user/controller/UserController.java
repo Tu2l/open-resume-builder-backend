@@ -5,6 +5,8 @@ import com.tu2l.common.model.JwtTokenType;
 import com.tu2l.common.model.base.BaseResponse;
 import com.tu2l.common.model.states.ResponseProcessingStatus;
 import com.tu2l.common.model.states.UserRole;
+import com.tu2l.user.audit.AuditEventType;
+import com.tu2l.user.audit.AuditService;
 import com.tu2l.user.entity.UserEntity;
 import com.tu2l.user.exception.UserException;
 import com.tu2l.user.model.request.ChangePasswordRequest;
@@ -29,11 +31,14 @@ public class UserController {
     private final UserService userService;
     private final AuthTokenService authTokenService;
     private final UserMapper userMapper;
+    private final AuditService auditService;
 
-    public UserController(UserService userService, AuthTokenService authTokenService, UserMapper userMapper) {
+    public UserController(UserService userService, AuthTokenService authTokenService, UserMapper userMapper,
+                          AuditService auditService) {
         this.userService = userService;
         this.authTokenService = authTokenService;
         this.userMapper = userMapper;
+        this.auditService = auditService;
     }
 
     /**
@@ -88,6 +93,7 @@ public class UserController {
 
         UserDTO userDTO = userMapper.toUserDTO(request);
         UserEntity user = userService.updateUser(userDTO);
+        auditService.log(AuditEventType.PROFILE_UPDATED, user.getId(), null);
 
         UserResponse response = new UserResponse();
         response.setUser(userMapper.toUserDTO(user));

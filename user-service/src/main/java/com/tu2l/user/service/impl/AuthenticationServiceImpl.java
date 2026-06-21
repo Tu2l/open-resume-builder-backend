@@ -3,6 +3,8 @@ package com.tu2l.user.service.impl;
 import com.tu2l.common.exception.AuthenticationException;
 import com.tu2l.common.model.JwtTokenType;
 import com.tu2l.common.util.CommonUtil;
+import com.tu2l.user.audit.AuditEventType;
+import com.tu2l.user.audit.AuditService;
 import com.tu2l.user.config.AuthConfigValues;
 import com.tu2l.user.entity.UserCredential;
 import com.tu2l.user.entity.UserEntity;
@@ -31,6 +33,7 @@ public class AuthenticationServiceImpl implements AuthenticationService {
     private final UserMapper userMapper;
     private final AuthConfigValues authConfigValues;
     private final CommonUtil commonUtil;
+    private final AuditService auditService;
 
     @Override
     public UserEntity register(NewUserRegisterRequest request) throws UserException {
@@ -43,7 +46,9 @@ public class AuthenticationServiceImpl implements AuthenticationService {
 
         try {
             attachLoginTokens(user);
-            return userService.saveUser(user);
+            var saved = userService.saveUser(user);
+            auditService.log(AuditEventType.USER_REGISTERED, saved.getId(), saved.getUsername());
+            return saved;
         } catch (DataIntegrityViolationException e) {
             throw new UserException("Registration failed due to concurrent requests. Please try again.");
         }
@@ -58,6 +63,7 @@ public class AuthenticationServiceImpl implements AuthenticationService {
         var accountStatus = user.getAccountStatus();
 
         if (accountStatus.isAccountLocked() || !accountStatus.isEnabled()) {
+            auditService.log(AuditEventType.LOGIN_FAILED, user.getId(), "account locked or disabled");
             throw new AuthenticationException("Account is locked or disabled");
         }
 
@@ -66,9 +72,11 @@ public class AuthenticationServiceImpl implements AuthenticationService {
                 accountStatus.lockAccount(authConfigValues.getAccountLockDurationMinutes(rememberMe));
                 userService.saveUser(user);
                 log.warn("User account locked due to multiple failed login attempts: {}", email);
+                auditService.log(AuditEventType.ACCOUNT_LOCKED, user.getId(), "too many failed login attempts");
                 throw new AuthenticationException("Account locked due to multiple failed login attempts");
             }
             userService.saveUser(user);
+            auditService.log(AuditEventType.LOGIN_FAILED, user.getId(), "invalid password");
             throw new AuthenticationException("Invalid username or password");
         }
 
@@ -78,7 +86,9 @@ public class AuthenticationServiceImpl implements AuthenticationService {
             accountStatus.setLastLoginAt(LocalDateTime.now());
             attachLoginTokens(user);
             log.info("User authenticated successfully: {}", email);
-            return userService.saveUser(user);
+            var saved = userService.saveUser(user);
+            auditService.log(AuditEventType.LOGIN_SUCCESS, saved.getId(), null);
+            return saved;
         } catch (DataIntegrityViolationException e) {
             throw new UserException("Authentication failed due to concurrent requests. Please try again.");
         }
@@ -101,7 +111,9 @@ public class AuthenticationServiceImpl implements AuthenticationService {
             user.setPlainAccessToken(newAccessToken);
             user.setPlainRefreshToken(refreshToken);
             log.info("Token refreshed successfully for user: {}", username);
-            return userService.saveUser(user);
+            var saved = userService.saveUser(user);
+            auditService.log(AuditEventType.TOKEN_REFRESHED, saved.getId(), null);
+            return saved;
         } catch (DataIntegrityViolationException e) {
             throw new UserException("Token refresh failed due to concurrent requests. Please try again.");
         }
@@ -113,6 +125,7 @@ public class AuthenticationServiceImpl implements AuthenticationService {
         var user = userService.getUserWithCredentials(username);
         var removed = user.removeCredentialByToken(commonUtil.sha256Hex(token));
         userService.saveUser(user);
+        auditService.log(AuditEventType.LOGOUT, user.getId(), null);
         return removed;
     }
 
@@ -140,6 +153,7 @@ public class AuthenticationServiceImpl implements AuthenticationService {
         user.setPassword(passwordService.hashPassword(newPassword));
         user.clearSensitiveTokens();
         userService.saveUser(user);
+        auditService.log(AuditEventType.PASSWORD_RESET_COMPLETED, user.getId(), null);
         return true;
     }
 
