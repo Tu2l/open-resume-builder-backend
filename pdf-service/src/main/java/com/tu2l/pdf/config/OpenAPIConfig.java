@@ -1,4 +1,4 @@
-package com.tu2l.user.config;
+package com.tu2l.pdf.config;
 
 import io.swagger.v3.oas.models.Components;
 import io.swagger.v3.oas.models.OpenAPI;
@@ -10,22 +10,18 @@ import io.swagger.v3.oas.models.servers.Server;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 
-/**
- * OpenAPI / Swagger configuration. Declares the bearer-JWT security scheme so the
- * Swagger UI (served at {@code /users/swagger-ui.html}) can authorize requests.
- */
 @Configuration
 public class OpenAPIConfig {
 
     private static final String BEARER_AUTH = "bearerAuth";
 
     @Bean
-    public OpenAPI userServiceOpenAPI() {
+    public OpenAPI pdfServiceOpenAPI() {
         return new OpenAPI()
-                .addServersItem(new Server().url("/api/users").description("Resume Builder Gateway"))
+                .addServersItem(new Server().url("/api/pdf").description("Resume Builder Gateway"))
                 .info(new Info()
-                        .title("User Service API")
-                        .description("User management, authentication and authorization service")
+                        .title("PDF Service API")
+                        .description("PDF generation and retrieval service")
                         .version("v1")
                         .contact(new Contact().name("Resume Builder").email("support@resume-builder.app")))
                 .addSecurityItem(new SecurityRequirement().addList(BEARER_AUTH))

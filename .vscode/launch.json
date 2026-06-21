@@ -1,42 +1,32 @@
 {
-    "configurations": [
-        {
-            "type": "java",
-            "name": "UserServiceApplication<user-service>",
-            "request": "launch",
-            "cwd": "${workspaceFolder}",
-            "mainClass": "com.tu2l.user.UserServiceApplication",
-            "projectName": "user-service",
-            "envFile": "${workspaceFolder}/.env"
-        },
-        {
-            "type": "java",
-            "name": "Spring Boot-PDFServiceApplication<pdf-service>",
-            "request": "launch",
-            "cwd": "${workspaceFolder}",
-            "mainClass": "com.tu2l.pdf.PDFServiceApplication",
-            "projectName": "pdf-service",
-            "envFile": "${workspaceFolder}/.env"
-        },
-        {
-            "type": "java",
-            "name": "Spring Boot-GatewayServiceApplication<gateway-service>",
-            "request": "launch",
-            "cwd": "${workspaceFolder}",
-            "mainClass": "com.tu2l.gateway.GatewayServiceApplication",
-            "projectName": "gateway-service",
-            "envFile": "${workspaceFolder}/.env",
-            "vmArgs": " -Dcom.sun.management.jmxremote -Dcom.sun.management.jmxremote.port=38251 -Dcom.sun.management.jmxremote.authenticate=false -Dcom.sun.management.jmxremote.ssl=false -Dspring.jmx.enabled=true -Djava.rmi.server.hostname=localhost -Dspring.application.admin.enabled=true -Dspring.boot.project.name=gateway-service"
-        },
-        {
-            "type": "java",
-            "name": "Spring Boot-UserServiceApplication<user-managerment-service>",
-            "request": "launch",
-            "cwd": "${workspaceFolder}",
-            "mainClass": "com.tu2l.user.UserServiceApplication",
-            "projectName": "user-managerment-service",
-            "args": "",
-            "envFile": "${workspaceFolder}/.env"
-        }
-    ]
+  "configurations": [
+    {
+      "type": "java",
+      "name": "UserServiceApplication<user-service>",
+      "request": "launch",
+      "cwd": "${workspaceFolder}",
+      "mainClass": "com.tu2l.user.UserServiceApplication",
+      "projectName": "user-service",
+      "envFile": "${workspaceFolder}/.env"
+    },
+    {
+      "type": "java",
+      "name": "Spring Boot-PDFServiceApplication<pdf-service>",
+      "request": "launch",
+      "cwd": "${workspaceFolder}",
+      "mainClass": "com.tu2l.pdf.PDFServiceApplication",
+      "projectName": "pdf-service",
+      "envFile": "${workspaceFolder}/.env"
+    },
+    {
+      "type": "java",
+      "name": "Spring Boot-GatewayServiceApplication<gateway-service>",
+      "request": "launch",
+      "cwd": "${workspaceFolder}",
+      "mainClass": "com.tu2l.gateway.GatewayServiceApplication",
+      "projectName": "gateway-service",
+      "envFile": "${workspaceFolder}/.env",
+      "vmArgs": " -Dcom.sun.management.jmxremote -Dcom.sun.management.jmxremote.port=38251 -Dcom.sun.management.jmxremote.authenticate=false -Dcom.sun.management.jmxremote.ssl=false -Dspring.jmx.enabled=true -Djava.rmi.server.hostname=localhost -Dspring.application.admin.enabled=true -Dspring.boot.project.name=gateway-service"
+    }
+  ]
 }

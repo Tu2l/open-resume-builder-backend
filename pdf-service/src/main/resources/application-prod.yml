@@ -18,6 +18,13 @@ spring:
     # show-sql: true
     hibernate:
       ddl-auto: update
+springdoc:
+  swagger-ui:
+    enabled: false
+  api-docs:
+    enabled: true
+    path: /v3/api-docs
+
 logging:
   level:
     org:

@@ -8,6 +8,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.jspecify.annotations.NonNull;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.http.converter.HttpMessageConversionException;
 import org.springframework.web.HttpRequestMethodNotSupportedException;
 import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.annotation.ExceptionHandler;
@@ -24,6 +25,12 @@ public class GlobalExceptionHandler {
     public ResponseEntity<@NonNull BaseResponse> handleGlobalExceptions(Exception exception) {
         log.error("Exception caught", exception);
         return getResponse("Something went wrong", "Exception caught: {}", HttpStatus.INTERNAL_SERVER_ERROR);
+    }
+
+    @ExceptionHandler(HttpMessageConversionException.class)
+    public ResponseEntity<@NonNull BaseResponse> handleBadRequests(HttpMessageConversionException exception) {
+        log.error("Exception caught", exception);
+        return getResponse("Something went wrong", "Exception caught: {}", HttpStatus.BAD_REQUEST);
     }
 
     @ExceptionHandler(NoResourceFoundException.class)

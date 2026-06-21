@@ -2,488 +2,325 @@
 
 A modern, microservices-based backend system for building and managing resumes with PDF generation capabilities.
 
-## 🏗️ Architecture
+## Architecture
 
 This project follows a **multi-module microservices architecture** with centralized dependency management:
 
 ```
 resume-builder-backend/
 ├── common/              # Shared utilities and models
+├── gateway-service/     # API Gateway (entry point)
 ├── pdf-service/         # PDF generation service
 ├── user-service/        # User management and authentication
 └── pom.xml             # Parent POM with centralized dependencies
 ```
 
-## 🚀 Technology Stack
+All external traffic flows through the gateway at port `8080`. Services are not exposed directly in production.
+
+## Technology Stack
 
 ### Core Technologies
 
 - **Java 17** - LTS version with modern language features
-- **Spring Boot 3.4.0** - Latest Spring Boot framework
+- **Spring Boot 4.0.0** - Latest Spring Boot framework
+- **Spring Cloud 2025.1.0** - Microservices toolkit
 - **Maven** - Dependency management and build automation
-- **SQLite** (dev) / **PostgreSQL** (production) - Database options
+- **PostgreSQL** (dev & production) - Primary database
 
 ### Key Libraries
 
+- **Spring Cloud Gateway (WebFlux)** - Reactive API gateway
+- **Spring Security** - Authentication and authorization
+- **springdoc-openapi 3.0.0** - OpenAPI 3 / Swagger UI
 - **Lombok 1.18.36** - Reduce boilerplate code with annotations
-- **Hibernate 6.6.3** - ORM with community dialects support
-- **MapStruct 1.5.5** - Type-safe bean mapping
+- **MapStruct** - Type-safe bean mapping
 - **JJWT 0.12.6** - JWT token generation and validation
-- **SLF4J/Logback** - Logging framework
+- **BCrypt** - Password hashing
 
 ### External Tools
 
 - **wkhtmltopdf** - HTML to PDF conversion engine
 
-## 📦 Services
+## Services
 
 ### 1. Common Module
 
 Shared library containing:
 
 - Base request/response models
-- Utility classes (Base64, HTML sanitization)
+- JWT utilities
+- HTML sanitization (XSS protection)
 - Common enums and constants
-- Response processing status
-
-**Key Features:**
-
-- HTML sanitization with XSS protection
-- Base64 encoding/decoding utilities
-- Marker interfaces for type safety
+- Response factory
 
 ---
 
-### 2. PDF Service (`/pdf`)
+### 2. Gateway Service
+
+**Port:** 8080  
+**Status:** Implemented
+
+Single entry point for all API traffic. Handles JWT validation and request routing.
+
+#### Routes
+
+| Incoming Path | Forwards To | Auth |
+|--------------|-------------|------|
+| `/api/users/**` | `user-service:8091/users/**` | JWT required |
+| `/api/pdf/**` | `pdf-service:8090/pdf/**` | Public |
+| `/api/users/v1/auth/**` | `user-service:8091/users/v1/auth/**` | Public |
+
+#### API Documentation
+
+The gateway aggregates OpenAPI specs from all services into a single Swagger UI:
+
+- **Swagger UI:** `http://localhost:8080/swagger-ui.html`
+- Tabs: **User Service**, **PDF Service**
+
+Individual service `/v3/api-docs` endpoints are accessible via the gateway at:
+- `http://localhost:8080/api/users/v3/api-docs`
+- `http://localhost:8080/api/pdf/v3/api-docs`
+
+---
+
+### 3. PDF Service
 
 **Port:** 8090  
-**Status:** ✅ Fully Implemented
+**Context path:** `/pdf`  
+**Status:** Implemented
 
 Generate PDFs from HTML content with comprehensive configuration options.
 
 #### Features
 
-- ✅ Synchronous PDF generation
-- ✅ Asynchronous PDF generation with background processing
-- ✅ PDF persistence to database
-- ✅ 33+ page size configurations (A0-A9, B0-B10, Letter, Legal, etc.)
-- ✅ Custom margins and orientation settings
-- ✅ HTML sanitization for security
-- ✅ Temporary file cleanup
-- ✅ Global exception handling
-- ✅ Request validation
+- Synchronous PDF generation
+- Asynchronous PDF generation with background processing
+- PDF persistence to database
+- 33+ page size configurations (A0–A9, B0–B10, Letter, Legal, etc.)
+- Custom margins and orientation settings
+- HTML sanitization (XSS protection)
 
 #### API Endpoints
 
-| Method | Endpoint              | Description                          |
-|--------|-----------------------|--------------------------------------|
-| POST   | `/pdf/generate`       | Generate PDF (sync, returns base64)  |
-| POST   | `/pdf/generate/save`  | Generate and save PDF to DB          |
-| POST   | `/pdf/generate/async` | Generate and save PDF asynchronously |
-| GET    | `/pdf/{id}`           | Retrieve generated PDF by ID         |
+All endpoints are accessed via the gateway at `/api/pdf/...`
 
-#### Technical Implementation
-
-- **Async Processing:** Separate `AsyncPDFService` class for proper Spring `@Async` proxy support
-- **Functional Interface:** `PDFGenerationFunction` for flexible async operations
-- **Custom Exception:** `PDFException` for domain-specific error handling
-- **Entity Mapping:** Clean separation with `EntityMapper` utility
-- **Logging:** `@Slf4j` for consistent logging across all components
-
-#### Configuration
-
-```properties
-server.port=8090
-server.servlet.context-path=/pdf
-spring.datasource.url=jdbc:sqlite:databases/generated_pdfs.db
-logging.file.name=logs/pdf-service/app.log
-```
+| Method | Path | Description |
+|--------|------|-------------|
+| POST | `/v1/generate` | Generate PDF synchronously (returns base64) |
+| POST | `/v1/generate/save` | Generate and persist PDF to DB |
+| POST | `/v1/generate/async` | Start async PDF generation |
+| GET | `/v1/{id}` | Retrieve saved PDF by ID |
 
 ---
 
-### 3. User Service (`/user`)
+### 4. User Service
 
 **Port:** 8091  
-**Status:** 🚧 In Progress (API structure complete, implementation pending)
+**Context path:** `/users`  
+**Status:** Implemented
 
-Comprehensive user management, authentication, and authorization service.
+User management, authentication, and authorization service.
 
 #### Features
 
-- ✅ RESTful API structure with industry-standard endpoints
-- ✅ Complete request/response DTOs with validation
-- ✅ User entity with security features
-- 🚧 JWT-based authentication (pending)
-- 🚧 Role-based access control (pending)
-- 🚧 Password reset flow (pending)
-- 🚧 Email verification (pending)
+- JWT-based authentication (access + refresh tokens)
+- BCrypt password hashing
+- Role-based access control (RBAC) — USER, ADMIN, MODERATOR, GUEST
+- Rate limiting (fixed-window)
+- Email verification and password reset flows
+- Account lockout after failed login attempts
+- Soft delete / account deactivation
 
 #### API Endpoints
 
-**Authentication (`/user/auth`)**
-| Method | Endpoint | Description | Status |
-|--------|----------|-------------|--------|
-| POST | `/auth/register` | Register new user | 🚧 TODO |
-| POST | `/auth/login` | Login with credentials | 🚧 TODO |
-| POST | `/auth/refresh` | Refresh access token | 🚧 TODO |
-| POST | `/auth/logout` | Logout and invalidate token | 🚧 TODO |
-| POST | `/auth/forgot-password` | Request password reset | 🚧 TODO |
-| POST | `/auth/reset-password` | Reset password with token | 🚧 TODO |
-| POST | `/auth/verify-email` | Verify email address | 🚧 TODO |
+All endpoints are accessed via the gateway at `/api/users/...`
 
-**User Management (`/user/users`)**
-| Method | Endpoint | Description | Status |
-|--------|----------|-------------|--------|
-| GET | `/users/me` | Get current user profile | 🚧 TODO |
-| GET | `/users/{id}` | Get user by ID (Admin) | 🚧 TODO |
-| PUT | `/users/me` | Update current user | 🚧 TODO |
-| PUT | `/users/{id}` | Update user by ID (Admin) | 🚧 TODO |
-| PUT | `/users/me/password` | Change password | 🚧 TODO |
-| DELETE | `/users/me` | Delete/deactivate account | 🚧 TODO |
-| DELETE | `/users/{id}` | Delete user (Admin) | 🚧 TODO |
+**Authentication** (public)
 
-**Authorization (`/user/authorize`)**
-| Method | Endpoint | Description | Status |
-|--------|----------|-------------|--------|
-| GET | `/authorize/check` | Check user permission | 🚧 TODO |
-| GET | `/authorize/roles` | Get all roles | 🚧 TODO |
-| GET | `/authorize/roles/{userId}` | Get user roles | 🚧 TODO |
-| POST | `/authorize/roles/{userId}` | Assign role to user | 🚧 TODO |
-| GET | `/authorize/permissions` | Get all permissions | 🚧 TODO |
-| GET | `/authorize/permissions/{userId}` | Get user permissions | 🚧 TODO |
-| GET | `/authorize/me/permissions` | Get current user permissions | 🚧 TODO |
+| Method | Path | Description |
+|--------|------|-------------|
+| POST | `/v1/auth/register` | Register new user |
+| POST | `/v1/auth/authenticate` | Login |
+| POST | `/v1/auth/refresh-token` | Refresh access token |
+| POST | `/v1/auth/logout` | Invalidate refresh token |
+| POST | `/v1/auth/forgot-password` | Request password reset email |
+| POST | `/v1/auth/reset-password` | Reset password with token |
+| POST | `/v1/auth/verify-email` | Verify email address |
 
-#### User Entity
+**User Management** (requires Bearer token)
 
-Comprehensive user model with:
+| Method | Path | Description |
+|--------|------|-------------|
+| GET | `/v1/me` | Get current user profile |
+| GET | `/v1/all` | List all users (Admin) |
+| GET | `/v1/{id}` | Get user by ID (Admin) |
+| PUT | `/v1/me` | Update current user profile |
+| PUT | `/v1/{id}` | Update user by ID (Admin) |
+| PUT | `/v1/me/password` | Change password |
+| DELETE | `/v1/me` | Deactivate current account |
+| DELETE | `/v1/{username}` | Delete user (Admin) |
 
-- **Authentication:** Username, email, hashed password, refresh tokens
-- **Profile:** First name, last name, phone number
-- **Security:** Email verification, password reset tokens, account locking, failed login tracking
-- **Roles:** USER, ADMIN, MODERATOR, GUEST
-- **Audit:** Created/updated timestamps, soft delete support
-- **Helper Methods:** Account status checks, token validation, full name generation
+**Authorization** (requires Bearer token)
 
-#### Configuration
-
-```properties
-server.port=8091
-server.servlet.context-path=/user
-spring.datasource.url=jdbc:sqlite:databases/users.db
-logging.file.name=logs/user-service/app.log
-```
+| Method | Path | Description |
+|--------|------|-------------|
+| GET | `/v1/authorize/check` | Check a permission |
+| GET | `/v1/authorize/roles` | List all roles (Admin) |
+| GET | `/v1/authorize/roles/{userId}` | Get user's role (Admin) |
+| POST | `/v1/authorize/roles/{userId}` | Assign role (Admin) |
+| GET | `/v1/authorize/permissions` | List all permissions (Admin) |
+| GET | `/v1/authorize/permissions/{userId}` | Get user permissions (Admin) |
+| GET | `/v1/authorize/me/permissions` | Get current user's permissions |
 
 ---
 
-## 🛠️ Setup & Installation
+## Setup & Installation
 
 ### Prerequisites
 
-- Java 17 or higher
+- Java 17+
 - Maven 3.8+
+- Docker (for local PostgreSQL via Docker Compose)
 - wkhtmltopdf (for PDF service)
-- Git
 
-### Installation Steps
-
-1. **Clone the repository**
+### Installation
 
 ```bash
 git clone https://github.com/Tu2l/open-resume-builder-backend.git
 cd resume-builder-backend
+mvn clean install -DskipTests
 ```
 
-2. **Build the project**
+### Running (Development)
+
+Each service starts Docker Compose automatically to spin up PostgreSQL.
 
 ```bash
-mvn clean install
-```
-
-3. **Run services individually**
-
-```bash
-# PDF Service
-cd pdf-service
-mvn spring-boot:run
-
-# User Service (in another terminal)
-cd user-service
-mvn spring-boot:run
-```
-
-## 🏃 Running the Application
-
-### Development Mode
-
-Each service can be run independently:
-
-```bash
-# From project root
-mvn spring-boot:run -pl pdf-service
+# Terminal 1 — User Service
 mvn spring-boot:run -pl user-service
+
+# Terminal 2 — PDF Service
+mvn spring-boot:run -pl pdf-service
+
+# Terminal 3 — Gateway
+mvn spring-boot:run -pl gateway-service
 ```
 
-### Production Mode
-
-Build executable JARs:
+### Running (Production)
 
 ```bash
 mvn clean package -DskipTests
 
-# Run services
-java -jar pdf-service/target/pdf-service-1.0-SNAPSHOT.jar
-java -jar user-service/target/user-service-1.0-SNAPSHOT.jar
+java -Dspring.profiles.active=prod \
+     -DJWT_SECRET_KEY=<secret> \
+     -DDATABASE_URL=<url> \
+     -jar user-service/target/user-service-1.0-SNAPSHOT.jar
+
+java -Dspring.profiles.active=prod \
+     -DDATABASE_URL=<url> \
+     -jar pdf-service/target/pdf-service-1.0-SNAPSHOT.jar
+
+java -Dspring.profiles.active=prod \
+     -DJWT_SECRET_KEY=<secret> \
+     -jar gateway-service/target/gateway-service-1.0-SNAPSHOT.jar
 ```
 
-## 📝 Project Structure
+## Package Structure
 
-### Package Organization
-
-All services follow singular package naming convention:
+All services follow the same package layout:
 
 ```
 com.tu2l.{service}/
-├── controller/          # REST controllers
-├── service/            # Business logic
-│   └── impl/           # Service implementations
-├── repository/         # Data access layer
-├── entity/             # JPA entities
-├── model/              # DTOs
-│   ├── request/        # Request models
-│   └── response/       # Response models
-├── config/             # Configuration classes
-├── exception/          # Custom exceptions
-├── commonUtil/               # Utility classes
-└── generator/          # Generators (PDF service)
+├── controller/        # REST controllers
+├── service/           # Business logic
+│   └── impl/
+├── repository/        # Data access layer
+├── entity/            # JPA entities
+├── model/
+│   ├── request/
+│   └── response/
+├── config/            # Spring configuration (security, OpenAPI, etc.)
+├── exception/         # Custom exceptions + global handler
+└── util/              # Utility classes
 ```
 
-### Key Design Patterns
-
-- **Repository Pattern** - Data access abstraction
-- **DTO Pattern** - Separation of domain and API models
-- **Builder Pattern** - Fluent object construction (Lombok)
-- **Service Layer Pattern** - Business logic encapsulation
-- **Async Pattern** - Non-blocking operations with Spring `@Async`
-- **Functional Interface** - Flexible async processing
-
-## 🔧 Configuration
-
-### Application Properties
-
-**Common Settings (both services):**
-
-```properties
-# JSON serialization
-spring.jackson.default-property-inclusion=non_null
-
-# Database (SQLite for development)
-spring.jpa.hibernate.ddl-auto=update
-spring.jpa.database-platform=org.hibernate.community.dialect.SQLiteDialect
-
-# Logging
-logging.level.org.springframework=INFO
-logging.level.com.tu2l.*=DEBUG
-logging.file.max-size=10MB
-logging.file.max-history=30
-```
-
-### Database Configuration
-
-**Development (SQLite):**
-
-```properties
-spring.datasource.url=jdbc:sqlite:databases/{service}.db
-spring.datasource.driver-class-name=org.sqlite.JDBC
-```
-
-**Production (PostgreSQL - Recommended):**
-
-```properties
-spring.datasource.url=jdbc:postgresql://localhost:5432/{database}
-spring.datasource.username=${DB_USERNAME}
-spring.datasource.password=${DB_PASSWORD}
-spring.datasource.driver-class-name=org.postgresql.Driver
-spring.jpa.database-platform=org.hibernate.dialect.PostgreSQLDialect
-```
+## Configuration
 
 ### Environment Profiles
 
-The project supports multiple profiles:
+| Profile | Database | Notes |
+|---------|----------|-------|
+| `dev` (default) | Local PostgreSQL via Docker Compose | Auto-started by Spring |
+| `prod` | PostgreSQL via env vars | All secrets from environment |
 
-- `dev` - Development with SQLite
-- `prod` - Production with PostgreSQL
-- `test` - Testing environment
+### Key Environment Variables (prod)
 
-Activate profiles:
+| Variable | Service | Description |
+|----------|---------|-------------|
+| `JWT_SECRET_KEY` | gateway, user-service | Shared JWT signing secret (256-bit min) |
+| `DATABASE_URL` | user-service, pdf-service | JDBC connection string |
+| `DATABASE_USERNAME` | user-service, pdf-service | DB username |
+| `DATABASE_PASSWORD` | user-service, pdf-service | DB password |
+| `MAIL_HOST` | user-service | SMTP host |
+| `MAIL_USERNAME` | user-service | SMTP username |
+| `MAIL_PASSWORD` | user-service | SMTP password |
+| `FRONTEND_BASE_URL` | user-service | Base URL for email links |
+
+## Security
+
+- JWT access tokens (15 min) + refresh tokens (7 days)
+- BCrypt password hashing
+- Gateway-level token validation — services trust `X-User-Email` / `X-User-Role` headers
+- Fixed-window rate limiting on user-service (5 req/60s dev, 10 req/60s prod)
+- HTML sanitization (XSS protection) on all HTML input
+- CORS configured for frontend origin
+- Account lockout after 5 failed login attempts (15 min lock)
+
+## Testing
 
 ```bash
-mvn spring-boot:run -Dspring-boot.run.profiles=prod
+mvn test                   # all modules
+mvn test -pl user-service  # specific module
+mvn clean verify           # with coverage
 ```
 
-## 🧪 Testing
-
-### Run Tests
+## Quick API Test
 
 ```bash
-# All modules
-mvn test
-
-# Specific module
-mvn test -pl pdf-service
-mvn test -pl user-service
-```
-
-### Test Coverage
-
-```bash
-mvn clean verify
-```
-
-## 📊 Current Status
-
-### ✅ Completed Features
-
-- [x] Multi-module Maven project structure
-- [x] Parent POM with centralized dependency management
-- [x] Common utilities module
-- [x] PDF Service - Full implementation
-    - [x] Sync/Async PDF generation
-    - [x] Database persistence
-    - [x] 33+ page size configurations
-    - [x] HTML sanitization
-    - [x] Exception handling
-    - [x] Request validation
-- [x] User Service - API structure
-    - [x] REST endpoints definition
-    - [x] Complete DTOs with validation
-    - [x] User entity with security features
-- [x] Logging with @Slf4j
-- [x] Code refactoring (singular package names)
-- [x] Database schemas
-
-### 🚧 In Progress
-
-- [ ] User Service - Implementation
-    - [ ] JWT token generation/validation
-    - [ ] Password hashing with BCrypt
-    - [ ] Authentication service logic
-    - [ ] Authorization/RBAC implementation
-    - [ ] Email service integration
-    - [ ] Password reset flow
-    - [ ] Email verification
-
-### 📋 Planned Features
-
-- [ ] API Gateway (optional)
-- [ ] Service Discovery (Eureka)
-- [ ] Distributed tracing
-- [ ] Redis caching
-- [ ] RabbitMQ/Kafka message broker
-- [ ] Docker containerization
-- [ ] Kubernetes deployment
-- [ ] API documentation (Swagger/OpenAPI)
-- [ ] Integration tests
-- [ ] Performance testing
-- [ ] CI/CD pipeline
-
-## 🔒 Security
-
-### Current Implementation
-
-- ✅ HTML sanitization (XSS protection)
-- ✅ Request validation with Bean Validation
-- ✅ Global exception handling
-- ✅ Prepared statements (SQL injection protection)
-
-### Pending Implementation
-
-- 🚧 JWT authentication
-- 🚧 Password hashing (BCrypt)
-- 🚧 CORS configuration
-- 🚧 Rate limiting
-- 🚧 SQL injection prevention (parameterized queries)
-- 🚧 HTTPS enforcement
-- 🚧 Security headers
-
-## 📖 API Documentation
-
-### PDF Service Example
-
-**Generate PDF (Sync)**
-
-```bash
-curl -X POST http://localhost:8090/pdf/generate \
+# Register
+curl -X POST http://localhost:8080/api/users/v1/auth/register \
   -H "Content-Type: application/json" \
-  -d '{
-    "htmlContent": "<html><body><h1>Resume</h1></body></html>",
-    "fileName": "my-resume.pdf",
-    "pageSize": "LETTER",
-    "orientation": "PORTRAIT",
-    "marginTop": 10,
-    "marginBottom": 10,
-    "marginLeft": 10,
-    "marginRight": 10
-  }'
+  -d '{"username":"alice","email":"alice@example.com","password":"<base64-encoded>"}'
+
+# Login
+curl -X POST http://localhost:8080/api/users/v1/auth/authenticate \
+  -H "Content-Type: application/json" \
+  -d '{"username":"alice","password":"<base64-encoded>"}'
+
+# Generate PDF (authenticated)
+curl -X POST http://localhost:8080/api/pdf/v1/generate \
+  -H "Authorization: Bearer <access-token>" \
+  -H "Content-Type: application/json" \
+  -d '{"htmlContent":"<html><body><h1>Resume</h1></body></html>","fileName":"resume.pdf"}'
 ```
 
-**Response**
-
-```json
-{
-  "message": "PDF generated successfully",
-  "status": "SUCCESS",
-  "pdfBase64": "JVBERi0xLjQKJeLjz9MK...",
-  "fileName": "my-resume.pdf",
-  "fileSize": 15234
-}
-```
-
-## 🤝 Contributing
+## Contributing
 
 1. Fork the repository
-2. Create a feature branch (`git checkout -b feature/amazing-feature`)
-3. Commit your changes (`git commit -m 'Add amazing feature'`)
-4. Push to the branch (`git push origin feature/amazing-feature`)
-5. Open a Pull Request
+2. Create a feature branch (`git checkout -b feature/my-feature`)
+3. Commit your changes
+4. Push and open a Pull Request
 
-### Code Style
+## License
 
-- Follow Java naming conventions
-- Use singular package names
-- Add `@Slf4j` for logging
-- Write comprehensive JavaDocs
-- Add validation annotations
-- Keep methods focused and small
-- Write unit tests for new features
+MIT License — see the LICENSE file for details.
 
-## 📄 License
+## Author
 
-This project is licensed under the MIT License - see the LICENSE file for details.
-
-## 👤 Author
-
-**Tu2l**
-
-- GitHub: [@Tu2l](https://github.com/Tu2l)
-- Repository: [open-resume-builder-backend](https://github.com/Tu2l/open-resume-builder-backend)
-
-## 🙏 Acknowledgments
-
-- Spring Boot team for the excellent framework
-- wkhtmltopdf for PDF generation capabilities
-- Lombok project for reducing boilerplate
-- Hibernate team for ORM support
-
-## 📞 Support
-
-For issues and questions:
-
-- Create an issue in the GitHub repository
-- Check existing issues for solutions
-- Review the [ROADMAP.md](ROADMAP.md) for planned features
+**Tu2l** — [@Tu2l](https://github.com/Tu2l)
 
 ---
 
-**Last Updated:** November 29, 2025  
+**Last Updated:** June 2026  
 **Version:** 1.0-SNAPSHOT  
-**Status:** Active Development 🚀
+**Status:** Active Development

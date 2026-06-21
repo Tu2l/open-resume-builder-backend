@@ -8,7 +8,6 @@ import com.tu2l.user.model.request.*;
 import com.tu2l.user.model.response.AuthResponse;
 import com.tu2l.user.service.AuthenticationService;
 import com.tu2l.user.utils.AuthResponseBuilder;
-import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -25,7 +24,6 @@ import org.springframework.web.bind.annotation.RestController;
 @Slf4j
 @RequiredArgsConstructor
 @RestController
-@Tag(name = "Authentication", description = "Registration, login, token and password flows")
 public class AuthenticationController implements AuthenticationApi {
     private final AuthenticationService authenticationService;
     private final AuthResponseBuilder authResponseBuilder;

@@ -23,6 +23,13 @@ spring:
       hibernate:
         ddl-auto: create
       show-sql: true
+springdoc:
+  swagger-ui:
+    enabled: false
+  api-docs:
+    enabled: true
+    path: /v3/api-docs
+
 logging:
   level:
     org:

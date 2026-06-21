@@ -20,6 +20,7 @@ public final class CommonConstants {
         public static final String X_USER_ID = "X-User-Id";
         public static final String X_USER_EMAIL = "X-User-Email";
         public static final String X_USER_ROLE = "X-User-Role";
+        public static final String X_USER_USERNAME = "X-User-Username";
         public static final String X_REQUEST_ID = "X-Request-Id";
         public static final String X_REQUEST_TYPE = "X-Request-Type";
         public static final String X_CORRELATION_ID = "X-Correlation-Id";

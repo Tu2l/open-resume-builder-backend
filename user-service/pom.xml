@@ -12,7 +12,7 @@
 
     <name>User Service</name>
     <description>Service for user management</description>
-    <artifactId>user-managerment-service</artifactId>
+    <artifactId>user-service</artifactId>
     <packaging>jar</packaging>
 
     <dependencies>

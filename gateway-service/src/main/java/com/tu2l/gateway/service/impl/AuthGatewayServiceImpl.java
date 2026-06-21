@@ -35,6 +35,7 @@ public class AuthGatewayServiceImpl implements AuthGatewayService {
     public ServerHttpRequest mutateRequestWithUserInfo(ServerHttpRequest request, String token) throws AuthenticationException {
         Claims claims = jwtUtil.extractAllClaims(token);
         var tokenType = jwtUtil.extractClaim(claims, claim -> claim.get(CommonConstants.JwtClaims.TOKEN_TYPE, String.class));
+        var username = claims.getSubject();
         var email = jwtUtil.extractClaim(claims, claim -> claim.get(CommonConstants.JwtClaims.EMAIL, String.class));
         var role = jwtUtil.extractClaim(claims, claim -> claim.get(CommonConstants.JwtClaims.ROLE, String.class));
 
@@ -42,8 +43,9 @@ public class AuthGatewayServiceImpl implements AuthGatewayService {
             throw new AuthenticationException("Invalid token: missing user information");
         }
 
-        log.info("Request enriched with user info: email={}, role={}", email, role);
+        log.info("Request enriched with user info: username={}, email={}, role={}", username, email, role);
         return request.mutate()
+                .header(CommonConstants.Headers.X_USER_USERNAME, username)
                 .header(CommonConstants.Headers.X_USER_EMAIL, email)
                 .header(CommonConstants.Headers.X_USER_ROLE, role)
                 .build();

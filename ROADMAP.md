@@ -19,7 +19,20 @@ Shared utilities and models across all services.
 
 ---
 
-### **2. PDF Service** 
+### **2. Gateway Service** *(Completed)*
+Spring Cloud Gateway — single entry point, JWT validation, request routing, and aggregated API docs.
+
+**Status:** ✅ Production Ready
+
+**Components:**
+- Route configuration for user-service and pdf-service
+- Global JWT authentication filter with public-route bypass
+- Fixed-window rate limiting propagation
+- Aggregated Swagger UI at `/swagger-ui.html` (springdoc-openapi-starter-webflux-ui)
+
+---
+
+### **3. PDF Service** 
 
 **Status:** 🟡 In Progress (70% Complete)
 
@@ -57,7 +70,7 @@ Shared utilities and models across all services.
 - [ ] Spring Boot Actuator integration
 - [ ] Custom health check for wkhtmltopdf availability
 - [ ] Add metrics for PDF generation (duration, size, success/failure rates)
-- [ ] Add API documentation (Swagger/OpenAPI)
+- [x] Add API documentation (Swagger/OpenAPI) — aggregated at gateway `/swagger-ui.html`
 - [ ] Implement rate limiting for resource-intensive operations
 
 #### **Phase 5: Advanced Features** 📋
@@ -92,66 +105,63 @@ Shared utilities and models across all services.
 
 ---
 
-### **3. User Service** 
+### **4. User Service** 
 
-**Status:** 🔴 Not Started (0% Complete)
+**Status:** 🟡 In Progress (~80% Complete)
 
-#### **Phase 1: Foundation** 📋
-- [ ] Create user-service module
-- [ ] Add Spring Security dependency
-- [ ] Design user data model
-  - [ ] User entity (id, email, password, roles, status)
-  - [ ] UserProfile entity (firstName, lastName, phone, etc.)
-  - [ ] Audit fields (createdAt, updatedAt, createdBy, modifiedBy)
-- [ ] PostgreSQL database integration
+#### **Phase 1: Foundation** ✅
+- [x] Create user-service module
+- [x] Add Spring Security dependency
+- [x] Design user data model
+  - [x] User entity (id, email, password, roles, status)
+  - [x] UserProfile entity (firstName, lastName, phone, etc.)
+  - [x] Audit fields (createdAt, updatedAt)
+- [x] PostgreSQL database integration
 - [ ] Flyway migrations setup
 
-#### **Phase 2: Authentication** 📋
-- [ ] User registration endpoint
-- [ ] Email verification
-- [ ] Password encryption (BCrypt)
-- [ ] Login endpoint with JWT token generation
-- [ ] Refresh token mechanism
-- [ ] Logout functionality
-- [ ] Password reset flow
-- [ ] Change password endpoint
+#### **Phase 2: Authentication** ✅
+- [x] User registration endpoint
+- [x] Password encryption (BCrypt)
+- [x] Login endpoint with JWT token generation
+- [x] Refresh token mechanism
+- [x] Logout functionality
+- [x] Password reset flow
+- [x] Change password endpoint
+- [ ] Email verification (stub — EmailServiceImpl pending)
 
-#### **Phase 3: Authorization** 📋
-- [ ] Role-based access control (RBAC)
-- [ ] User roles: ADMIN, USER, PREMIUM_USER
-- [ ] JWT token validation filter
-- [ ] Method-level security with `@PreAuthorize`
-- [ ] Rate limiting per user tier
+#### **Phase 3: Authorization** ✅
+- [x] Role-based access control (RBAC)
+- [x] User roles: ADMIN, USER, MODERATOR, GUEST
+- [x] JWT token validation at gateway
+- [x] Method-level security with `@PreAuthorize`
+- [x] Rate limiting (fixed-window filter)
 
-#### **Phase 4: User Management** 📋
-- [ ] Get user profile
-- [ ] Update user profile
+#### **Phase 4: User Management** ✅
+- [x] Get user profile
+- [x] Update user profile
+- [x] Delete user account (soft delete)
 - [ ] Upload profile picture
-- [ ] Delete user account (soft delete)
 - [ ] Get user activity history
 - [ ] User preferences management
 
-#### **Phase 5: Integration** 📋
-- [ ] Integrate with PDF service
-  - [ ] Verify user ownership of PDFs
-  - [ ] User quota management (free vs premium)
-  - [ ] Track user's PDF generation count
+#### **Phase 5: Integration** 🔄
+- [ ] Integrate with PDF service (user ownership of PDFs, quota)
 - [ ] Service-to-service authentication
-- [ ] API Gateway configuration
-- [ ] CORS configuration for frontend
+- [x] API Gateway configuration
+- [x] CORS configuration for frontend
 
 #### **Phase 6: Advanced Features** 📋
 - [ ] OAuth2 integration (Google, GitHub, LinkedIn)
 - [ ] Two-factor authentication (2FA)
 - [ ] User session management
-- [ ] Account lockout after failed attempts
-- [ ] Email notifications
+- [x] Account lockout after failed attempts
+- [ ] Email notifications (stub in place)
 - [ ] User analytics and reporting
 
 #### **Phase 7: Monitoring & Security** 📋
 - [ ] Actuator endpoints
 - [ ] Security audit logging
-- [ ] Failed login attempt tracking
+- [x] Failed login attempt tracking
 - [ ] GDPR compliance features
 - [ ] Data export functionality
 
@@ -165,41 +175,33 @@ Shared utilities and models across all services.
 
 ## 🎯 Priority Roadmap
 
-### **Sprint 1: PDF Service Stabilization** (Current)
-1. Complete CRUD operations for PDFs
-2. Add transaction management
-3. Externalize configuration
-4. Add health checks and monitoring
+### **Sprint 1–4: Core Services** (Completed)
+- Gateway service with JWT auth and routing
+- User service: registration, login, JWT, RBAC, rate limiting
+- PDF service: sync/async generation, DB persistence
+- Aggregated API documentation at gateway
 
-### **Sprint 2: PDF Service Production Ready**
-1. Implement comprehensive testing
-2. Add process timeouts and error handling
-3. Database migration to PostgreSQL
-4. API documentation
+### **Sprint 5: User Service Completion** (Current)
+1. Email service implementation (verification + password reset)
+2. Flyway database migrations
+3. User profile picture upload
 
-### **Sprint 3: User Service Foundation**
-1. Set up user-service module
-2. Design and implement user data model
-3. Basic authentication (register, login, JWT)
-4. Database migrations
+### **Sprint 6: Service Integration**
+1. User ownership of PDFs
+2. User quota management (free vs premium)
+3. Service-to-service authentication
 
-### **Sprint 4: User Service Auth & Authorization**
-1. Implement RBAC
-2. JWT validation and security
-3. Password reset flow
-4. User profile management
+### **Sprint 7: Production Hardening**
+1. Comprehensive test suite (target > 80% coverage)
+2. Actuator + health checks
+3. Process timeouts for wkhtmltopdf
+4. Redis caching layer
 
-### **Sprint 5: Service Integration**
-1. Integrate user-service with pdf-service
-2. Service-to-service authentication
-3. User quota management
-4. API Gateway setup
-
-### **Sprint 6: Advanced Features**
-1. Async PDF generation
-2. Template system
-3. OAuth2 integration
-4. Caching layer
+### **Sprint 8: Advanced Features**
+1. OAuth2 integration (Google, GitHub)
+2. Async PDF generation improvements
+3. Template-based PDF generation
+4. RabbitMQ/Kafka for async processing
 
 ---
 
@@ -226,8 +228,8 @@ Shared utilities and models across all services.
 - **Reason:** Scalability and cost-effectiveness
 
 ### **API Gateway**
-- **Tool:** Spring Cloud Gateway or Kong
-- **Purpose:** Single entry point, routing, rate limiting, authentication
+- **Tool:** Spring Cloud Gateway (WebFlux) — implemented
+- **Purpose:** Single entry point, JWT validation, routing, aggregated Swagger UI
 
 ---
 
@@ -252,21 +254,21 @@ Shared utilities and models across all services.
 ## 🔄 Version History
 
 - **v0.1.0** (Nov 2025) - Initial PDF service with basic generation
-- **v0.2.0** (Planned) - PDF CRUD operations, production hardening
-- **v0.3.0** (Planned) - User service foundation
-- **v1.0.0** (Target: Q2 2026) - Production-ready with both services integrated
+- **v0.2.0** (Dec 2025) - PDF CRUD operations, PostgreSQL migration
+- **v0.3.0** (Jan 2026) - User service: auth, JWT, RBAC, rate limiting
+- **v0.4.0** (Jun 2026) - API Gateway, versioned routes (/v1), aggregated Swagger UI
+- **v1.0.0** (Target: Q3 2026) - Email service, test suite, production hardening
 
 ---
 
 ## 📝 Notes
 
 ### **Known Technical Debt**
-1. SQLite not suitable for production (PDF Service)
-2. Missing comprehensive test suite
-3. No async processing for long-running operations
-4. Hard-coded configuration values
-5. Missing API documentation
-6. No monitoring/alerting system
+1. Missing comprehensive test suite (no unit or integration tests yet)
+2. Email service is stubbed — verification and password reset emails not sent
+3. No Flyway/Liquibase migrations (DDL managed by Hibernate `ddl-auto`)
+4. No monitoring/alerting system (Actuator not configured)
+5. wkhtmltopdf process has no timeout — long-running HTML can hang
 
 ### **Security Considerations**
 1. HTML sanitization implemented but consider using libraries like OWASP Java HTML Sanitizer
@@ -284,6 +286,6 @@ Shared utilities and models across all services.
 
 ---
 
-**Last Updated:** 29 November 2025
+**Last Updated:** June 2026
 **Maintained By:** Development Team
 **Status Legend:** ✅ Complete | 🔄 In Progress | ⏳ Planned Soon | 📋 Backlog | 🔴 Not Started
