@@ -1,6 +1,7 @@
 package com.tu2l.user.controller;
 
 import com.tu2l.common.model.base.BaseResponse;
+import com.tu2l.common.model.base.PagedResponse;
 import com.tu2l.user.controller.api.AdminUserApi;
 import com.tu2l.user.entity.UserEntity;
 import com.tu2l.user.exception.UserException;
@@ -12,7 +13,6 @@ import com.tu2l.user.service.UserService;
 import com.tu2l.user.utils.UserMapper;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.web.PageableDefault;
 import org.springframework.http.ResponseEntity;
@@ -28,10 +28,10 @@ public class AdminUserController extends BaseController implements AdminUserApi 
     private final UserMapper userMapper;
 
     @Override
-    public ResponseEntity<Page<UserDTO>> getAllUsers(String adminRole, @PageableDefault(size = 20) Pageable pageable) {
+    public ResponseEntity<PagedResponse<UserDTO>> getAllUsers(String adminRole, @PageableDefault(size = 20) Pageable pageable) {
         if (!isAdmin(adminRole)) return forbidden();
         log.info("Admin: listing users, page={}", pageable);
-        return ResponseEntity.ok(adminUserService.getAllUsers(pageable).map(userMapper::toUserDTO));
+        return ResponseEntity.ok(paged(adminUserService.getAllUsers(pageable), userMapper::toUserDTO));
     }
 
     @Override

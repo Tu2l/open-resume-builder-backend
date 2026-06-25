@@ -2,6 +2,7 @@ package com.tu2l.user.controller.api;
 
 import com.tu2l.common.constant.CommonConstants;
 import com.tu2l.common.model.base.BaseResponse;
+import com.tu2l.common.model.base.PagedResponse;
 import com.tu2l.user.model.request.UpdateUserRequest;
 import com.tu2l.user.model.response.UserDTO;
 import com.tu2l.user.model.response.UserResponse;
@@ -14,8 +15,8 @@ import io.swagger.v3.oas.annotations.responses.ApiResponses;
 import io.swagger.v3.oas.annotations.security.SecurityRequirement;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
-import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
+import org.springframework.data.web.PageableDefault;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
@@ -36,9 +37,9 @@ public interface AdminUserApi {
             @ApiResponse(responseCode = "403", description = "Caller does not have the ADMIN role")
     })
     @GetMapping
-    ResponseEntity<Page<UserDTO>> getAllUsers(
+    ResponseEntity<PagedResponse<UserDTO>> getAllUsers(
             @Parameter(hidden = true) @RequestHeader(CommonConstants.Headers.X_USER_ROLE) String adminRole,
-            Pageable pageable);
+            @PageableDefault(size = 20) Pageable pageable);
 
     @Operation(summary = "Get user by ID", description = "Returns the full profile for the specified user. **Requires ADMIN role.**")
     @ApiResponses({
