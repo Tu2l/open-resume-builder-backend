@@ -48,8 +48,8 @@ springdoc:
 app:
   mail:
     from-address: no-reply@resume-builder.local
-    frontend-base-url: http://localhost:3000
-    verification-path: /verify-email?token=
+    frontend-base-url: http://localhost:8080
+    verification-path: /api/users/v1/auth/verify-email?token=
     password-reset-path: /reset-password?token=
     verification-subject: "Verify your email"
     password-reset-subject: "Reset your password"

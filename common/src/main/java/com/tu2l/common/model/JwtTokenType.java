@@ -16,4 +16,13 @@ public enum JwtTokenType {
         this.value = value;
     }
 
+    public static JwtTokenType fromValue(String value) {
+        for (JwtTokenType type : values()) {
+            if (type.value.equals(value)) {
+                return type;
+            }
+        }
+        throw new IllegalArgumentException("No enum constant with value: " + value);
+    }
+
 }

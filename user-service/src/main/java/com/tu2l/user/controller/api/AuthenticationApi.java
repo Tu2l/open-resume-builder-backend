@@ -16,10 +16,7 @@ import org.jspecify.annotations.NonNull;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestBody;
-import org.springframework.web.bind.annotation.RequestHeader;
-import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.*;
 
 @Tag(name = "Authentication", description = "Registration, login, token management and password flows")
 @RequestMapping("/v1/auth")
@@ -173,8 +170,8 @@ public interface AuthenticationApi {
                     content = @Content(mediaType = MediaType.APPLICATION_JSON_VALUE,
                             schema = @Schema(implementation = BaseResponse.class)))
     })
-    @PostMapping("/verify-email")
+    @GetMapping("/verify-email")
     ResponseEntity<@NonNull BaseResponse> verifyEmail(
-            @Parameter(hidden = true)
-            @RequestHeader(HttpHeaders.AUTHORIZATION) String token);
+            @Parameter(required = true)
+            @RequestParam("token") String token);
 }

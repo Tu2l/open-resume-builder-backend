@@ -32,11 +32,7 @@ public class JwtServiceImpl implements AuthTokenService {
     public boolean validateToken(String token, JwtTokenType tokenType) throws JwtException {
         // A token is valid only if it is unexpired AND was issued for the expected
         // purpose, so e.g. an access token cannot be used to reset a password.
-        try {
-            return !jwtUtil.isTokenExpired(token) && getTokenType(token) == tokenType;
-        } catch (RuntimeException e) {
-            return false;
-        }
+        return !jwtUtil.isTokenExpired(token) && getTokenType(token) == tokenType;
     }
 
     @Override
@@ -74,6 +70,6 @@ public class JwtServiceImpl implements AuthTokenService {
 
     @Override
     public JwtTokenType getTokenType(String token) {
-        return JwtTokenType.valueOf(jwtUtil.extractTokenType(token));
+        return JwtTokenType.fromValue(jwtUtil.extractTokenType(token));
     }
 }
