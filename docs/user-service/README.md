@@ -285,7 +285,7 @@ sequenceDiagram
         A->>DB: clearSensitiveTokens() (revoke ALL sessions)
         A-->>C: 401 Refresh token reuse detected (audit TOKEN_REUSE_DETECTED)
     else valid & active
-        A->>DB: mark old refresh inactive; store new REFRESH + ACCESS (sha256)
+        A->>DB: mark old refresh inactive, store new REFRESH + ACCESS (sha256)
         A-->>C: 200 AuthResponse { new accessToken, new refreshToken }
     end
 ```

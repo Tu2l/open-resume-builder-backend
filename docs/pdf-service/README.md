@@ -78,7 +78,7 @@ sequenceDiagram
     G->>G: write {tmp}/{file}.html
     G->>WK: ProcessBuilder: wkhtmltopdf --page-size --margin-* in.html out.pdf
     WK-->>G: out.pdf
-    G->>G: read bytes; delete temp files (finally)
+    G->>G: read bytes, delete temp files (finally)
     G-->>S: byte[]
     S-->>C: GeneratePDFResponse { content=base64(pdf), status=SUCCESS }
 ```
