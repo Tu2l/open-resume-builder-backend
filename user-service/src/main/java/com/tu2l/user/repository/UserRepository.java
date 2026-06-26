@@ -1,5 +1,6 @@
 package com.tu2l.user.repository;
 
+import com.tu2l.common.model.states.UserRole;
 import com.tu2l.user.entity.UserEntity;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
@@ -10,6 +11,10 @@ import java.util.Optional;
 
 @Repository
 public interface UserRepository extends JpaRepository<UserEntity, Long> {
+
+    /** True if at least one (non-deleted) user holds the given role. */
+    boolean existsByRole(UserRole role);
+
     /**
      * Find a user by username or email (lightweight - no relationships loaded).
      *
