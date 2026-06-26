@@ -65,6 +65,13 @@ app:
     enabled: true
     capacity: 10
     window-seconds: 60
+    cleanup-interval-ms: 300000
+    limited-paths:
+      - /auth/authenticate
+      - /auth/forgot-password
+      - /auth/reset-password
+      - /auth/register
+      - /auth/refresh
   cors:
     allowed-origins:
       - http://localhost:3000

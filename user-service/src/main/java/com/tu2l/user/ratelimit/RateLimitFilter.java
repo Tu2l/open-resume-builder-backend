@@ -1,5 +1,6 @@
 package com.tu2l.user.ratelimit;
 
+import com.tu2l.user.config.RateLimitProperties;
 import jakarta.servlet.FilterChain;
 import jakarta.servlet.ServletException;
 import jakarta.servlet.http.HttpServletRequest;
@@ -25,23 +26,19 @@ import java.io.IOException;
 @RequiredArgsConstructor
 public class RateLimitFilter extends OncePerRequestFilter {
 
-    private static final String[] LIMITED_SUFFIXES = {
-            "/auth/authenticate",
-            "/auth/forgot-password",
-            "/auth/reset-password",
-            "/auth/register",
-            "/auth/refresh"
-    };
-
     private static final String TOO_MANY_REQUESTS_BODY =
             "{\"message\":\"Too many requests. Please try again later.\",\"status\":\"FAILURE\"}";
 
     private final FixedWindowRateLimiter rateLimiter;
+    private final RateLimitProperties properties;
 
     @Override
-    protected boolean shouldNotFilter(HttpServletRequest request) {
+    protected boolean shouldNotFilter(@NonNull HttpServletRequest request) {
+        if (!properties.enabled()) {
+            return true;
+        }
         String uri = request.getRequestURI();
-        for (String suffix : LIMITED_SUFFIXES) {
+        for (String suffix : properties.limitedPaths()) {
             if (uri.endsWith(suffix)) {
                 return false;
             }
