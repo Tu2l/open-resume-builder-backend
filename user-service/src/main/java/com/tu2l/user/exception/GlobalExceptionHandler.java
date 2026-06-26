@@ -51,7 +51,7 @@ public class GlobalExceptionHandler {
 
     @ExceptionHandler({UserException.class})
     public ResponseEntity<@NonNull BaseResponse> handleUserException(UserException exception) {
-        return getResponse(exception.getMessage(), "UserException caught: {}", HttpStatus.OK);
+        return getResponse(exception.getMessage(), "UserException caught: {}", exception.getStatus());
     }
 
     @ExceptionHandler({AuthenticationException.class})
