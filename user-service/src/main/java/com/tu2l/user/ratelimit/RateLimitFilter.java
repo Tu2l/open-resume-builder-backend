@@ -6,6 +6,7 @@ import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.jspecify.annotations.NonNull;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.stereotype.Component;
@@ -15,15 +16,22 @@ import java.io.IOException;
 
 /**
  * Applies {@link FixedWindowRateLimiter} to sensitive authentication endpoints
- * (login and password-reset request), keyed by client IP. Returns HTTP 429 with a
- * standard error body when the limit is exceeded. Other paths are not filtered.
+ * (login, register, refresh, forgot-password and reset-password), keyed by client IP.
+ * Returns HTTP 429 with a standard error body when the limit is exceeded. Other paths
+ * are not filtered.
  */
 @Slf4j
 @Component
 @RequiredArgsConstructor
 public class RateLimitFilter extends OncePerRequestFilter {
 
-    private static final String[] LIMITED_SUFFIXES = {"/auth/authenticate", "/auth/forgot-password"};
+    private static final String[] LIMITED_SUFFIXES = {
+            "/auth/authenticate",
+            "/auth/forgot-password",
+            "/auth/reset-password",
+            "/auth/register",
+            "/auth/refresh"
+    };
 
     private static final String TOO_MANY_REQUESTS_BODY =
             "{\"message\":\"Too many requests. Please try again later.\",\"status\":\"FAILURE\"}";
@@ -42,7 +50,7 @@ public class RateLimitFilter extends OncePerRequestFilter {
     }
 
     @Override
-    protected void doFilterInternal(HttpServletRequest request, HttpServletResponse response, FilterChain filterChain)
+    protected void doFilterInternal(@NonNull HttpServletRequest request, @NonNull HttpServletResponse response, @NonNull FilterChain filterChain)
             throws ServletException, IOException {
         String key = clientIp(request) + ":" + request.getRequestURI();
         if (rateLimiter.tryAcquire(key)) {

@@ -2,6 +2,8 @@ package com.tu2l.user.ratelimit;
 
 import com.tu2l.user.config.RateLimitProperties;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
+import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Component;
 
 import java.time.Instant;
@@ -13,6 +15,7 @@ import java.util.concurrent.atomic.AtomicInteger;
  * that resets every {@code windowSeconds}. Intended for a single instance; a
  * distributed deployment would back this with Redis instead.
  */
+@Slf4j
 @Component
 @RequiredArgsConstructor
 public class FixedWindowRateLimiter {
@@ -37,6 +40,22 @@ public class FixedWindowRateLimiter {
             return existing;
         });
         return window.count.incrementAndGet() <= properties.capacity();
+    }
+
+    /**
+     * Removes windows whose fixed window has fully elapsed. Without this, keys for
+     * one-off client IPs accumulate forever (an attacker-controlled memory leak).
+     * Runs periodically; the interval is independent of the rate-limit window.
+     */
+    @Scheduled(fixedDelayString = "${app.rate-limit.cleanup-interval-ms:300000}")
+    public void evictStaleWindows() {
+        long currentWindow = Instant.now().getEpochSecond() / properties.windowSeconds();
+        int before = windows.size();
+        windows.entrySet().removeIf(entry -> entry.getValue().startWindow < currentWindow);
+        int removed = before - windows.size();
+        if (removed > 0) {
+            log.debug("Evicted {} stale rate-limit window(s)", removed);
+        }
     }
 
     private static final class Window {
