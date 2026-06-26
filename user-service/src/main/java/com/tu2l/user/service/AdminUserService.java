@@ -13,4 +13,10 @@ public interface AdminUserService {
 
     /** Paginated list of all non-deleted users. */
     Page<UserEntity> getAllUsers(Pageable pageable);
+
+    /** Clears any active lock and resets the failed-attempt counter for a user. */
+    UserEntity unlockAccount(Long userId);
+
+    /** Enables or disables a user account (a disabled account cannot authenticate). */
+    UserEntity setEnabled(Long userId, boolean enabled);
 }

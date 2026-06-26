@@ -102,4 +102,14 @@ public interface AuthenticationService {
      * @throws AuthenticationException if email verification fails
      */
     boolean verifyEmail(String verificationToken) throws JwtException, AuthenticationException;
+
+    /**
+     * Re-issues an email-verification token and sends it, if the account exists and is
+     * not already verified. Always reports success to the caller to avoid account
+     * enumeration.
+     *
+     * @param email the email address to (re-)verify
+     * @return true (uniform response regardless of account existence/state)
+     */
+    boolean resendVerification(String email) throws JwtException, AuthenticationException;
 }

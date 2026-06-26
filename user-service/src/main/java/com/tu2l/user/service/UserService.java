@@ -4,6 +4,8 @@ import com.tu2l.user.entity.UserEntity;
 import com.tu2l.user.exception.UserException;
 import com.tu2l.user.model.response.UserDTO;
 
+import java.util.Optional;
+
 /**
  * Self-service and internal user operations.
  * Admin-only bulk/cross-user lookups live in {@link AdminUserService}.
@@ -118,6 +120,16 @@ public interface UserService {
      * @throws UserException if the user is not found
      */
     UserEntity getUserByEmailWithCredentials(String email) throws UserException;
+
+    /**
+     * Retrieves user by email with all relationships eagerly loaded, returning empty
+     * rather than throwing when absent. Use this where a missing user must not be
+     * distinguishable to the caller (e.g. forgot-password, to avoid account enumeration).
+     *
+     * @param email the email address of the user to retrieve
+     * @return the user wrapped in an Optional, or empty if no such user exists
+     */
+    Optional<UserEntity> findByEmailWithCredentials(String email);
 
     /**
      * Persists a new or existing user entity to the database.

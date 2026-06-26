@@ -26,6 +26,9 @@ public class AuthResponse extends BaseResponse {
     @Schema(description = "UTC date-time at which the access token expires.", example = "2026-06-21T15:30:00")
     private LocalDateTime expiresIn;
 
+    @Schema(description = "Whether the authenticated user's email address has been verified.", example = "true")
+    private boolean emailVerified;
+
     @Schema(description = "Public profile of the authenticated user.")
     private UserDTO user;
 }

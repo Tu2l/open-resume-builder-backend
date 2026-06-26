@@ -6,9 +6,7 @@ import org.springframework.boot.context.properties.ConfigurationProperties;
 public record AuthConfigValues(
         int maxFailedLoginAttempts,
         int accountLockDurationMinutes,
-        int rememberMeTokenValidityMinutes
+        int rememberMeTokenValidityMinutes,
+        boolean requireVerifiedEmail
 ) {
-    public int getAccountLockDurationMinutes(boolean rememberMe) {
-        return rememberMe ? rememberMeTokenValidityMinutes : accountLockDurationMinutes;
-    }
 }

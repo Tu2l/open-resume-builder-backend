@@ -4,6 +4,7 @@ import com.tu2l.common.util.CommonUtil;
 import com.tu2l.user.config.CacheConfig;
 import com.tu2l.user.entity.UserEntity;
 import com.tu2l.user.exception.UserException;
+import com.tu2l.user.exception.UserNotFoundException;
 import com.tu2l.user.model.response.UserDTO;
 import com.tu2l.user.repository.UserRepository;
 import com.tu2l.user.service.AdminUserService;
@@ -39,7 +40,7 @@ public class UserServiceImpl implements UserService, AdminUserService {
         log.info("Fetching user with id: {}", id);
 
         return userRepository.findById(id)
-                .orElseThrow(() -> new UserException(USER_NOT_FOUND_MSG + id));
+                .orElseThrow(() -> new UserNotFoundException(USER_NOT_FOUND_MSG + id));
     }
 
     @Override
@@ -48,7 +49,7 @@ public class UserServiceImpl implements UserService, AdminUserService {
     // checks) never touch the lazy associations on a cache hit.
     @Cacheable(value = CacheConfig.USERS_CACHE, key = "#username")
     public UserEntity getUserByUsername(String username) throws UserException {
-        return userRepository.findUserByUsername(username).orElseThrow(() -> new UserException("User not found with username: " + username));
+        return userRepository.findUserByUsername(username).orElseThrow(() -> new UserNotFoundException("User not found with username: " + username));
     }
 
     @Override
@@ -60,7 +61,7 @@ public class UserServiceImpl implements UserService, AdminUserService {
 
         UserEntity updatedUser = userRepository.findById(userDTO.getId())
                 .map(user -> userMapper.updateUserFromDTO(userDTO, user))
-                .orElseThrow(() -> new UserException(USER_NOT_FOUND_MSG + userDTO.getId()));
+                .orElseThrow(() -> new UserNotFoundException(USER_NOT_FOUND_MSG + userDTO.getId()));
 
         log.info("Updating user with id: {}", updatedUser.getId());
         return userRepository.save(updatedUser);
@@ -78,7 +79,7 @@ public class UserServiceImpl implements UserService, AdminUserService {
             user.setDeletedAt(LocalDateTime.now());
             userRepository.save(user);
             return true;
-        }).orElseThrow(() -> new UserException(USER_NOT_FOUND_MSG + username));
+        }).orElseThrow(() -> new UserNotFoundException(USER_NOT_FOUND_MSG + username));
     }
 
     @Override
@@ -94,7 +95,7 @@ public class UserServiceImpl implements UserService, AdminUserService {
         String newPasswordPlainText = commonUtil.decodeBase64StringToString(newPassword);
 
         UserEntity user = userRepository.findUserByUsername(username)
-                .orElseThrow(() -> new UserException(USER_NOT_FOUND_MSG + username));
+                .orElseThrow(() -> new UserNotFoundException(USER_NOT_FOUND_MSG + username));
 
         if (!passwordEncoder.matches(commonUtil.decodeBase64StringToString(oldPassword), user.getPassword())) {
             throw new UserException("Old password does not match");
@@ -117,7 +118,7 @@ public class UserServiceImpl implements UserService, AdminUserService {
     @Transactional(readOnly = true)
     public UserEntity getUserByEmail(String email) throws UserException {
         log.info("Fetching user with email: {}", email);
-        return userRepository.findUserByEmail(email).orElseThrow(() -> new UserException("User not found with email: " + email));
+        return userRepository.findUserByEmail(email).orElseThrow(() -> new UserNotFoundException("User not found with email: " + email));
     }
 
     @Override
@@ -125,7 +126,7 @@ public class UserServiceImpl implements UserService, AdminUserService {
     public UserEntity getUserWithDetails(String username) throws UserException {
         log.info("Fetching user with details for username: {}", username);
         return userRepository.findByUsernameWithDetails(username)
-                .orElseThrow(() -> new UserException("User not found with username: " + username));
+                .orElseThrow(() -> new UserNotFoundException("User not found with username: " + username));
     }
 
     @Override
@@ -133,7 +134,7 @@ public class UserServiceImpl implements UserService, AdminUserService {
     public UserEntity getUserByEmailWithDetails(String email) throws UserException {
         log.info("Fetching user with details for email: {}", email);
         return userRepository.findByEmailWithDetails(email)
-                .orElseThrow(() -> new UserException("User not found with email: " + email));
+                .orElseThrow(() -> new UserNotFoundException("User not found with email: " + email));
     }
 
     @Override
@@ -141,7 +142,7 @@ public class UserServiceImpl implements UserService, AdminUserService {
     public UserEntity getUserWithCredentials(String username) throws UserException {
         log.info("Fetching user with credentials for username: {}", username);
         return userRepository.findByUsernameWithAll(username)
-                .orElseThrow(() -> new UserException("User not found with username: " + username));
+                .orElseThrow(() -> new UserNotFoundException("User not found with username: " + username));
     }
 
     @Override
@@ -149,7 +150,14 @@ public class UserServiceImpl implements UserService, AdminUserService {
     public UserEntity getUserByEmailWithCredentials(String email) throws UserException {
         log.info("Fetching user with credentials for email: {}", email);
         return userRepository.findByEmailWithAll(email)
-                .orElseThrow(() -> new UserException("User not found with email: " + email));
+                .orElseThrow(() -> new UserNotFoundException("User not found with email: " + email));
+    }
+
+    @Override
+    @Transactional(readOnly = true)
+    public java.util.Optional<UserEntity> findByEmailWithCredentials(String email) {
+        log.info("Looking up user (optional) with credentials for email: {}", email);
+        return userRepository.findByEmailWithAll(email);
     }
 
     @Override
@@ -162,5 +170,23 @@ public class UserServiceImpl implements UserService, AdminUserService {
     public Page<UserEntity> getAllUsers(Pageable pageable) {
         log.info("Fetching users page: {}", pageable);
         return userRepository.findAll(pageable);
+    }
+
+    @Override
+    @CacheEvict(value = CacheConfig.USERS_CACHE, allEntries = true)
+    public UserEntity unlockAccount(Long userId) {
+        UserEntity user = getUserById(userId);
+        user.getAccountStatus().unlockAccount();
+        log.info("Unlocking account for user id: {}", userId);
+        return userRepository.save(user);
+    }
+
+    @Override
+    @CacheEvict(value = CacheConfig.USERS_CACHE, allEntries = true)
+    public UserEntity setEnabled(Long userId, boolean enabled) {
+        UserEntity user = getUserById(userId);
+        user.getAccountStatus().setEnabled(enabled);
+        log.info("Setting enabled={} for user id: {}", enabled, userId);
+        return userRepository.save(user);
     }
 }

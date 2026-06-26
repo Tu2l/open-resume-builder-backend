@@ -29,10 +29,16 @@ public class JwtServiceImpl implements AuthTokenService {
     }
 
     @Override
-    public boolean validateToken(String token, JwtTokenType tokenType) throws JwtException {
+    public boolean validateToken(String token, JwtTokenType tokenType) {
         // A token is valid only if it is unexpired AND was issued for the expected
         // purpose, so e.g. an access token cannot be used to reset a password.
-        return !jwtUtil.isTokenExpired(token) && getTokenType(token) == tokenType;
+        // An expired/malformed/wrong-signature token is simply invalid here — callers
+        // (resetPassword/verifyEmail) expect a friendly false rather than a thrown 401.
+        try {
+            return !jwtUtil.isTokenExpired(token) && getTokenType(token) == tokenType;
+        } catch (JwtException e) {
+            return false;
+        }
     }
 
     @Override

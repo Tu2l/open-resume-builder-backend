@@ -42,6 +42,7 @@ public class AuthResponseBuilder {
                 .accessToken(accessToken)
                 .refreshToken(user.getPlainRefreshToken())
                 .expiresIn(authTokenService.expiresAt(accessToken))
+                .emailVerified(user.getAccountStatus() != null && user.getAccountStatus().isEmailVerified())
                 .build();
 
         return ResponseFactory.configureResponse(response, message, ResponseProcessingStatus.SUCCESS);

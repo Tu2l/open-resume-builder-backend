@@ -58,8 +58,25 @@ public class UserAccountStatus {
         return accountLockedUntil != null && accountLockedUntil.isAfter(LocalDateTime.now());
     }
 
+    /**
+     * True when a lock was set but its window has already elapsed. Distinct from
+     * {@link #isAccountLocked()} (which is false both when never locked and when expired).
+     */
+    public boolean isLockExpired() {
+        return accountLockedUntil != null && !accountLockedUntil.isAfter(LocalDateTime.now());
+    }
+
     public void lockAccount(int lockDurationMinutes) {
         this.accountLockedUntil = LocalDateTime.now().plusMinutes(lockDurationMinutes);
+    }
+
+    /**
+     * Clears an expired lock and resets the failed-attempt counter so the next single
+     * failure doesn't immediately re-lock the account.
+     */
+    public void clearExpiredLock() {
+        this.accountLockedUntil = null;
+        this.failedLoginAttempts = 0;
     }
 
     public void unlockAccount() {
