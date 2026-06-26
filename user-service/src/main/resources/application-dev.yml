@@ -18,8 +18,11 @@ spring:
   jpa:
     database-platform: org.hibernate.dialect.PostgreSQLDialect
     hibernate:
-      ddl-auto: create
+      ddl-auto: validate
     show-sql: true
+  flyway:
+    enabled: true
+    baseline-on-migrate: true
   web:
     error:
       whitelabel:
@@ -65,8 +68,14 @@ app:
     max-failed-login-attempts: 5
     account-lock-duration-minutes: 15
     remember-me-token-validity-minutes: 14
+    require-verified-email: false
     jwt:
       secret-key: ${JWT_SECRET_KEY:dev-secret-key-must-be-at-least-256-bits-or-32-characters-long}
       access-token-expiration-minutes: 15
       refresh-token-expiration-days: 7
       issuer: resume-builder-app
+  bootstrap-admin:
+    enabled: true
+    username: admin
+    email: admin@resume-builder.local
+    password: Admin@12345
