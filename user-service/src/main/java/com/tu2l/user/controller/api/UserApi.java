@@ -20,7 +20,7 @@ import org.springframework.web.bind.annotation.*;
 
 @Tag(name = "Users", description = "Current user profile management")
 @SecurityRequirement(name = "bearerAuth")
-@RequestMapping("/v1")
+@RequestMapping(version = "1+")
 public interface UserApi {
 
     @Operation(summary = "Get my profile", description = "Returns the full profile of the authenticated caller.")

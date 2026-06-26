@@ -13,6 +13,7 @@ import org.springframework.web.HttpRequestMethodNotSupportedException;
 import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
+import org.springframework.web.server.ResponseStatusException;
 import org.springframework.web.servlet.resource.NoResourceFoundException;
 
 import java.util.stream.Collectors;
@@ -25,6 +26,16 @@ public class GlobalExceptionHandler {
     public ResponseEntity<@NonNull BaseResponse> handleGlobalExceptions(Exception exception) {
         log.error("Exception caught", exception);
         return getResponse("Something went wrong", "Exception caught: {}", HttpStatus.INTERNAL_SERVER_ERROR);
+    }
+
+    @ExceptionHandler(ResponseStatusException.class)
+    public ResponseEntity<@NonNull BaseResponse> handleResponseStatusException(ResponseStatusException exception) {
+        // Honour the status carried by the exception (e.g. Spring's native API-versioning errors
+        // InvalidApiVersionException/NotAcceptableApiVersionException -> 400) instead of letting the
+        // generic Exception handler mask it as 500.
+        String message = exception.getReason() != null ? exception.getReason() : exception.getMessage();
+        log.warn("ResponseStatusException caught: {}", message);
+        return new ResponseEntity<>(ResponseFactory.createErrorResponse(message), exception.getStatusCode());
     }
 
     @ExceptionHandler(HttpMessageConversionException.class)

@@ -80,6 +80,10 @@ classDiagram
 - **`CommonUtil`** — HTML sanitization (strips `<script>`, `javascript:`, `data:`/`file:` URLs,
   `iframe`/`object`/`embed`), Base64 encode/decode, **`sha256Hex`** (used to hash stored tokens),
   email validation.
+- **`PrefixedSemanticApiVersionParser`** (`web`) — an `ApiVersionParser` that strips a leading
+  `v`/`V` before delegating to Spring's `SemanticApiVersionParser`. Lets every service keep
+  human-friendly `/v1/...` URL segments while using Spring Framework 7 native semantic versioning.
+  (`spring-web` is a `provided` dependency — each consuming service already supplies it.)
 
 ### Exceptions
 - **`AuthenticationException`** — runtime exception for auth failures; mapped to **401** by each

@@ -1,6 +1,6 @@
 # pdf-service
 
-**Port:** 8090 · **Context-path:** `/pdf` · **Gateway prefix:** `/api/pdf/...`
+**Port:** 8090 · **Context-path:** `/pdf` · **Gateway prefix:** `/api/pdf/v1/...`
 **Stack:** Java 17, Spring Boot 4.0.0, Spring Data JPA, PostgreSQL, `wkhtmltopdf` CLI.
 
 Generates PDFs from HTML content (resumes) using the `wkhtmltopdf` binary, with synchronous,
@@ -25,7 +25,7 @@ See also: [project docs](../README.md).
 
 ```mermaid
 flowchart TB
-    PC["PDFController<br/>/pdf/generate · /generate/save<br/>/generate/async · /get/id/{id}"]
+    PC["PDFController<br/>/pdf/v1/generate · /v1/generate/save<br/>/v1/generate/async · /v1/get/id/{id}"]
     PS["PDFServiceImpl"]
     AS["AsyncPDFService @Async"]
     GEN["WkhtmlToPdfGenerator"]
@@ -48,15 +48,23 @@ via `PDFRepository`.
 
 ## API
 
-All endpoints are reached through the gateway at `/api/pdf/...` (controller paths below include
-the `/pdf` context-path). Requests/responses extend the shared `BaseResponse`.
+All endpoints are reached through the gateway at `/api/pdf/v1/...` (controller paths below include
+the `/pdf` context-path and the `/v1` version segment). Requests/responses extend the shared
+`BaseResponse`.
+
+> **API versioning is framework-managed (Spring Framework 7 native).** `ApiVersioningConfiguration`
+> adds a global `/{version}` path prefix and resolves the version from path-segment 0
+> (`usePathSegment(0)`); `PDFController` declares `version = "1+"`. The shared `common`
+> `PrefixedSemanticApiVersionParser` strips the leading `v`. Resolution is lenient (missing version
+> defaults to `1`; an unknown version returns 400). **Migration note:** endpoints previously lived at
+> `/api/pdf/...` (unversioned) and now require the `/v1` segment.
 
 | Method | Path | Request | Returns | Description |
 |--------|------|---------|---------|-------------|
-| POST | `/pdf/generate` | `GeneratePDFRequest` | `GeneratePDFResponse` | Sync generate; base64 PDF in `content` |
-| POST | `/pdf/generate/save` | `GenerateAndSavePDFRequest` | `GeneratePDFResponse` | Sync generate + persist; returns saved metadata |
-| POST | `/pdf/generate/async` | `GenerateAndSavePDFRequest` | `GeneratePDFResponse` | Pre-saves a placeholder row, returns `PROCESSING` + id |
-| GET | `/pdf/get/id/{id}` | — | `GeneratePDFResponse` | Retrieve stored PDF by id |
+| POST | `/pdf/v1/generate` | `GeneratePDFRequest` | `GeneratePDFResponse` | Sync generate; base64 PDF in `content` |
+| POST | `/pdf/v1/generate/save` | `GenerateAndSavePDFRequest` | `GeneratePDFResponse` | Sync generate + persist; returns saved metadata |
+| POST | `/pdf/v1/generate/async` | `GenerateAndSavePDFRequest` | `GeneratePDFResponse` | Pre-saves a placeholder row, returns `PROCESSING` + id |
+| GET | `/pdf/v1/get/id/{id}` | — | `GeneratePDFResponse` | Retrieve stored PDF by id |
 
 **Requests:** `GeneratePDFRequest { content (base64 HTML), fileName, numberOfPages≥1 }`;
 `GenerateAndSavePDFRequest extends GeneratePDFRequest { userId }`.
@@ -71,7 +79,7 @@ sequenceDiagram
     participant S as PDFServiceImpl
     participant G as WkhtmlToPdfGenerator
     participant WK as wkhtmltopdf
-    C->>S: POST /pdf/generate (base64 HTML)
+    C->>S: POST /pdf/v1/generate (base64 HTML)
     S->>S: base64-decode + sanitize HTML, clean fileName
     S->>S: build PDFGeneratorConfiguration (LayoutParams)
     S->>G: generatePDF(config)
@@ -92,7 +100,7 @@ sequenceDiagram
     participant S as PDFServiceImpl
     participant DB as DB (generated_pdfs)
     participant A as AsyncPDFService
-    C->>S: POST /pdf/generate/async
+    C->>S: POST /pdf/v1/generate/async
     S->>DB: save placeholder row (encoded_pdf="PDF content placeholder")
     S-->>C: GeneratePDFResponse { id, status=PROCESSING }
     Note over A: separate thread (@Async)

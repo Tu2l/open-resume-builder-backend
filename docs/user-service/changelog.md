@@ -5,6 +5,29 @@ Design rationale lives in [`README.md`](./README.md). Branch: `user-service-refa
 
 ---
 
+## Native API versioning (2026-06)
+
+Adopted **Spring Framework 7 / Spring Boot 4 native API versioning** in place of the hardcoded
+`/v1` URL prefixes.
+
+- **Strategy:** path segment — the `/v1` URL is kept but is now framework-managed. A global
+  `/{version}` path prefix (scoped to the controller package, so springdoc's `/v3/api-docs` is
+  untouched) lets patterns consume the segment; `usePathSegment(0)` resolves the version.
+- **Parser:** shared `common` `PrefixedSemanticApiVersionParser` strips a leading `v`/`V` then
+  delegates to `SemanticApiVersionParser`, so `v1` compares semantically against `version = "1+"`.
+- **Controllers:** the five API interfaces drop the literal `/v1` and declare `version = "1+"` at
+  the type level (Spring's `VersionRequestCondition.combine` propagates it to every handler method).
+- **Lenient resolution:** missing version defaults to `1` (`setVersionRequired(false)`); an unknown
+  version (e.g. `/v2/...`) now returns **400** — `GlobalExceptionHandler` gained a
+  `ResponseStatusException` handler so Spring's `InvalidApiVersionException` is no longer masked as 500.
+- **No external contract change:** user-service URLs are byte-for-byte identical, so the gateway
+  routes, public-routes, email links, rate-limiter and existing tests are unaffected.
+- **Tests:** `PrefixedSemanticApiVersionParserTest` (common) and `ApiVersioningTest` (drives
+  `RequestMappingHandlerMapping` directly) verify prefixing, type-level version propagation, and the
+  400-on-unknown-version path.
+
+---
+
 ## Hardening, completion & migrations (2026-06)
 
 A fresh review of the (by then feature-complete) service found real bugs and gaps; all were

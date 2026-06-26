@@ -18,6 +18,15 @@
 
     <dependencies>
 
+        <!-- Spring Web: provides the API-versioning SPI (ApiVersionParser, SemanticApiVersionParser).
+             Scoped 'provided' — every consuming service already supplies spring-web via its
+             web/webflux starter, so this stays non-transitive. -->
+        <dependency>
+            <groupId>org.springframework</groupId>
+            <artifactId>spring-web</artifactId>
+            <scope>provided</scope>
+        </dependency>
+
         <dependency>
             <groupId>io.jsonwebtoken</groupId>
             <artifactId>jjwt-api</artifactId>
@@ -40,6 +49,12 @@
             <groupId>org.projectlombok</groupId>
             <artifactId>lombok</artifactId>
             <scope>provided</scope>
+        </dependency>
+
+        <dependency>
+            <groupId>org.springframework.boot</groupId>
+            <artifactId>spring-boot-starter-test</artifactId>
+            <scope>test</scope>
         </dependency>
     </dependencies>
 

@@ -197,6 +197,15 @@ All paths are versioned under `/v1` and reached through the gateway as `/api/use
 Only `/api/users/v1/auth/**` is public; everything else is `PROTECTED`. Admin endpoints
 additionally enforce `ADMIN` (header role check / `AuthTokenService.verifyRole`).
 
+> **API versioning is framework-managed (Spring Framework 7 native).** The `/v1` segment is no
+> longer hardcoded into each `@RequestMapping`; instead `ApiVersioningConfiguration` adds a global
+> `/{version}` path prefix and resolves the version from path-segment 0 (`usePathSegment(0)`),
+> while controllers declare `version = "1+"` (a baseline that keeps serving future versions until
+> explicitly overridden). The shared `common` `PrefixedSemanticApiVersionParser` strips the leading
+> `v` so `v1` is compared semantically. Resolution is lenient — a missing version defaults to `1`;
+> an unknown version (e.g. `/v2/...`) returns **400** via `GlobalExceptionHandler`'s
+> `ResponseStatusException` handler. URLs are unchanged from the previous hardcoded scheme.
+
 | Method | Gateway path | Access | Purpose |
 |--------|--------------|--------|---------|
 | POST | `/api/users/v1/auth/register` | public · rate-limited | Register (issues tokens + sends verification email) |

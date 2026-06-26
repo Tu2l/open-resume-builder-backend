@@ -15,13 +15,14 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 /**
- * Admin-only RBAC management endpoints. Mounted under {@code /v1/admin/authorize}
- * (effective gateway path {@code /api/users/v1/admin/authorize/**}); all routes require ADMIN role.
+ * Admin-only RBAC management endpoints. Mounted under {@code /admin/authorize} with API version
+ * {@code 1+} resolved from the {@code /v1} path segment (effective gateway path
+ * {@code /api/users/v1/admin/authorize/**}); all routes require ADMIN role.
  * Self-service authorization queries live in {@link AuthorizationApi}.
  */
 @Tag(name = "Admin — Authorization", description = "Admin-only RBAC management operations")
 @SecurityRequirement(name = "bearerAuth")
-@RequestMapping("/v1/admin/authorize")
+@RequestMapping(value = "/admin/authorize", version = "1+")
 public interface AdminAuthorizationApi {
 
     @Operation(summary = "List all roles", description = "Returns every role defined in the system. **Requires ADMIN role.**")

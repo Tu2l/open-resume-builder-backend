@@ -22,12 +22,13 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 /**
- * Admin-only user management endpoints. Mounted under {@code /v1/admin/users}
- * (effective gateway path {@code /api/users/v1/admin/users/**}); all routes require ADMIN role.
+ * Admin-only user management endpoints. Mounted under {@code /admin/users} with API version
+ * {@code 1+} resolved from the {@code /v1} path segment (effective gateway path
+ * {@code /api/users/v1/admin/users/**}); all routes require ADMIN role.
  */
 @Tag(name = "Admin — Users", description = "Admin-only user management operations")
 @SecurityRequirement(name = "bearerAuth")
-@RequestMapping("/v1/admin/users")
+@RequestMapping(value = "/admin/users", version = "1+")
 public interface AdminUserApi {
 
     @Operation(summary = "List all users", description = "Paginated list of all registered users. **Requires ADMIN role.**")
