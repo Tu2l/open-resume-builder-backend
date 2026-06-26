@@ -30,12 +30,16 @@ All external traffic flows through the gateway at port `8080`. Services are not 
 ### Key Libraries
 
 - **Spring Cloud Gateway (WebFlux)** - Reactive API gateway
-- **Spring Security** - Authentication and authorization
+- **Spring Security (crypto)** - BCrypt password hashing
 - **springdoc-openapi 3.0.0** - OpenAPI 3 / Swagger UI
-- **Lombok 1.18.36** - Reduce boilerplate code with annotations
-- **MapStruct** - Type-safe bean mapping
-- **JJWT 0.12.6** - JWT token generation and validation
-- **BCrypt** - Password hashing
+- **Lombok 1.18.42** - Reduce boilerplate code with annotations
+- **MapStruct 1.6.3** - Type-safe bean mapping
+- **JJWT 0.13.0** - JWT token generation and validation
+- **Flyway** - Database migrations (user-service)
+- **Caffeine** - In-process caching (user-service)
+
+> 📚 **Detailed, service-wise documentation** (architecture, flows, UML, ERDs) lives in
+> [`docs/`](./docs/README.md).
 
 ### External Tools
 
@@ -123,13 +127,15 @@ User management, authentication, and authorization service.
 
 #### Features
 
-- JWT-based authentication (access + refresh tokens)
-- BCrypt password hashing
+- JWT-based authentication (access + refresh tokens) with **refresh-token rotation + reuse detection**
+- BCrypt password hashing; SHA-256 hashed token storage
 - Role-based access control (RBAC) — USER, ADMIN, MODERATOR, GUEST
-- Rate limiting (fixed-window)
-- Email verification and password reset flows
-- Account lockout after failed login attempts
-- Soft delete / account deactivation
+- **Config-driven** fixed-window rate limiting (paths/capacity/window in `app.rate-limit.*`)
+- Email verification (single-use, optionally enforced at login) and password reset flows
+- Account lockout after failed login attempts; admin unlock / enable-disable
+- **Bootstrap admin** seeding (`app.bootstrap-admin.*`)
+- Soft delete / account deactivation; scheduled credential cleanup
+- Flyway-managed schema (`ddl-auto: validate`)
 
 #### API Endpoints
 
@@ -143,22 +149,25 @@ All endpoints are accessed via the gateway at `/api/users/...`
 | POST | `/v1/auth/authenticate` | Login |
 | POST | `/v1/auth/refresh-token` | Refresh access token |
 | POST | `/v1/auth/logout` | Invalidate refresh token |
-| POST | `/v1/auth/forgot-password` | Request password reset email |
+| POST | `/v1/auth/forgot-password` | Request password reset email (enumeration-safe) |
 | POST | `/v1/auth/reset-password` | Reset password with token |
-| POST | `/v1/auth/verify-email` | Verify email address |
+| GET | `/v1/auth/verify-email?token=` | Verify email address (single-use) |
+| POST | `/v1/auth/resend-verification` | Resend verification email (enumeration-safe) |
 
 **User Management** (requires Bearer token)
 
 | Method | Path | Description |
 |--------|------|-------------|
 | GET | `/v1/me` | Get current user profile |
-| GET | `/v1/all` | List all users (Admin) |
-| GET | `/v1/{id}` | Get user by ID (Admin) |
 | PUT | `/v1/me` | Update current user profile |
-| PUT | `/v1/{id}` | Update user by ID (Admin) |
 | PUT | `/v1/me/password` | Change password |
 | DELETE | `/v1/me` | Deactivate current account |
-| DELETE | `/v1/{username}` | Delete user (Admin) |
+| GET | `/v1/admin/users` | List all users — paginated (Admin) |
+| GET | `/v1/admin/users/{id}` | Get user by ID (Admin) |
+| PUT | `/v1/admin/users/{id}` | Update user by ID (Admin) |
+| DELETE | `/v1/admin/users/{username}` | Delete user (Admin) |
+| POST | `/v1/admin/users/{id}/unlock` | Unlock account (Admin) |
+| PATCH | `/v1/admin/users/{id}/enabled?enabled=` | Enable/disable account (Admin) |
 
 **Authorization** (requires Bearer token)
 
@@ -268,20 +277,24 @@ com.tu2l.{service}/
 
 ## Security
 
-- JWT access tokens (15 min) + refresh tokens (7 days)
-- BCrypt password hashing
-- Gateway-level token validation — services trust `X-User-Email` / `X-User-Role` headers
-- Fixed-window rate limiting on user-service (5 req/60s dev, 10 req/60s prod)
+- JWT access tokens (15 min) + refresh tokens (7 days); refresh-token rotation with reuse detection
+- BCrypt password hashing; tokens stored as SHA-256 hashes (never plaintext)
+- Gateway-level token validation — services trust `X-User-Email` / `X-User-Username` / `X-User-Role` headers
+- Config-driven fixed-window rate limiting on user-service (5 req/60s dev, 10 req/60s prod)
 - HTML sanitization (XSS protection) on all HTML input
 - CORS configured for frontend origin
-- Account lockout after 5 failed login attempts (15 min lock)
+- Account lockout after 5 failed login attempts (15 min lock); admin unlock available
 
 ## Testing
 
+`user-service` ships a unit/regression suite (services, mapper, JWT, rate-limiter, exception
+handler, controllers, bootstrapper). The other modules have minimal coverage — see the
+[roadmap](./ROADMAP.md).
+
 ```bash
-mvn test                   # all modules
-mvn test -pl user-service  # specific module
-mvn clean verify           # with coverage
+mvn test                      # all modules
+mvn -pl user-service -am test # user-service (add -o to run offline)
+mvn clean verify              # with coverage
 ```
 
 ## Quick API Test

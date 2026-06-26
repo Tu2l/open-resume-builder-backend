@@ -107,7 +107,7 @@ Spring Cloud Gateway — single entry point, JWT validation, request routing, an
 
 ### **4. User Service** 
 
-**Status:** 🟡 In Progress (~80% Complete)
+**Status:** ✅ Feature-complete (auth hardened, RBAC, Flyway, bootstrap admin, unit-tested)
 
 #### **Phase 1: Foundation** ✅
 - [x] Create user-service module
@@ -117,7 +117,7 @@ Spring Cloud Gateway — single entry point, JWT validation, request routing, an
   - [x] UserProfile entity (firstName, lastName, phone, etc.)
   - [x] Audit fields (createdAt, updatedAt)
 - [x] PostgreSQL database integration
-- [ ] Flyway migrations setup
+- [x] Flyway migrations (V1 baseline; `ddl-auto: validate`)
 
 #### **Phase 2: Authentication** ✅
 - [x] User registration endpoint
@@ -127,7 +127,8 @@ Spring Cloud Gateway — single entry point, JWT validation, request routing, an
 - [x] Logout functionality
 - [x] Password reset flow
 - [x] Change password endpoint
-- [ ] Email verification (stub — EmailServiceImpl pending)
+- [x] Email verification (single-use token; profile-switched email delivery)
+- [x] Refresh-token rotation + reuse detection
 
 #### **Phase 3: Authorization** ✅
 - [x] Role-based access control (RBAC)
@@ -257,18 +258,20 @@ Spring Cloud Gateway — single entry point, JWT validation, request routing, an
 - **v0.2.0** (Dec 2025) - PDF CRUD operations, PostgreSQL migration
 - **v0.3.0** (Jan 2026) - User service: auth, JWT, RBAC, rate limiting
 - **v0.4.0** (Jun 2026) - API Gateway, versioned routes (/v1), aggregated Swagger UI
-- **v1.0.0** (Target: Q3 2026) - Email service, test suite, production hardening
+- **v0.5.0** (Jun 2026) - user-service hardening (auth fixes, refresh rotation, RBAC, audit), Flyway, bootstrap admin, config-driven rate limiting, unit tests
+- **v1.0.0** (Target: Q3 2026) - gateway/pdf test suites, Actuator, pdf-service production hardening
 
 ---
 
 ## 📝 Notes
 
 ### **Known Technical Debt**
-1. Missing comprehensive test suite (no unit or integration tests yet)
-2. Email service is stubbed — verification and password reset emails not sent
-3. No Flyway/Liquibase migrations (DDL managed by Hibernate `ddl-auto`)
-4. No monitoring/alerting system (Actuator not configured)
-5. wkhtmltopdf process has no timeout — long-running HTML can hang
+1. Test coverage: `user-service` has a unit/regression suite; `gateway-service` and `pdf-service` still lack tests
+2. Flyway is in place for `user-service` only; `pdf-service` still uses Hibernate `ddl-auto`
+3. No monitoring/alerting system (Actuator not configured)
+4. wkhtmltopdf process has no timeout — long-running HTML can hang
+5. `pdf-service` layout params and `wkhtmltopdf` path are hardcoded (not externalized); async has no status column
+6. `pdf-service` `PDFException` maps to HTTP 200 (should be 4xx/5xx)
 
 ### **Security Considerations**
 1. HTML sanitization implemented but consider using libraries like OWASP Java HTML Sanitizer
