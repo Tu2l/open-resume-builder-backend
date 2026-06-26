@@ -69,6 +69,33 @@ public interface AdminUserApi {
             @Valid @RequestBody UpdateUserRequest request,
             @Parameter(hidden = true) @RequestHeader(CommonConstants.Headers.X_USER_ROLE) String adminRole) throws Exception;
 
+    @Operation(summary = "Unlock user account", description = "Clears any active lock and resets the failed-login counter. **Requires ADMIN role.**")
+    @ApiResponses({
+            @ApiResponse(responseCode = "200", description = "Account unlocked",
+                    content = @Content(mediaType = MediaType.APPLICATION_JSON_VALUE,
+                            schema = @Schema(implementation = UserResponse.class))),
+            @ApiResponse(responseCode = "403", description = "Caller does not have the ADMIN role"),
+            @ApiResponse(responseCode = "404", description = "User not found")
+    })
+    @PostMapping("/{userId}/unlock")
+    ResponseEntity<UserResponse> unlockAccount(
+            @Parameter(description = "ID of the user to unlock", required = true) @PathVariable("userId") Long userId,
+            @Parameter(hidden = true) @RequestHeader(CommonConstants.Headers.X_USER_ROLE) String adminRole) throws Exception;
+
+    @Operation(summary = "Enable or disable user account", description = "Toggles whether the account can authenticate. **Requires ADMIN role.**")
+    @ApiResponses({
+            @ApiResponse(responseCode = "200", description = "Account status updated",
+                    content = @Content(mediaType = MediaType.APPLICATION_JSON_VALUE,
+                            schema = @Schema(implementation = UserResponse.class))),
+            @ApiResponse(responseCode = "403", description = "Caller does not have the ADMIN role"),
+            @ApiResponse(responseCode = "404", description = "User not found")
+    })
+    @PatchMapping("/{userId}/enabled")
+    ResponseEntity<UserResponse> setEnabled(
+            @Parameter(description = "ID of the user to update", required = true) @PathVariable("userId") Long userId,
+            @Parameter(description = "Whether the account should be enabled", required = true) @RequestParam("enabled") boolean enabled,
+            @Parameter(hidden = true) @RequestHeader(CommonConstants.Headers.X_USER_ROLE) String adminRole) throws Exception;
+
     @Operation(summary = "Delete user", description = "Permanently removes or deactivates the specified user account. **Requires ADMIN role.**")
     @ApiResponses({
             @ApiResponse(responseCode = "200", description = "User deleted successfully"),

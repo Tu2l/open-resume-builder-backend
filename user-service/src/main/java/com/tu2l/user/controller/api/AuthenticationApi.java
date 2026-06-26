@@ -174,4 +174,23 @@ public interface AuthenticationApi {
     ResponseEntity<@NonNull BaseResponse> verifyEmail(
             @Parameter(required = true)
             @RequestParam("token") String token);
+
+    @Operation(
+            summary = "Resend email verification",
+            description = "Re-sends the email-verification link. To prevent user enumeration the response is " +
+                          "always `200 OK`, regardless of whether the email is known or already verified."
+    )
+    @ApiResponses({
+            @ApiResponse(responseCode = "200", description = "Verification email dispatched (or silently suppressed)",
+                    content = @Content(mediaType = MediaType.APPLICATION_JSON_VALUE,
+                            schema = @Schema(implementation = BaseResponse.class))),
+            @ApiResponse(responseCode = "400", description = "Validation error — invalid email format",
+                    content = @Content(mediaType = MediaType.APPLICATION_JSON_VALUE,
+                            schema = @Schema(implementation = BaseResponse.class))),
+            @ApiResponse(responseCode = "500", description = "Internal server error",
+                    content = @Content(mediaType = MediaType.APPLICATION_JSON_VALUE,
+                            schema = @Schema(implementation = BaseResponse.class)))
+    })
+    @PostMapping("/resend-verification")
+    ResponseEntity<@NonNull BaseResponse> resendVerification(@Valid @RequestBody ResendVerificationRequest request);
 }

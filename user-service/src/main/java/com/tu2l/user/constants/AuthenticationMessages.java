@@ -17,6 +17,7 @@ public final class AuthenticationMessages {
     public static final String PASSWORD_RESET_SUCCESS = "Password reset successful";
     public static final String PASSWORD_RESET_EMAIL_SENT = "Password reset instructions sent to your email";
     public static final String EMAIL_VERIFIED_SUCCESS = "Email verified successfully";
+    public static final String VERIFICATION_EMAIL_SENT = "If the account exists and is unverified, a verification email has been sent";
     // API Error Response Messages
     public static final String LOGOUT_FAILED_INVALID_TOKEN = "Logout failed: Invalid token";
     public static final String PASSWORD_RESET_EMAIL_FAILED = "Failed to send password reset email";

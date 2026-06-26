@@ -77,4 +77,11 @@ public class AuthenticationController extends BaseController implements Authenti
         log.info("Verify email attempt: {}", success ? "successful" : "failed");
         return getResponse(success, AuthenticationMessages.EMAIL_VERIFIED_SUCCESS, AuthenticationMessages.EMAIL_VERIFICATION_FAILED);
     }
+
+    @Override
+    public ResponseEntity<@NonNull BaseResponse> resendVerification(ResendVerificationRequest request) {
+        authenticationService.resendVerification(request.getEmail());
+        log.info("Resend verification requested");
+        return success(AuthenticationMessages.VERIFICATION_EMAIL_SENT);
+    }
 }

@@ -2,6 +2,8 @@ package com.tu2l.user.controller;
 
 import com.tu2l.common.model.base.BaseResponse;
 import com.tu2l.common.model.base.PagedResponse;
+import com.tu2l.user.audit.AuditEventType;
+import com.tu2l.user.audit.AuditService;
 import com.tu2l.user.controller.api.AdminUserApi;
 import com.tu2l.user.entity.UserEntity;
 import com.tu2l.user.exception.UserException;
@@ -26,6 +28,7 @@ public class AdminUserController extends BaseController implements AdminUserApi 
     private final AdminUserService adminUserService;
     private final UserService userService;
     private final UserMapper userMapper;
+    private final AuditService auditService;
 
     @Override
     public ResponseEntity<PagedResponse<UserDTO>> getAllUsers(String adminRole, @PageableDefault(size = 20) Pageable pageable) {
@@ -50,6 +53,25 @@ public class AdminUserController extends BaseController implements AdminUserApi 
         userDTO.setId(userId);
         UserEntity user = userService.updateUser(userDTO);
         return ResponseEntity.ok(UserResponse.of(userMapper.toUserDTO(user), "User profile updated successfully"));
+    }
+
+    @Override
+    public ResponseEntity<UserResponse> unlockAccount(Long userId, String adminRole) {
+        if (!isAdmin(adminRole)) return forbidden();
+        log.info("Admin: unlocking account id={}", userId);
+        UserEntity user = adminUserService.unlockAccount(userId);
+        auditService.log(AuditEventType.ACCOUNT_UNLOCKED, userId, null);
+        return ResponseEntity.ok(UserResponse.of(userMapper.toUserDTO(user), "Account unlocked successfully"));
+    }
+
+    @Override
+    public ResponseEntity<UserResponse> setEnabled(Long userId, boolean enabled, String adminRole) {
+        if (!isAdmin(adminRole)) return forbidden();
+        log.info("Admin: setting enabled={} id={}", enabled, userId);
+        UserEntity user = adminUserService.setEnabled(userId, enabled);
+        auditService.log(enabled ? AuditEventType.ACCOUNT_ENABLED : AuditEventType.ACCOUNT_DISABLED, userId, null);
+        return ResponseEntity.ok(UserResponse.of(userMapper.toUserDTO(user),
+                enabled ? "Account enabled successfully" : "Account disabled successfully"));
     }
 
     @Override
