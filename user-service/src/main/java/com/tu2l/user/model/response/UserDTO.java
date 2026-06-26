@@ -24,6 +24,9 @@ public class UserDTO {
     @Schema(description = "User's first name.", example = "John")
     private String firstName;
 
+    @Schema(description = "User's middle name.", example = "Michael", nullable = true)
+    private String middleName;
+
     @Schema(description = "User's last name.", example = "Doe")
     private String lastName;
 

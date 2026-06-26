@@ -11,6 +11,7 @@ public class UpdateUserRequest implements BaseRequest {
     private String email; // email cant be updated
 
     private String firstName;
+    private String middleName;
     private String lastName;
     private String phoneNumber;
 }
