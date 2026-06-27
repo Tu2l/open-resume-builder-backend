@@ -267,6 +267,84 @@ class AuthenticationServiceImplTest {
         assertThat(service(DEFAULT_CFG).verifyEmail("t")).isFalse();
     }
 
+    // --- logout ---
+
+    @Test
+    void logout_revokesTokenAndAudits() {
+        var credential = UserCredential.builder()
+                .tokenType(JwtTokenType.ACCESS)
+                .token("tokenHash")
+                .active(true)
+                .expiresAt(LocalDateTime.now().plusMinutes(15))
+                .build();
+        var user = userWith(new UserAccountStatus());
+        user.addUserCredential(credential);
+
+        when(authTokenService.getUsername("tok")).thenReturn("john");
+        when(userService.getUserWithCredentials("john")).thenReturn(user);
+        when(commonUtil.sha256Hex("tok")).thenReturn("tokenHash");
+        when(userService.saveUser(user)).thenReturn(user);
+
+        assertThat(service(DEFAULT_CFG).logout("tok")).isTrue();
+        assertThat(user.getCredentialByTokenTypeAndToken(JwtTokenType.ACCESS, "tokenHash")).isNull();
+    }
+
+    @Test
+    void logout_tokenNotInCredentials_returnsFalse() {
+        var user = userWith(new UserAccountStatus());
+        when(authTokenService.getUsername("tok")).thenReturn("john");
+        when(userService.getUserWithCredentials("john")).thenReturn(user);
+        when(commonUtil.sha256Hex("tok")).thenReturn("tokenHash");
+        when(userService.saveUser(user)).thenReturn(user);
+
+        assertThat(service(DEFAULT_CFG).logout("tok")).isFalse();
+    }
+
+    // --- reset password ---
+
+    @Test
+    void resetPassword_invalidToken_returnsFalse() {
+        when(authTokenService.validateToken("tok", JwtTokenType.PASSWORD_RESET)).thenReturn(false);
+
+        assertThat(service(DEFAULT_CFG).resetPassword("tok", "newPw")).isFalse();
+        verify(userService, never()).getUserWithCredentials(anyString());
+    }
+
+    @Test
+    void resetPassword_tokenNotInCredentials_returnsFalse() {
+        var user = userWith(new UserAccountStatus());
+        when(authTokenService.validateToken("tok", JwtTokenType.PASSWORD_RESET)).thenReturn(true);
+        when(authTokenService.getUsername("tok")).thenReturn("john");
+        when(userService.getUserWithCredentials("john")).thenReturn(user);
+        when(commonUtil.sha256Hex("tok")).thenReturn("resetHash");
+
+        assertThat(service(DEFAULT_CFG).resetPassword("tok", "newPw")).isFalse();
+        verify(passwordService, never()).hashPassword(anyString());
+    }
+
+    @Test
+    void resetPassword_validToken_setsPasswordAndClearsAllCredentials() {
+        var credential = UserCredential.builder()
+                .tokenType(JwtTokenType.PASSWORD_RESET)
+                .token("resetHash")
+                .active(true)
+                .expiresAt(LocalDateTime.now().plusHours(1))
+                .build();
+        var user = userWith(new UserAccountStatus());
+        user.addUserCredential(credential);
+
+        when(authTokenService.validateToken("tok", JwtTokenType.PASSWORD_RESET)).thenReturn(true);
+        when(authTokenService.getUsername("tok")).thenReturn("john");
+        when(userService.getUserWithCredentials("john")).thenReturn(user);
+        when(commonUtil.sha256Hex("tok")).thenReturn("resetHash");
+        when(passwordService.hashPassword("newPw")).thenReturn("newHash");
+        when(userService.saveUser(user)).thenReturn(user);
+
+        assertThat(service(DEFAULT_CFG).resetPassword("tok", "newPw")).isTrue();
+        assertThat(user.getPassword()).isEqualTo("newHash");
+        assertThat(user.getCredentialsByType(JwtTokenType.PASSWORD_RESET)).isNull();
+    }
+
     // --- resend verification (G) ---
 
     @Test
