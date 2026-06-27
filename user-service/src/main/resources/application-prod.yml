@@ -58,7 +58,7 @@ springdoc:
     enabled: false
   api-docs:
     enabled: true
-    path: /v3/api-docs
+    path: /v1/api-docs
 
 app:
   mail:

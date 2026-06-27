@@ -8,8 +8,8 @@ gateway: # Custom gateway configuration
   public-routes:
     - /api/users/v1/auth/**
     - /api/pdf/**
-    - /api/users/v3/api-docs
-    - /api/pdf/v3/api-docs
+    - /api/users/v1/api-docs
+    - /api/pdf/v1/api-docs
   service-urls:
     user-service: http://localhost:8091
     pdf-service: http://localhost:8090
@@ -20,9 +20,9 @@ springdoc:
     path: /swagger-ui.html
     urls:
       - name: User Service
-        url: /api/users/v3/api-docs
+        url: /api/users/v1/api-docs
       - name: PDF Service
-        url: /api/pdf/v3/api-docs
+        url: /api/pdf/v1/api-docs
     urls-primary-name: User Service
   api-docs:
     enabled: true

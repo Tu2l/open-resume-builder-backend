@@ -19,6 +19,16 @@ import org.springframework.web.servlet.config.annotation.WebMvcConfigurer;
  *
  * <p>Resolution is lenient: a missing version falls back to {@code 1}; an unknown/unsupported
  * version yields HTTP 400.
+ *
+ * <p><b>Constraint</b>: {@code usePathSegment(0)} makes the version strategy treat segment 0 of
+ * <em>every</em> request through {@code RequestMappingHandlerMapping} (including SpringDoc) as a
+ * version candidate — it is parsed and validated regardless of which handler matches. A segment
+ * that is not a registered version yields HTTP 400. So infrastructure endpoints living on this
+ * handler mapping must sit under a <em>supported</em> version segment: SpringDoc's api-docs path
+ * is therefore {@code /v1/api-docs} (segment {@code v1} → version {@code 1}, which is supported),
+ * not {@code /v3/api-docs} ({@code 3} unsupported) or {@code /openapi} (not a version at all).
+ * Actuator endpoints are served by {@code WebMvcEndpointHandlerMapping}, a separate handler mapping
+ * that does not inherit the version strategy, so {@code /actuator/**} is never affected.
  */
 @Configuration
 public class ApiVersioningConfiguration implements WebMvcConfigurer {
@@ -37,7 +47,7 @@ public class ApiVersioningConfiguration implements WebMvcConfigurer {
 
     @Override
     public void configurePathMatch(@NonNull PathMatchConfigurer configurer) {
-        // Scoped to our controllers so springdoc's /v3/api-docs handlers are left untouched.
+        // Scoped to our controllers only — SpringDoc and actuator handlers do not get the prefix.
         configurer.addPathPrefix("/{version}",
                 HandlerTypePredicate.forBasePackage(CONTROLLER_BASE_PACKAGE));
     }
