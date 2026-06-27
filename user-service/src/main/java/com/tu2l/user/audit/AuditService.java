@@ -1,5 +1,6 @@
 package com.tu2l.user.audit;
 
+import com.tu2l.user.web.ClientIpResolver;
 import jakarta.servlet.http.HttpServletRequest;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -21,6 +22,7 @@ import org.springframework.web.context.request.ServletRequestAttributes;
 public class AuditService {
 
     private final AuditEventRepository auditEventRepository;
+    private final ClientIpResolver clientIpResolver;
 
     @Transactional(propagation = Propagation.REQUIRES_NEW)
     public void log(AuditEventType eventType, Long userId, String details) {
@@ -30,7 +32,7 @@ public class AuditService {
                     .eventType(eventType)
                     .userId(userId)
                     .details(details)
-                    .ipAddress(request != null ? clientIp(request) : null)
+                    .ipAddress(request != null ? clientIpResolver.resolve(request) : null)
                     .userAgent(request != null ? truncate(request.getHeader("User-Agent")) : null)
                     .build();
             auditEventRepository.save(event);
@@ -44,14 +46,6 @@ public class AuditService {
             return attrs.getRequest();
         }
         return null;
-    }
-
-    private String clientIp(HttpServletRequest request) {
-        String forwarded = request.getHeader("X-Forwarded-For");
-        if (forwarded != null && !forwarded.isBlank()) {
-            return forwarded.split(",")[0].trim();
-        }
-        return request.getRemoteAddr();
     }
 
     private String truncate(String value) {

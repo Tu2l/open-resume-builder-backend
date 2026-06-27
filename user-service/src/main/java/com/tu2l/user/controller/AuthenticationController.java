@@ -34,11 +34,11 @@ public class AuthenticationController extends BaseController implements Authenti
 
     @Override
     public ResponseEntity<@NonNull AuthResponse> authenticate(LoginRequest request) {
-        log.info("Login attempt for user: {}", request.getEmail());
+        log.info("Login attempt received");
         var loggedInUserEntity = authenticationService.authenticate(
                 request.getEmail(), request.getPassword(), request.getRememberMe());
         var response = authResponseBuilder.buildAuthResponse(loggedInUserEntity, AuthenticationMessages.LOGIN_SUCCESS);
-        log.info("Login successful for user: {}", request.getEmail());
+        log.info("Login successful");
         return ResponseEntity.ok(response);
     }
 

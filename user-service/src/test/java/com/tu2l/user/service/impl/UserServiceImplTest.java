@@ -1,6 +1,7 @@
 package com.tu2l.user.service.impl;
 
 import com.tu2l.common.util.CommonUtil;
+import com.tu2l.user.audit.AuditService;
 import com.tu2l.user.entity.UserAccountStatus;
 import com.tu2l.user.entity.UserEntity;
 import com.tu2l.user.exception.UserException;
@@ -18,9 +19,13 @@ import org.springframework.security.crypto.password.PasswordEncoder;
 import java.time.LocalDateTime;
 import java.util.Optional;
 
+import com.tu2l.user.audit.AuditEventType;
+
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.Mockito.never;
+import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
 @ExtendWith(MockitoExtension.class)
@@ -30,6 +35,7 @@ class UserServiceImplTest {
     @Mock PasswordEncoder passwordEncoder;
     @Mock CommonUtil commonUtil;
     @Mock UserMapper userMapper;
+    @Mock AuditService auditService;
 
     @InjectMocks UserServiceImpl userService;
 
@@ -89,6 +95,36 @@ class UserServiceImplTest {
 
         assertThat(status.getAccountLockedUntil()).isNull();
         assertThat(status.getFailedLoginAttempts()).isZero();
+    }
+
+    @Test
+    void updatePassword_validOldPassword_encodesNewAndAudits() {
+        UserEntity user = UserEntity.builder().id(1L).username("john").password("oldHash").build();
+        when(commonUtil.decodeBase64StringToString("bmV3")).thenReturn("newPlain");
+        when(userRepository.findUserByUsername("john")).thenReturn(Optional.of(user));
+        when(commonUtil.decodeBase64StringToString("b2xk")).thenReturn("oldPlain");
+        when(passwordEncoder.matches("oldPlain", "oldHash")).thenReturn(true);
+        when(passwordEncoder.encode("newPlain")).thenReturn("newHash");
+        when(userRepository.save(user)).thenReturn(user);
+
+        UserEntity result = userService.updatePassword("john", "b2xk", "bmV3");
+
+        assertThat(result.getPassword()).isEqualTo("newHash");
+        verify(auditService).log(AuditEventType.PASSWORD_CHANGED, 1L, null);
+    }
+
+    @Test
+    void updatePassword_wrongOldPassword_throwsAndDoesNotAudit() {
+        UserEntity user = UserEntity.builder().id(1L).username("john").password("oldHash").build();
+        when(commonUtil.decodeBase64StringToString("bmV3")).thenReturn("newPlain");
+        when(userRepository.findUserByUsername("john")).thenReturn(Optional.of(user));
+        when(commonUtil.decodeBase64StringToString("YmFk")).thenReturn("bad");
+        when(passwordEncoder.matches("bad", "oldHash")).thenReturn(false);
+
+        assertThatThrownBy(() -> userService.updatePassword("john", "YmFk", "bmV3"))
+                .isInstanceOf(UserException.class)
+                .hasMessageContaining("Old password does not match");
+        verify(auditService, never()).log(any(), any(), any());
     }
 
     @Test

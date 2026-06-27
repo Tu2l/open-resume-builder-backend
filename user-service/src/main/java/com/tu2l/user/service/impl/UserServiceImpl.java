@@ -1,6 +1,8 @@
 package com.tu2l.user.service.impl;
 
 import com.tu2l.common.util.CommonUtil;
+import com.tu2l.user.audit.AuditEventType;
+import com.tu2l.user.audit.AuditService;
 import com.tu2l.user.config.CacheConfig;
 import com.tu2l.user.entity.UserEntity;
 import com.tu2l.user.exception.UserException;
@@ -33,6 +35,7 @@ public class UserServiceImpl implements UserService, AdminUserService {
     private final PasswordEncoder passwordEncoder;
     private final CommonUtil commonUtil;
     private final UserMapper userMapper;
+    private final AuditService auditService;
 
     @Override
     @Transactional(readOnly = true)
@@ -104,7 +107,9 @@ public class UserServiceImpl implements UserService, AdminUserService {
         log.info("Updating password for user with username: {}", username);
 
         user.setPassword(passwordEncoder.encode(newPasswordPlainText));
-        return userRepository.save(user);
+        UserEntity saved = userRepository.save(user);
+        auditService.log(AuditEventType.PASSWORD_CHANGED, saved.getId(), null);
+        return saved;
     }
 
     @Override

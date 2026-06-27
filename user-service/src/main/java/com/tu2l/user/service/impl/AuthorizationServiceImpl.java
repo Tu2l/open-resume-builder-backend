@@ -15,6 +15,7 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.cache.annotation.CacheEvict;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.util.EnumSet;
 import java.util.Set;
@@ -49,6 +50,7 @@ public class AuthorizationServiceImpl implements AuthorizationService, AdminAuth
     }
 
     @Override
+    @Transactional
     @CacheEvict(value = CacheConfig.USERS_CACHE, allEntries = true)
     public UserRole assignRole(Long userId, String roleName) throws UserException {
         UserRole newRole = parseRole(roleName);

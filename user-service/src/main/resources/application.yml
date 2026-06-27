@@ -1,7 +1,9 @@
+# NOTE: no spring.profiles.active here on purpose. The active profile must be set
+# explicitly (SPRING_PROFILES_ACTIVE=prod in production; the spring-boot-maven-plugin
+# activates 'dev' for local `mvn spring-boot:run`). This makes a misconfigured prod
+# deploy fail fast on a missing datasource rather than silently booting the dev
+# profile with its weak fallback secret and seeded bootstrap admin.
 spring:
-  profiles:
-    active:
-    - dev
   lifecycle:
     timeout-per-shutdown-phase: 30s
 
@@ -23,3 +25,9 @@ management:
       enabled: true
     readinessstate:
       enabled: true
+
+logging:
+  pattern:
+    # Inject the MDC correlation id (set by CorrelationIdFilter) into every log line
+    # via the level field, so it appears in both console and file output.
+    level: "%5p [%X{requestId:-}]"

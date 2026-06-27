@@ -146,6 +146,13 @@
             <plugin>
                 <groupId>org.springframework.boot</groupId>
                 <artifactId>spring-boot-maven-plugin</artifactId>
+                <configuration>
+                    <!-- Local `mvn spring-boot:run` defaults to the dev profile.
+                         Production must set SPRING_PROFILES_ACTIVE=prod explicitly. -->
+                    <profiles>
+                        <profile>dev</profile>
+                    </profiles>
+                </configuration>
             </plugin>
         </plugins>
     </build>

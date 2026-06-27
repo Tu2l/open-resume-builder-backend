@@ -1,5 +1,6 @@
 package com.tu2l.user.filter;
 
+import com.tu2l.common.constant.CommonConstants;
 import jakarta.servlet.FilterChain;
 import jakarta.servlet.ServletException;
 import jakarta.servlet.http.HttpServletRequest;
@@ -25,7 +26,7 @@ import java.util.UUID;
 @Order(Ordered.HIGHEST_PRECEDENCE)
 public class CorrelationIdFilter extends OncePerRequestFilter {
 
-    public static final String CORRELATION_HEADER = "X-Correlation-Id";
+    public static final String CORRELATION_HEADER = CommonConstants.Headers.X_CORRELATION_ID;
     static final String MDC_KEY = "requestId";
 
     @Override
