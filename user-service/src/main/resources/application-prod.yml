@@ -21,13 +21,6 @@ spring:
     username: ${DATABASE_USERNAME}
     password: ${DATABASE_PASSWORD}
     driver-class-name: org.postgresql.Driver
-  data:
-    redis:
-      host: ${REDIS_HOST}
-      port: ${REDIS_PORT:6379}
-      password: ${REDIS_PASSWORD:}
-      ssl:
-        enabled: ${REDIS_SSL_ENABLED:false}
   jpa:
     database-platform: org.hibernate.dialect.PostgreSQLDialect
     hibernate:
@@ -69,7 +62,6 @@ app:
     verification-subject: "Verify your email"
     password-reset-subject: "Reset your password"
   rate-limit:
-    redis-enabled: true
     enabled: true
     capacity: 10
     window-seconds: 60

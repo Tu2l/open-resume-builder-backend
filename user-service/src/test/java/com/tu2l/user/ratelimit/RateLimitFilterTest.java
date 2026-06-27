@@ -1,6 +1,7 @@
 package com.tu2l.user.ratelimit;
 
 import com.tu2l.user.config.RateLimitProperties;
+import com.tu2l.user.web.ClientIpResolver;
 import jakarta.servlet.http.HttpServletRequest;
 import org.junit.jupiter.api.Test;
 
@@ -13,8 +14,7 @@ import static org.mockito.Mockito.when;
 class RateLimitFilterTest {
 
     private RateLimitFilter filter(RateLimitProperties props) {
-        RateLimiter rateLimiter = new FixedWindowRateLimiter(props);
-        return new RateLimitFilter(rateLimiter, props);
+        return new RateLimitFilter(new FixedWindowRateLimiter(props), props, new ClientIpResolver(props));
     }
 
     private HttpServletRequest requestTo(String uri) {

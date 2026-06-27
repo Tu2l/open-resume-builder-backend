@@ -8,8 +8,6 @@ import org.hibernate.annotations.CreationTimestamp;
 import org.hibernate.annotations.SQLRestriction;
 import org.hibernate.annotations.UpdateTimestamp;
 
-import java.io.Serial;
-import java.io.Serializable;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
@@ -31,10 +29,7 @@ import java.util.Optional;
         }
 )
 @SQLRestriction("deleted_at IS NULL")
-public class UserEntity implements Serializable {
-    @Serial
-    private static final long serialVersionUID = 1L;
-
+public class UserEntity {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;

@@ -1,6 +1,7 @@
 package com.tu2l.user.ratelimit;
 
 import com.tu2l.user.config.RateLimitProperties;
+import com.tu2l.user.web.ClientIpResolver;
 import jakarta.servlet.FilterChain;
 import jakarta.servlet.ServletException;
 import jakarta.servlet.http.HttpServletRequest;
@@ -29,8 +30,9 @@ public class RateLimitFilter extends OncePerRequestFilter {
     private static final String TOO_MANY_REQUESTS_BODY =
             "{\"message\":\"Too many requests. Please try again later.\",\"status\":\"FAILURE\"}";
 
-    private final RateLimiter rateLimiter;
+    private final FixedWindowRateLimiter rateLimiter;
     private final RateLimitProperties properties;
+    private final ClientIpResolver clientIpResolver;
 
     @Override
     protected boolean shouldNotFilter(@NonNull HttpServletRequest request) {
@@ -49,25 +51,15 @@ public class RateLimitFilter extends OncePerRequestFilter {
     @Override
     protected void doFilterInternal(@NonNull HttpServletRequest request, @NonNull HttpServletResponse response, @NonNull FilterChain filterChain)
             throws ServletException, IOException {
-        String key = clientIp(request) + ":" + request.getRequestURI();
+        String clientIp = clientIpResolver.resolve(request);
+        String key = clientIp + ":" + request.getRequestURI();
         if (rateLimiter.tryAcquire(key)) {
             filterChain.doFilter(request, response);
             return;
         }
-        log.warn("Rate limit exceeded for {} on {}", clientIp(request), request.getRequestURI());
+        log.warn("Rate limit exceeded for {} on {}", clientIp, request.getRequestURI());
         response.setStatus(HttpStatus.TOO_MANY_REQUESTS.value());
         response.setContentType(MediaType.APPLICATION_JSON_VALUE);
         response.getWriter().write(TOO_MANY_REQUESTS_BODY);
-    }
-
-    private String clientIp(HttpServletRequest request) {
-        String remoteAddr = request.getRemoteAddr();
-        if (!properties.trustedProxies().isEmpty() && properties.trustedProxies().contains(remoteAddr)) {
-            String forwarded = request.getHeader("X-Forwarded-For");
-            if (forwarded != null && !forwarded.isBlank()) {
-                return forwarded.split(",")[0].trim();
-            }
-        }
-        return remoteAddr;
     }
 }

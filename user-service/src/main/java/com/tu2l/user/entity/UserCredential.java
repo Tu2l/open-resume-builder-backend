@@ -9,8 +9,6 @@ import lombok.NoArgsConstructor;
 import org.hibernate.annotations.CreationTimestamp;
 import org.hibernate.annotations.UpdateTimestamp;
 
-import java.io.Serial;
-import java.io.Serializable;
 import java.time.LocalDateTime;
 
 @Builder
@@ -26,10 +24,7 @@ import java.time.LocalDateTime;
                 @Index(name = "idx_token_type", columnList = "token_type, active")  // ✅ For filtering
         }
 )
-public class UserCredential implements Serializable {
-    @Serial
-    private static final long serialVersionUID = 1L;
-
+public class UserCredential {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;

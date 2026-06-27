@@ -3,7 +3,6 @@ package com.tu2l.user.ratelimit;
 import com.tu2l.user.config.RateLimitProperties;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Component;
 
@@ -19,8 +18,7 @@ import java.util.concurrent.atomic.AtomicInteger;
 @Slf4j
 @Component
 @RequiredArgsConstructor
-@ConditionalOnProperty(name = "app.rate-limit.redis-enabled", havingValue = "false", matchIfMissing = true)
-public class FixedWindowRateLimiter implements RateLimiter {
+public class FixedWindowRateLimiter {
 
     private final RateLimitProperties properties;
     private final ConcurrentHashMap<String, Window> windows = new ConcurrentHashMap<>();
@@ -30,7 +28,6 @@ public class FixedWindowRateLimiter implements RateLimiter {
      *
      * @return {@code true} if allowed, {@code false} if the limit is exceeded
      */
-    @Override
     public boolean tryAcquire(String key) {
         if (!properties.enabled()) {
             return true;
