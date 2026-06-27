@@ -13,7 +13,8 @@ import static org.mockito.Mockito.when;
 class RateLimitFilterTest {
 
     private RateLimitFilter filter(RateLimitProperties props) {
-        return new RateLimitFilter(new FixedWindowRateLimiter(props), props);
+        RateLimiter rateLimiter = new FixedWindowRateLimiter(props);
+        return new RateLimitFilter(rateLimiter, props);
     }
 
     private HttpServletRequest requestTo(String uri) {
@@ -24,7 +25,7 @@ class RateLimitFilterTest {
 
     @Test
     void filtersConfiguredPaths() {
-        var props = new RateLimitProperties(true, 5, 60, List.of("/auth/authenticate", "/auth/register"), 300000);
+        var props = new RateLimitProperties(true, 5, 60, List.of("/auth/authenticate", "/auth/register"), 300000, List.of());
         var filter = filter(props);
 
         assertThat(filter.shouldNotFilter(requestTo("/users/v1/auth/authenticate"))).isFalse();
@@ -33,13 +34,13 @@ class RateLimitFilterTest {
 
     @Test
     void doesNotFilterUnlistedPaths() {
-        var props = new RateLimitProperties(true, 5, 60, List.of("/auth/authenticate"), 300000);
+        var props = new RateLimitProperties(true, 5, 60, List.of("/auth/authenticate"), 300000, List.of());
         assertThat(filter(props).shouldNotFilter(requestTo("/users/v1/me"))).isTrue();
     }
 
     @Test
     void doesNotFilterWhenDisabled() {
-        var props = new RateLimitProperties(false, 5, 60, List.of("/auth/authenticate"), 300000);
+        var props = new RateLimitProperties(false, 5, 60, List.of("/auth/authenticate"), 300000, List.of());
         assertThat(filter(props).shouldNotFilter(requestTo("/users/v1/auth/authenticate"))).isTrue();
     }
 }

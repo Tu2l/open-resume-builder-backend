@@ -21,6 +21,7 @@ public record RateLimitProperties(
         @DefaultValue("10") int capacity,
         @DefaultValue("60") int windowSeconds,
         @DefaultValue List<String> limitedPaths,
-        @DefaultValue("300000") long cleanupIntervalMs
+        @DefaultValue("300000") long cleanupIntervalMs,
+        @DefaultValue List<String> trustedProxies
 ) {
 }

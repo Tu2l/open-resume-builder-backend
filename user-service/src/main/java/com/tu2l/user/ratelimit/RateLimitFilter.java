@@ -29,7 +29,7 @@ public class RateLimitFilter extends OncePerRequestFilter {
     private static final String TOO_MANY_REQUESTS_BODY =
             "{\"message\":\"Too many requests. Please try again later.\",\"status\":\"FAILURE\"}";
 
-    private final FixedWindowRateLimiter rateLimiter;
+    private final RateLimiter rateLimiter;
     private final RateLimitProperties properties;
 
     @Override
@@ -61,10 +61,13 @@ public class RateLimitFilter extends OncePerRequestFilter {
     }
 
     private String clientIp(HttpServletRequest request) {
-        String forwarded = request.getHeader("X-Forwarded-For");
-        if (forwarded != null && !forwarded.isBlank()) {
-            return forwarded.split(",")[0].trim();
+        String remoteAddr = request.getRemoteAddr();
+        if (!properties.trustedProxies().isEmpty() && properties.trustedProxies().contains(remoteAddr)) {
+            String forwarded = request.getHeader("X-Forwarded-For");
+            if (forwarded != null && !forwarded.isBlank()) {
+                return forwarded.split(",")[0].trim();
+            }
         }
-        return request.getRemoteAddr();
+        return remoteAddr;
     }
 }

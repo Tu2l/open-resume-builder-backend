@@ -21,6 +21,13 @@ spring:
     username: ${DATABASE_USERNAME}
     password: ${DATABASE_PASSWORD}
     driver-class-name: org.postgresql.Driver
+  data:
+    redis:
+      host: ${REDIS_HOST}
+      port: ${REDIS_PORT:6379}
+      password: ${REDIS_PASSWORD:}
+      ssl:
+        enabled: ${REDIS_SSL_ENABLED:false}
   jpa:
     database-platform: org.hibernate.dialect.PostgreSQLDialect
     hibernate:
@@ -62,6 +69,7 @@ app:
     verification-subject: "Verify your email"
     password-reset-subject: "Reset your password"
   rate-limit:
+    redis-enabled: true
     enabled: true
     capacity: 10
     window-seconds: 60
@@ -72,17 +80,16 @@ app:
       - /auth/reset-password
       - /auth/register
       - /auth/refresh
+    trusted-proxies: ${RATE_LIMIT_TRUSTED_PROXIES:}
   cors:
-    allowed-origins:
-      - http://localhost:3000
-      - http://localhost:8080
+    allowed-origins: ${CORS_ALLOWED_ORIGINS}
   auth:
     max-failed-login-attempts: 5
     account-lock-duration-minutes: 15
     remember-me-token-validity-minutes: 14
     require-verified-email: ${REQUIRE_VERIFIED_EMAIL:false}
     jwt:
-      secret-key: ${JWT_SECRET_KEY:dev-secret-key-must-be-at-least-256-bits-or-32-characters-long}
+      secret-key: ${JWT_SECRET_KEY}
       access-token-expiration-minutes: 15
       refresh-token-expiration-days: 7
       issuer: resume-builder-app

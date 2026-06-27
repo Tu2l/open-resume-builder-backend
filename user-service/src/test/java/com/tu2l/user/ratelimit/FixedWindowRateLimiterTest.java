@@ -11,7 +11,7 @@ class FixedWindowRateLimiterTest {
 
     @Test
     void tryAcquire_allowsUpToCapacityThenBlocks() {
-        var limiter = new FixedWindowRateLimiter(new RateLimitProperties(true, 3, 60, List.of("/auth"), 300000));
+        var limiter = new FixedWindowRateLimiter(new RateLimitProperties(true, 3, 60, List.of("/auth"), 300000, List.of()));
 
         assertThat(limiter.tryAcquire("ip:/auth")).isTrue();
         assertThat(limiter.tryAcquire("ip:/auth")).isTrue();
@@ -21,7 +21,7 @@ class FixedWindowRateLimiterTest {
 
     @Test
     void tryAcquire_alwaysAllowsWhenDisabled() {
-        var limiter = new FixedWindowRateLimiter(new RateLimitProperties(false, 1, 60, List.of("/auth"), 300000));
+        var limiter = new FixedWindowRateLimiter(new RateLimitProperties(false, 1, 60, List.of("/auth"), 300000, List.of()));
 
         assertThat(limiter.tryAcquire("ip:/auth")).isTrue();
         assertThat(limiter.tryAcquire("ip:/auth")).isTrue();
@@ -30,7 +30,7 @@ class FixedWindowRateLimiterTest {
     @Test
     void evictStaleWindows_removesEntriesFromElapsedWindows() {
         // A 1-second window guarantees the entry's window has elapsed by the time we sweep.
-        var limiter = new FixedWindowRateLimiter(new RateLimitProperties(true, 5, 1, List.of("/auth"), 300000));
+        var limiter = new FixedWindowRateLimiter(new RateLimitProperties(true, 5, 1, List.of("/auth"), 300000, List.of()));
         limiter.tryAcquire("ip:/auth");
 
         await(1100);
