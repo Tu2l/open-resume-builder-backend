@@ -9,6 +9,7 @@ import org.jspecify.annotations.NonNull;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.http.converter.HttpMessageConversionException;
+import org.springframework.security.access.AccessDeniedException;
 import org.springframework.web.HttpRequestMethodNotSupportedException;
 import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.annotation.ExceptionHandler;
@@ -68,6 +69,14 @@ public class GlobalExceptionHandler {
     @ExceptionHandler({AuthenticationException.class})
     public ResponseEntity<@NonNull BaseResponse> handleAuthenticationException(AuthenticationException exception) {
         return getResponse(exception.getMessage(), "AuthenticationException caught: {}", HttpStatus.UNAUTHORIZED);
+    }
+
+    @ExceptionHandler({AccessDeniedException.class})
+    public ResponseEntity<@NonNull BaseResponse> handleAccessDeniedException(AccessDeniedException exception) {
+        // Thrown by @PreAuthorize (AuthorizationDeniedException) during controller invocation —
+        // downstream of the security filter chain, so SecurityConfig's accessDeniedHandler never
+        // sees it. Translate it into a clean 403 instead of letting it fall through to 500.
+        return getResponse("Access denied", "AccessDeniedException caught: {}", HttpStatus.FORBIDDEN);
     }
 
     @ExceptionHandler({JwtException.class})

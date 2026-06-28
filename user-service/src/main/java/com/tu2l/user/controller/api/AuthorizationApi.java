@@ -1,6 +1,5 @@
 package com.tu2l.user.controller.api;
 
-import com.tu2l.common.constant.CommonConstants;
 import com.tu2l.user.model.response.AuthorizationResponse;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
@@ -13,7 +12,6 @@ import io.swagger.v3.oas.annotations.tags.Tag;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.RequestHeader;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 
@@ -45,9 +43,7 @@ public interface AuthorizationApi {
             @Parameter(description = "Resource to check (e.g. `user`, `pdf`, `role`)", required = true)
             @RequestParam String resource,
             @Parameter(description = "Action to check (e.g. `read`, `write`, `delete`)", required = true)
-            @RequestParam String action,
-            @Parameter(hidden = true)
-            @RequestHeader(CommonConstants.Headers.X_USER_ROLE) String userRole);
+            @RequestParam String action);
 
     @Operation(
             summary = "Get my permissions",
@@ -61,7 +57,5 @@ public interface AuthorizationApi {
             @ApiResponse(responseCode = "500", description = "Internal server error")
     })
     @GetMapping("/me/permissions")
-    ResponseEntity<AuthorizationResponse> getMyPermissions(
-            @Parameter(hidden = true)
-            @RequestHeader(CommonConstants.Headers.X_USER_ROLE) String userRole);
+    ResponseEntity<AuthorizationResponse> getMyPermissions();
 }

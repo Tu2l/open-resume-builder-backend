@@ -31,23 +31,20 @@ public class AdminUserController extends BaseController implements AdminUserApi 
     private final AuditService auditService;
 
     @Override
-    public ResponseEntity<PagedResponse<UserDTO>> getAllUsers(String adminRole, @PageableDefault(size = 20) Pageable pageable) {
-        if (!isAdmin(adminRole)) return forbidden();
+    public ResponseEntity<PagedResponse<UserDTO>> getAllUsers(@PageableDefault(size = 20) Pageable pageable) {
         log.info("Admin: listing users, page={}", pageable);
         return ResponseEntity.ok(paged(adminUserService.getAllUsers(pageable), userMapper::toUserDTO));
     }
 
     @Override
-    public ResponseEntity<UserResponse> getUserById(String adminRole, Long userId) {
-        if (!isAdmin(adminRole)) return forbidden();
+    public ResponseEntity<UserResponse> getUserById(Long userId) {
         log.info("Admin: fetching user id={}", userId);
         UserEntity user = userService.getUserById(userId);
         return ResponseEntity.ok(UserResponse.of(userMapper.toUserDTO(user)));
     }
 
     @Override
-    public ResponseEntity<UserResponse> updateUser(Long userId, UpdateUserRequest request, String adminRole) throws Exception {
-        if (!isAdmin(adminRole)) return forbidden();
+    public ResponseEntity<UserResponse> updateUser(Long userId, UpdateUserRequest request) throws Exception {
         log.info("Admin: updating user id={}", userId);
         UserDTO userDTO = userMapper.toUserDTO(request);
         userDTO.setId(userId);
@@ -56,8 +53,7 @@ public class AdminUserController extends BaseController implements AdminUserApi 
     }
 
     @Override
-    public ResponseEntity<UserResponse> unlockAccount(Long userId, String adminRole) {
-        if (!isAdmin(adminRole)) return forbidden();
+    public ResponseEntity<UserResponse> unlockAccount(Long userId) {
         log.info("Admin: unlocking account id={}", userId);
         UserEntity user = adminUserService.unlockAccount(userId);
         auditService.log(AuditEventType.ACCOUNT_UNLOCKED, userId, null);
@@ -65,8 +61,7 @@ public class AdminUserController extends BaseController implements AdminUserApi 
     }
 
     @Override
-    public ResponseEntity<UserResponse> setEnabled(Long userId, boolean enabled, String adminRole) {
-        if (!isAdmin(adminRole)) return forbidden();
+    public ResponseEntity<UserResponse> setEnabled(Long userId, boolean enabled) {
         log.info("Admin: setting enabled={} id={}", enabled, userId);
         UserEntity user = adminUserService.setEnabled(userId, enabled);
         auditService.log(enabled ? AuditEventType.ACCOUNT_ENABLED : AuditEventType.ACCOUNT_DISABLED, userId, null);
@@ -75,8 +70,7 @@ public class AdminUserController extends BaseController implements AdminUserApi 
     }
 
     @Override
-    public ResponseEntity<BaseResponse> deleteUser(String username, String adminRole) throws Exception {
-        if (!isAdmin(adminRole)) return forbidden();
+    public ResponseEntity<BaseResponse> deleteUser(String username) throws Exception {
         log.info("Admin: deleting user username={}", username);
         if (!userService.deleteUser(username)) throw new UserException("Failed to delete user: " + username);
         return success("User deleted successfully");

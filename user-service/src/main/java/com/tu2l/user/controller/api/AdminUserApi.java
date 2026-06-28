@@ -1,6 +1,5 @@
 package com.tu2l.user.controller.api;
 
-import com.tu2l.common.constant.CommonConstants;
 import com.tu2l.common.model.base.BaseResponse;
 import com.tu2l.common.model.base.PagedResponse;
 import com.tu2l.user.model.request.UpdateUserRequest;
@@ -19,16 +18,19 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.data.web.PageableDefault;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 
 /**
  * Admin-only user management endpoints. Mounted under {@code /admin/users} with API version
  * {@code 1+} resolved from the {@code /v1} path segment (effective gateway path
- * {@code /api/users/v1/admin/users/**}); all routes require ADMIN role.
+ * {@code /api/v1/users/admin/users/**}); all routes require ADMIN role enforced via
+ * {@code @PreAuthorize("hasRole('ADMIN')")} on the controller class.
  */
 @Tag(name = "Admin — Users", description = "Admin-only user management operations")
 @SecurityRequirement(name = "bearerAuth")
 @RequestMapping(value = "/admin/users", version = "1+")
+@PreAuthorize("hasRole('ADMIN')")
 public interface AdminUserApi {
 
     @Operation(summary = "List all users", description = "Paginated list of all registered users. **Requires ADMIN role.**")
@@ -38,9 +40,7 @@ public interface AdminUserApi {
             @ApiResponse(responseCode = "403", description = "Caller does not have the ADMIN role")
     })
     @GetMapping
-    ResponseEntity<PagedResponse<UserDTO>> getAllUsers(
-            @Parameter(hidden = true) @RequestHeader(CommonConstants.Headers.X_USER_ROLE) String adminRole,
-            @PageableDefault(size = 20) Pageable pageable);
+    ResponseEntity<PagedResponse<UserDTO>> getAllUsers(@PageableDefault(size = 20) Pageable pageable);
 
     @Operation(summary = "Get user by ID", description = "Returns the full profile for the specified user. **Requires ADMIN role.**")
     @ApiResponses({
@@ -52,7 +52,6 @@ public interface AdminUserApi {
     })
     @GetMapping("/{userId}")
     ResponseEntity<UserResponse> getUserById(
-            @Parameter(hidden = true) @RequestHeader(CommonConstants.Headers.X_USER_ROLE) String adminRole,
             @Parameter(description = "ID of the user to retrieve", required = true) @PathVariable("userId") Long userId) throws Exception;
 
     @Operation(summary = "Update user by ID", description = "Replaces profile fields for the specified user. **Requires ADMIN role.**")
@@ -67,8 +66,7 @@ public interface AdminUserApi {
     @PutMapping("/{userId}")
     ResponseEntity<UserResponse> updateUser(
             @Parameter(description = "ID of the user to update", required = true) @PathVariable("userId") Long userId,
-            @Valid @RequestBody UpdateUserRequest request,
-            @Parameter(hidden = true) @RequestHeader(CommonConstants.Headers.X_USER_ROLE) String adminRole) throws Exception;
+            @Valid @RequestBody UpdateUserRequest request) throws Exception;
 
     @Operation(summary = "Unlock user account", description = "Clears any active lock and resets the failed-login counter. **Requires ADMIN role.**")
     @ApiResponses({
@@ -80,8 +78,7 @@ public interface AdminUserApi {
     })
     @PostMapping("/{userId}/unlock")
     ResponseEntity<UserResponse> unlockAccount(
-            @Parameter(description = "ID of the user to unlock", required = true) @PathVariable("userId") Long userId,
-            @Parameter(hidden = true) @RequestHeader(CommonConstants.Headers.X_USER_ROLE) String adminRole) throws Exception;
+            @Parameter(description = "ID of the user to unlock", required = true) @PathVariable("userId") Long userId) throws Exception;
 
     @Operation(summary = "Enable or disable user account", description = "Toggles whether the account can authenticate. **Requires ADMIN role.**")
     @ApiResponses({
@@ -94,8 +91,7 @@ public interface AdminUserApi {
     @PatchMapping("/{userId}/enabled")
     ResponseEntity<UserResponse> setEnabled(
             @Parameter(description = "ID of the user to update", required = true) @PathVariable("userId") Long userId,
-            @Parameter(description = "Whether the account should be enabled", required = true) @RequestParam("enabled") boolean enabled,
-            @Parameter(hidden = true) @RequestHeader(CommonConstants.Headers.X_USER_ROLE) String adminRole) throws Exception;
+            @Parameter(description = "Whether the account should be enabled", required = true) @RequestParam("enabled") boolean enabled) throws Exception;
 
     @Operation(summary = "Delete user", description = "Permanently removes or deactivates the specified user account. **Requires ADMIN role.**")
     @ApiResponses({
@@ -105,6 +101,5 @@ public interface AdminUserApi {
     })
     @DeleteMapping("/{username}")
     ResponseEntity<BaseResponse> deleteUser(
-            @Parameter(description = "Username of the user to delete", required = true) @PathVariable("username") String username,
-            @Parameter(hidden = true) @RequestHeader(CommonConstants.Headers.X_USER_ROLE) String adminRole) throws Exception;
+            @Parameter(description = "Username of the user to delete", required = true) @PathVariable("username") String username) throws Exception;
 }

@@ -17,37 +17,32 @@ public class AdminAuthorizationController extends BaseAuthorizationController im
     private final AdminAuthorizationService authorizationService;
 
     @Override
-    public ResponseEntity<AuthorizationResponse> getAllRoles(String userRole) {
-        if (!isAdmin(userRole)) return forbidden();
+    public ResponseEntity<AuthorizationResponse> getAllRoles() {
         return ok(AuthorizationResponse.builder()
                 .roles(toNames(authorizationService.getAllRoles())).build(), "Roles retrieved successfully");
     }
 
     @Override
-    public ResponseEntity<AuthorizationResponse> getUserRole(Long userId, String userRole) {
-        if (!isAdmin(userRole)) return forbidden();
+    public ResponseEntity<AuthorizationResponse> getUserRole(Long userId) {
         UserRole role = authorizationService.getUserRole(userId);
         return ok(AuthorizationResponse.builder().role(role.name()).build(), "User role retrieved successfully");
     }
 
     @Override
-    public ResponseEntity<AuthorizationResponse> assignRole(Long userId, String roleName, String userRole) {
-        if (!isAdmin(userRole)) return forbidden();
+    public ResponseEntity<AuthorizationResponse> assignRole(Long userId, String roleName) {
         UserRole role = authorizationService.assignRole(userId, roleName);
         return ok(AuthorizationResponse.builder().role(role.name()).build(), "Role assigned successfully");
     }
 
     @Override
-    public ResponseEntity<AuthorizationResponse> getAllPermissions(String userRole) {
-        if (!isAdmin(userRole)) return forbidden();
+    public ResponseEntity<AuthorizationResponse> getAllPermissions() {
         return ok(AuthorizationResponse.builder()
                 .permissions(toNames(authorizationService.getAllPermissions())).build(),
                 "Permissions retrieved successfully");
     }
 
     @Override
-    public ResponseEntity<AuthorizationResponse> getUserPermissions(Long userId, String userRole) {
-        if (!isAdmin(userRole)) return forbidden();
+    public ResponseEntity<AuthorizationResponse> getUserPermissions(Long userId) {
         return ok(AuthorizationResponse.builder()
                 .permissions(toNames(authorizationService.getPermissionsForUser(userId))).build(),
                 "User permissions retrieved successfully");

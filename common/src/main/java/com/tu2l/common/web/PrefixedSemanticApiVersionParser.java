@@ -19,7 +19,7 @@ public class PrefixedSemanticApiVersionParser implements ApiVersionParser<Semant
     @Override
     public SemanticApiVersionParser.Version parseVersion(String version) {
         String normalized = version;
-        if (normalized != null && !normalized.isEmpty()) {
+        if (!normalized.isEmpty()) {
             char first = normalized.charAt(0);
             if (first == 'v' || first == 'V') {
                 normalized = normalized.substring(1);

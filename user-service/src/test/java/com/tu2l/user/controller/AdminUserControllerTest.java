@@ -26,35 +26,23 @@ class AdminUserControllerTest {
     @InjectMocks AdminUserController controller;
 
     @Test
-    void unlockAccount_nonAdmin_returnsForbidden() {
-        var response = controller.unlockAccount(1L, "USER");
-        assertThat(response.getStatusCode().value()).isEqualTo(403);
-    }
-
-    @Test
-    void unlockAccount_admin_returnsOk() {
+    void unlockAccount_returnsOk() {
         var user = UserEntity.builder().id(1L).build();
         when(adminUserService.unlockAccount(1L)).thenReturn(user);
         when(userMapper.toUserDTO(user)).thenReturn(new UserDTO());
 
-        var response = controller.unlockAccount(1L, "ADMIN");
+        var response = controller.unlockAccount(1L);
 
         assertThat(response.getStatusCode().value()).isEqualTo(200);
     }
 
     @Test
-    void setEnabled_nonAdmin_returnsForbidden() {
-        var response = controller.setEnabled(1L, false, "USER");
-        assertThat(response.getStatusCode().value()).isEqualTo(403);
-    }
-
-    @Test
-    void setEnabled_admin_returnsOk() {
+    void setEnabled_returnsOk() {
         var user = UserEntity.builder().id(1L).build();
         when(adminUserService.setEnabled(1L, false)).thenReturn(user);
         when(userMapper.toUserDTO(user)).thenReturn(new UserDTO());
 
-        var response = controller.setEnabled(1L, false, "ADMIN");
+        var response = controller.setEnabled(1L, false);
 
         assertThat(response.getStatusCode().value()).isEqualTo(200);
     }

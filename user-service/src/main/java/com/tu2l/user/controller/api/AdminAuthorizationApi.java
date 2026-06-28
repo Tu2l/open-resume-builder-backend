@@ -1,6 +1,5 @@
 package com.tu2l.user.controller.api;
 
-import com.tu2l.common.constant.CommonConstants;
 import com.tu2l.user.model.response.AuthorizationResponse;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
@@ -12,6 +11,7 @@ import io.swagger.v3.oas.annotations.security.SecurityRequirement;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 
 /**
@@ -23,6 +23,7 @@ import org.springframework.web.bind.annotation.*;
 @Tag(name = "Admin — Authorization", description = "Admin-only RBAC management operations")
 @SecurityRequirement(name = "bearerAuth")
 @RequestMapping(value = "/admin/authorize", version = "1+")
+@PreAuthorize("hasRole('ADMIN')")
 public interface AdminAuthorizationApi {
 
     @Operation(summary = "List all roles", description = "Returns every role defined in the system. **Requires ADMIN role.**")
@@ -33,8 +34,7 @@ public interface AdminAuthorizationApi {
             @ApiResponse(responseCode = "403", description = "Caller does not have the ADMIN role")
     })
     @GetMapping("/roles")
-    ResponseEntity<AuthorizationResponse> getAllRoles(
-            @Parameter(hidden = true) @RequestHeader(CommonConstants.Headers.X_USER_ROLE) String userRole);
+    ResponseEntity<AuthorizationResponse> getAllRoles();
 
     @Operation(summary = "Get a user's role", description = "Returns the role assigned to the specified user. **Requires ADMIN role.**")
     @ApiResponses({
@@ -46,8 +46,7 @@ public interface AdminAuthorizationApi {
     })
     @GetMapping("/roles/{userId}")
     ResponseEntity<AuthorizationResponse> getUserRole(
-            @Parameter(description = "ID of the user whose role to retrieve", required = true) @PathVariable("userId") Long userId,
-            @Parameter(hidden = true) @RequestHeader(CommonConstants.Headers.X_USER_ROLE) String userRole);
+            @Parameter(description = "ID of the user whose role to retrieve", required = true) @PathVariable("userId") Long userId);
 
     @Operation(summary = "Assign role to user",
             description = "Replaces the user's current role. Valid values: `ADMIN`, `MODERATOR`, `USER`, `GUEST`. **Requires ADMIN role.**")
@@ -67,8 +66,7 @@ public interface AdminAuthorizationApi {
                     content = @Content(mediaType = MediaType.TEXT_PLAIN_VALUE,
                             schema = @Schema(type = "string", example = "USER",
                                     allowableValues = {"ADMIN", "MODERATOR", "USER", "GUEST"})))
-            @RequestBody String roleName,
-            @Parameter(hidden = true) @RequestHeader(CommonConstants.Headers.X_USER_ROLE) String userRole);
+            @RequestBody String roleName);
 
     @Operation(summary = "List all permissions",
             description = "Returns every fine-grained permission defined in the system. **Requires ADMIN role.**")
@@ -79,8 +77,7 @@ public interface AdminAuthorizationApi {
             @ApiResponse(responseCode = "403", description = "Caller does not have the ADMIN role")
     })
     @GetMapping("/permissions")
-    ResponseEntity<AuthorizationResponse> getAllPermissions(
-            @Parameter(hidden = true) @RequestHeader(CommonConstants.Headers.X_USER_ROLE) String userRole);
+    ResponseEntity<AuthorizationResponse> getAllPermissions();
 
     @Operation(summary = "Get a user's permissions",
             description = "Returns the effective permissions for the specified user, derived from their role. **Requires ADMIN role.**")
@@ -93,6 +90,5 @@ public interface AdminAuthorizationApi {
     })
     @GetMapping("/permissions/{userId}")
     ResponseEntity<AuthorizationResponse> getUserPermissions(
-            @Parameter(description = "ID of the user whose permissions to retrieve", required = true) @PathVariable("userId") Long userId,
-            @Parameter(hidden = true) @RequestHeader(CommonConstants.Headers.X_USER_ROLE) String userRole);
+            @Parameter(description = "ID of the user whose permissions to retrieve", required = true) @PathVariable("userId") Long userId);
 }
