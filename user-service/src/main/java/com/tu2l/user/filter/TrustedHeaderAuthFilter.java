@@ -17,7 +17,7 @@ import java.io.IOException;
 import java.util.List;
 
 /**
- * Converts gateway-injected identity headers into a Spring Security {@link Authentication}.
+ * Converts gateway-injected identity headers into a Spring Security.
  * <p>
  * The gateway validates the JWT and injects {@code X-User-Username}, {@code X-User-Email},
  * and {@code X-User-Role} for every protected route before forwarding to this service.
@@ -39,22 +39,12 @@ public class TrustedHeaderAuthFilter extends OncePerRequestFilter {
 
         if (role != null && username != null) {
             // Normalise unknown roles to GUEST so @PreAuthorize("hasRole('ADMIN')") rejects them.
-            var authority = isKnownRole(role) ? "ROLE_" + role : "ROLE_GUEST";
+            var authority = UserRole.isValid(role) ? "ROLE_" + role : "ROLE_GUEST";
             var auth = new UsernamePasswordAuthenticationToken(
                     username, null, List.of(new SimpleGrantedAuthority(authority)));
             SecurityContextHolder.getContext().setAuthentication(auth);
         }
 
         filterChain.doFilter(request, response);
-    }
-
-    private boolean isKnownRole(String role) {
-        try {
-            UserRole.valueOf(role);
-            return true;
-        } catch (Exception e) {
-            return false;
-        }
-
     }
 }

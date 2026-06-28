@@ -46,8 +46,9 @@ public class GlobalRequestFilter implements GlobalFilter, Ordered {
     @Override
     public Mono<@NonNull Void> filter(ServerWebExchange exchange, @NonNull GatewayFilterChain chain) {
         // Check if path requires authentication
-        String path = exchange.getRequest().getURI().getPath();
-        String method = exchange.getRequest().getMethod().name();
+        ServerHttpRequest request = exchange.getRequest();
+        String path = request.getURI().getPath();
+        String method = request.getMethod().name();
 
         RequestType requestType = pathUtil.isPublicRoute(path, gatewayProperties.getPublicRoutes())
                 ? RequestType.PUBLIC
@@ -55,7 +56,7 @@ public class GlobalRequestFilter implements GlobalFilter, Ordered {
 
         log.debug("Processing {} {} as {}", method, path, requestType);
 
-        ServerHttpRequest mutatedRequest = exchange.getRequest().mutate()
+        ServerHttpRequest mutatedRequest = request.mutate()
                 .header(CommonConstants.Headers.X_REQUEST_TYPE, requestType.name())
                 .build();
 
