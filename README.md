@@ -2,6 +2,19 @@
 
 A modern, microservices-based backend system for building and managing resumes with PDF generation capabilities.
 
+## AI Agent Knowledge Base
+
+Structured context for AI agents is in `.agent-memory/`. Each file is Base64-encoded Markdown (`base64 -d <file>` to read):
+
+- `kb-01-architecture` — module layout, request flow, URL versioning
+- `kb-02-common` — CommonConstants, JwtUtil, shared models
+- `kb-03-gateway` — routes, filter chain, public vs protected routes
+- `kb-04-user-entities` — entities, repos, Flyway, soft-delete
+- `kb-05-user-auth` — all auth flows, RBAC matrix, audit events
+- `kb-06-user-config` — config properties, rate limiting, required env vars
+
+See `.agent-memory/README.md` for the full index.
+
 ## Architecture
 
 This project follows a **multi-module microservices architecture** with centralized dependency management:
