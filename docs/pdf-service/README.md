@@ -200,4 +200,4 @@ wkhtmltopdf --version
 mvn -pl pdf-service spring-boot:run        # :8090
 ```
 
-Swagger is aggregated at the gateway (`/api/pdf/v3/api-docs`).
+Swagger is aggregated at the gateway (`/api/pdf/v1/api-docs`).

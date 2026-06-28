@@ -5,14 +5,68 @@ Design rationale lives in [`README.md`](./README.md). Branch: `user-service-refa
 
 ---
 
+## Production hardening & single-VM deployment (2026-06)
+
+A production-readiness review drove a batch of go-live fixes. The deployment target is a **single
+low-powered VM** (no horizontal scaling), which shaped several decisions.
+
+### Go-live blockers
+- **Actuator** added — `health` (+ liveness/readiness probes) and `info` on the app port for
+  container/load-balancer health checks.
+- **JWT secret** now `${JWT_SECRET_KEY}` with **no fallback** in prod (fails fast if unset);
+  **CORS** allowed-origins externalized to `${CORS_ALLOWED_ORIGINS}`.
+- **Profile footgun closed** — `spring.profiles.active` is no longer pinned in `application.yml`.
+  The `spring-boot-maven-plugin` activates `dev` for local runs; a prod deploy that forgets
+  `SPRING_PROFILES_ACTIVE=prod` now fails fast on a missing datasource instead of silently booting
+  dev with its weak fallback secret and seeded admin.
+
+### Redis: prototyped, then removed
+A Redis-backed rate limiter and distributed cache were added for horizontal scaling, then
+**reverted** — the single-VM target makes them unnecessary, and the Redis limiter introduced a
+fail-closed dependency on the auth path (a Redis blip would 500 every login). Back to the in-process
+`FixedWindowRateLimiter` and Caffeine cache. Dead deps `sqlite-jdbc` and `hibernate-community-dialects`
+were dropped at the same time (Postgres only).
+
+### Security / correctness
+- **Trusted-proxy client IP** — extracted a shared `ClientIpResolver` used by both `RateLimitFilter`
+  and `AuditService`; `X-Forwarded-For` is honoured only from `app.rate-limit.trusted-proxies`,
+  closing an IP-spoofing vector in both rate limiting and audit logs.
+- **`ChangePasswordRequest`** now validates both fields as Base64 (the service decodes Base64; the
+  old plain-text complexity regex made compliant requests fail to decode).
+- **`PASSWORD_CHANGED` audit event** added (+ `V2__add_password_changed_audit_event.sql` extends the
+  `audit_events.event_type` CHECK constraint) and emitted on self-service password change.
+- **`assignRole`** made `@Transactional` (the load-modify-save was non-atomic).
+
+### Observability / ops
+- **MDC correlation id** — `CorrelationIdFilter` reads/generates `X-Correlation-Id`, stores it as
+  `requestId` in MDC, and `logging.pattern.level` emits it on every log line. Previously the id was
+  set but never logged.
+- **Graceful shutdown** (`server.shutdown: graceful`) drains in-flight requests on rolling restarts.
+- **PII** — login no longer logs the user's email.
+
+### API docs path fix
+SpringDoc's default `/v3/api-docs` returned **400** under path-segment versioning (`v3` → unsupported
+version `3`), and a non-version path like `/openapi` also fails (not parseable as a version). The
+OpenAPI path is now **`/v1/api-docs`** in user-service and pdf-service, with the gateway's
+public-routes allowlist and swagger aggregator URLs updated to match. Actuator is unaffected (served
+by a separate `WebMvcEndpointHandlerMapping`).
+
+> **Still open before go-live:** no integration/context-load test exists (nothing verifies the app
+> boots with Flyway + the full filter chain — the class of failure that a stale `common` artifact
+> caused at runtime). `rememberMe` remains a no-op; `getUserByUsername` cache has no live caller.
+
+---
+
 ## Native API versioning (2026-06)
 
 Adopted **Spring Framework 7 / Spring Boot 4 native API versioning** in place of the hardcoded
 `/v1` URL prefixes.
 
 - **Strategy:** path segment — the `/v1` URL is kept but is now framework-managed. A global
-  `/{version}` path prefix (scoped to the controller package, so springdoc's `/v3/api-docs` is
-  untouched) lets patterns consume the segment; `usePathSegment(0)` resolves the version.
+  `/{version}` path prefix (scoped to the controller package) lets patterns consume the segment;
+  `usePathSegment(0)` resolves the version. ⚠️ Note that version *validation* still applies to every
+  request through `RequestMappingHandlerMapping` (including SpringDoc); the OpenAPI path is therefore
+  `/v1/api-docs`, not `/v3/api-docs` — see the production-hardening section below.
 - **Parser:** shared `common` `PrefixedSemanticApiVersionParser` strips a leading `v`/`V` then
   delegates to `SemanticApiVersionParser`, so `v1` compares semantically against `version = "1+"`.
 - **Controllers:** the five API interfaces drop the literal `/v1` and declare `version = "1+"` at

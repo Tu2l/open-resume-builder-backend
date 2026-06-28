@@ -21,7 +21,8 @@ See also: [changelog](./changelog.md) · [project docs](../README.md).
 - Role-based access control (RBAC)
 - Admin account ops: unlock, enable/disable; **bootstrap admin** seeding
 - Account security: BCrypt, login-attempt lockout, SHA-256 hashed token storage, config-driven rate limiting
-- Scheduled credential cleanup; security audit trail; Caffeine caching; OpenAPI/Swagger
+- Scheduled credential cleanup; security audit trail; Caffeine caching; OpenAPI
+- Operability: Actuator health/liveness/readiness probes, graceful shutdown, MDC request-correlation logging
 
 ---
 
@@ -68,8 +69,9 @@ flowchart TB
 ```
 
 Cross-cutting: `@ConfigurationPropertiesScan` binds all `app.*` records; `@EnableScheduling`
-drives cleanup; `@EnableCaching` (Caffeine `users` cache); springdoc serves
-`/users/swagger-ui.html`.
+drives cleanup; `@EnableCaching` (Caffeine `users` cache); `CorrelationIdFilter` puts a
+per-request id in MDC; springdoc serves the OpenAPI spec at `/users/v1/api-docs` (Swagger UI is
+disabled here and aggregated by the gateway). Actuator exposes `health`/`info` on the app port.
 
 ---
 
@@ -138,8 +140,9 @@ erDiagram
     }
 ```
 
-The schema is owned by **Flyway** (`db/migration/V1__baseline.sql`); `ddl-auto` is `validate`
-in dev and prod. `users.deleted_at` drives soft delete via `@SQLRestriction("deleted_at IS NULL")`.
+The schema is owned by **Flyway**: `V1__baseline.sql` plus `V2__add_password_changed_audit_event.sql`
+(which extends the `audit_events.event_type` CHECK constraint with `PASSWORD_CHANGED`). `ddl-auto` is
+`validate` in dev and prod. `users.deleted_at` drives soft delete via `@SQLRestriction("deleted_at IS NULL")`.
 
 ### Entity relationships (UML)
 
@@ -205,6 +208,13 @@ additionally enforce `ADMIN` (header role check / `AuthTokenService.verifyRole`)
 > `v` so `v1` is compared semantically. Resolution is lenient — a missing version defaults to `1`;
 > an unknown version (e.g. `/v2/...`) returns **400** via `GlobalExceptionHandler`'s
 > `ResponseStatusException` handler. URLs are unchanged from the previous hardcoded scheme.
+>
+> ⚠️ **`usePathSegment(0)` validates segment 0 of _every_ request** through
+> `RequestMappingHandlerMapping`, including SpringDoc — not just controller routes. So the OpenAPI
+> path must sit under a *supported* version: it is `/v1/api-docs` (`v1` → `1`, supported), **not**
+> SpringDoc's default `/v3/api-docs` (`3` → unsupported → 400) or a non-version path like `/openapi`
+> (not parseable as a version → 400). Actuator (`/actuator/**`) is served by a separate
+> `WebMvcEndpointHandlerMapping` and is unaffected.
 
 | Method | Gateway path | Access | Purpose |
 |--------|--------------|--------|---------|
@@ -334,10 +344,13 @@ sequenceDiagram
 
 - **RBAC** — static in-code model: `Permission` enum + `RolePermissions` (ADMIN=all,
   MODERATOR/USER subsets, GUEST=`PDF_READ`). `(resource, action)` → `Permission.from(...)`.
-- **Rate limiting** — dependency-free fixed-window limiter (`FixedWindowRateLimiter`) applied by
-  `RateLimitFilter`; **paths, capacity, window and cleanup interval are all config**
-  (`app.rate-limit.*`). A `@Scheduled` sweep evicts stale windows (bounded memory). Per-instance;
-  back with Redis for multi-node.
+- **Rate limiting** — dependency-free, in-process fixed-window limiter (`FixedWindowRateLimiter`)
+  applied by `RateLimitFilter`; **paths, capacity, window and cleanup interval are all config**
+  (`app.rate-limit.*`). A `@Scheduled` sweep evicts stale windows (bounded memory). Keyed by client
+  IP via the shared `ClientIpResolver`, which honours `X-Forwarded-For` **only** from configured
+  `app.rate-limit.trusted-proxies` (the gateway) to prevent spoofing. The limiter is per-instance by
+  design — the deployment target is a single VM; a Redis-backed variant was prototyped and removed as
+  unnecessary (it also added a fail-closed dependency on the auth path).
 - **Credential lifecycle** — `CredentialCleanupJob` (`@Scheduled`) purges expired credentials via
   `UserCredentialRepository.deleteByExpiresAtBefore`; rotated-but-unexpired refresh tokens are kept
   (`active=false`) so reuse detection still works.
@@ -345,8 +358,16 @@ sequenceDiagram
   `DuplicateUserException` → 409, others → 400 (`GlobalExceptionHandler`).
 - **Email** — `LoggingEmailService` (`!prod`) logs links; `SmtpEmailService` (`prod`) sends via SMTP.
 - **Audit** — `AuditService.log` runs `REQUIRES_NEW` so events persist even when the business
-  transaction rolls back (e.g. `LOGIN_FAILED`).
-- **Caching** — Caffeine `users` cache (5-min TTL); mutations evict.
+  transaction rolls back (e.g. `LOGIN_FAILED`). Client IP is resolved via the same trusted-proxy
+  `ClientIpResolver` as the rate limiter. Self-service password change emits `PASSWORD_CHANGED`.
+- **Caching** — Caffeine `users` cache (5-min TTL); mutations evict. In-process (single VM).
+- **Observability** — `CorrelationIdFilter` reads/generates `X-Correlation-Id`, stores it in MDC as
+  `requestId`, and echoes it back; `logging.pattern.level` includes `%X{requestId}` so it appears on
+  every log line. Actuator exposes `health` (with liveness/readiness probes) and `info`.
+- **Lifecycle/secrets** — graceful shutdown (`server.shutdown: graceful`) drains in-flight requests.
+  No profile is pinned in `application.yml`: the `spring-boot-maven-plugin` activates `dev` for local
+  runs, so a prod deploy that forgets `SPRING_PROFILES_ACTIVE=prod` fails fast on a missing datasource
+  rather than booting dev with its weak fallback secret and seeded admin.
 
 ---
 
@@ -375,6 +396,7 @@ app:
       - /auth/reset-password
       - /auth/register
       - /auth/refresh
+    trusted-proxies: ${RATE_LIMIT_TRUSTED_PROXIES:}  # IPs whose X-Forwarded-For is trusted (the gateway)
   mail:                                  # MailProperties (link building)
     from-address: ...
     frontend-base-url: ...
@@ -389,7 +411,19 @@ spring:
   jpa.hibernate.ddl-auto: validate       # Flyway owns the schema
   flyway: { enabled: true, baseline-on-migrate: true }
   mail: { host, port, username, password }   # prod SMTP transport (env-driven)
+  # NOTE: no spring.profiles.active pinned here — see "Lifecycle/secrets" above.
+server:
+  shutdown: graceful                       # drain in-flight requests on shutdown
+management:                                # Actuator (shared app port)
+  endpoints.web.exposure.include: health,info
+  endpoint.health.probes.enabled: true     # /actuator/health/liveness|readiness
+logging:
+  pattern.level: "%5p [%X{requestId:-}]"   # MDC correlation id on every log line
 ```
+
+Prod-only env (besides the above): `JWT_SECRET_KEY` (no fallback — required),
+`CORS_ALLOWED_ORIGINS`, `DATABASE_*`, `MAIL_*`, `SPRING_PROFILES_ACTIVE=prod`,
+`RATE_LIMIT_TRUSTED_PROXIES`, and `BOOTSTRAP_ADMIN_*` (disabled by default).
 
 ---
 
@@ -401,6 +435,8 @@ mvn -pl user-service -am test              # unit/regression suite (offline-frie
 mvn -pl user-service spring-boot:run       # :8091  (run gateway for :8080)
 ```
 
-Swagger UI: `http://localhost:8091/users/swagger-ui.html`. Exercise flows with
-`etc/requests/user-service.http`. Tests are pure unit/Mockito (services, mapper, JWT, rate-limiter,
-exception handler, controllers, bootstrapper).
+OpenAPI spec: `http://localhost:8091/users/v1/api-docs` (Swagger UI is disabled in user-service and
+aggregated by the gateway at `/swagger-ui.html`). Health: `http://localhost:8091/users/actuator/health`.
+Exercise flows with `etc/requests/user-service.http`. Tests are pure unit/Mockito (services, mapper,
+JWT, rate-limiter, exception handler, controllers, bootstrapper); there are no integration/context-load
+tests yet.

@@ -122,8 +122,8 @@ gateway:
   public-routes:                 # CustomGatewayProperties — config-driven, AntPath patterns
     - /api/users/v1/auth/**
     - /api/pdf/**
-    - /api/users/v3/api-docs
-    - /api/pdf/v3/api-docs
+    - /api/users/v1/api-docs
+    - /api/pdf/v1/api-docs
   service-urls:                  # downstream targets (per profile)
     user-service: http://localhost:8091   # prod: http://user-service:8091
     pdf-service:  http://localhost:8090    # prod: http://pdf-service:8090
@@ -134,8 +134,8 @@ springdoc:
   swagger-ui:
     path: /swagger-ui.html
     urls:                        # aggregated downstream specs
-      - { name: User Service, url: /api/users/v3/api-docs }
-      - { name: PDF Service,  url: /api/pdf/v3/api-docs }
+      - { name: User Service, url: /api/users/v1/api-docs }
+      - { name: PDF Service,  url: /api/pdf/v1/api-docs }
 ```
 
 **Config-driven vs in-code:** route targets, public-routes, JWT secret/issuer, swagger URLs and
