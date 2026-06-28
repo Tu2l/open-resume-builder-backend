@@ -2,6 +2,7 @@ package com.tu2l.user.model.request;
 
 import com.tu2l.common.constant.CommonConstants;
 import com.tu2l.common.model.base.BaseRequest;
+import com.tu2l.user.validation.ValidEncodedPassword;
 
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.Pattern;
@@ -22,5 +23,6 @@ public class ChangePasswordRequest implements BaseRequest {
             regexp = CommonConstants.Pattern.BASE_64_PATTERN,
             message = "New password " + CommonConstants.ValidationMessage.BASE64_INVALID
     )
+    @ValidEncodedPassword
     private String newPassword;
 }
