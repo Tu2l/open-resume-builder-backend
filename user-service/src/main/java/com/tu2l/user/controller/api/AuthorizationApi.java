@@ -21,7 +21,7 @@ import org.springframework.web.bind.annotation.RequestParam;
  */
 @Tag(name = "Authorization", description = "Permission checks and self-service RBAC queries")
 @SecurityRequirement(name = "bearerAuth")
-@RequestMapping(value = "/authorize", version = "1+")
+@RequestMapping(value = "/authorize", version = "1")
 public interface AuthorizationApi {
 
     @Operation(

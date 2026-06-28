@@ -29,7 +29,7 @@ import org.springframework.web.bind.annotation.*;
  */
 @Tag(name = "Admin — Users", description = "Admin-only user management operations")
 @SecurityRequirement(name = "bearerAuth")
-@RequestMapping(value = "/admin/users", version = "1+")
+@RequestMapping(value = "/admin/users", version = "1")
 @PreAuthorize("hasRole('ADMIN')")
 public interface AdminUserApi {
 

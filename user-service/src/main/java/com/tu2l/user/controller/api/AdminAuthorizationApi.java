@@ -22,7 +22,7 @@ import org.springframework.web.bind.annotation.*;
  */
 @Tag(name = "Admin — Authorization", description = "Admin-only RBAC management operations")
 @SecurityRequirement(name = "bearerAuth")
-@RequestMapping(value = "/admin/authorize", version = "1+")
+@RequestMapping(value = "/admin/authorize", version = "1")
 @PreAuthorize("hasRole('ADMIN')")
 public interface AdminAuthorizationApi {
 

@@ -19,7 +19,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 @Tag(name = "Authentication", description = "Registration, login, token management and password flows")
-@RequestMapping(value = "/auth", version = "1+")
+@RequestMapping(value = "/auth", version = "1")
 public interface AuthenticationApi {
 
     @Operation(
