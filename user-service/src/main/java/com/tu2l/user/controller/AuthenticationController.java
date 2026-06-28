@@ -1,5 +1,6 @@
 package com.tu2l.user.controller;
 
+import com.tu2l.common.constant.CommonConstants;
 import com.tu2l.common.model.base.BaseResponse;
 import com.tu2l.user.constants.AuthenticationMessages;
 import com.tu2l.user.controller.api.AuthenticationApi;
@@ -51,10 +52,21 @@ public class AuthenticationController extends BaseController implements Authenti
     }
 
     @Override
-    public ResponseEntity<@NonNull BaseResponse> logout(String token) {
-        var success = authenticationService.logout(token);
+    public ResponseEntity<@NonNull BaseResponse> logout(String authorizationHeader) {
+        // The Authorization header arrives with the scheme prefix ("Bearer <jwt>"); the
+        // service hashes/parses the bare JWT, so strip the prefix before delegating.
+        var success = authenticationService.logout(stripBearerPrefix(authorizationHeader));
         log.info("Logout attempt: {}", success ? "successful" : "failed");
         return getResponse(success, AuthenticationMessages.LOGOUT_SUCCESS, AuthenticationMessages.LOGOUT_FAILED_INVALID_TOKEN);
+    }
+
+    /** Strip a leading case-insensitive {@code "Bearer "} scheme if present; otherwise return as-is. */
+    private static String stripBearerPrefix(String token) {
+        if (token != null && token.regionMatches(true, 0, CommonConstants.Token.BEARER_PREFIX, 0,
+                CommonConstants.Token.BEARER_PREFIX_LENGTH)) {
+            return token.substring(CommonConstants.Token.BEARER_PREFIX_LENGTH);
+        }
+        return token;
     }
 
     @Override
