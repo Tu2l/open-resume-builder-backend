@@ -71,7 +71,7 @@ app:
       - /auth/forgot-password
       - /auth/reset-password
       - /auth/register
-      - /auth/refresh
+      - /auth/refresh-token
     trusted-proxies: ${RATE_LIMIT_TRUSTED_PROXIES:}
   cors:
     allowed-origins: ${CORS_ALLOWED_ORIGINS}
