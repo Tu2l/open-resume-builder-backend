@@ -45,7 +45,7 @@ public class AuthenticationController extends BaseController implements Authenti
 
     @Override
     public ResponseEntity<@NonNull AuthResponse> refreshToken(@Valid @RequestBody RefreshTokenRequest request) {
-        var refreshedUserEntity = authenticationService.refreshToken(request.getRefreshToken(), request.getUsername());
+        var refreshedUserEntity = authenticationService.refreshToken(request.getRefreshToken());
         var response = authResponseBuilder.buildAuthResponse(refreshedUserEntity, AuthenticationMessages.TOKEN_REFRESHED_SUCCESS);
         log.info("Token refreshed successfully");
         return ResponseEntity.ok(response);

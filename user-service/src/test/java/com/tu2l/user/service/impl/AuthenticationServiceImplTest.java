@@ -208,6 +208,7 @@ class AuthenticationServiceImplTest {
         var user = userWith(new UserAccountStatus());
         user.addUserCredential(credential);
 
+        when(authTokenService.getUsername("oldRefresh")).thenReturn("john");
         when(userService.getUserWithCredentials("john")).thenReturn(user);
         when(commonUtil.sha256Hex("oldRefresh")).thenReturn("oldhash");
         when(authTokenService.generateToken(user, JwtTokenType.REFRESH)).thenReturn("newRefresh");
@@ -218,7 +219,7 @@ class AuthenticationServiceImplTest {
         when(authTokenService.expiresAt(anyString())).thenReturn(LocalDateTime.now().plusDays(1));
         when(userService.saveUser(user)).thenReturn(user);
 
-        var result = service(DEFAULT_CFG).refreshToken("oldRefresh", "john");
+        var result = service(DEFAULT_CFG).refreshToken("oldRefresh");
 
         assertThat(result.getPlainRefreshToken()).isEqualTo("newRefresh");
         assertThat(result.getPlainAccessToken()).isEqualTo("newAccess");
@@ -236,10 +237,11 @@ class AuthenticationServiceImplTest {
         var user = userWith(new UserAccountStatus());
         user.addUserCredential(credential);
 
+        when(authTokenService.getUsername("oldRefresh")).thenReturn("john");
         when(userService.getUserWithCredentials("john")).thenReturn(user);
         when(commonUtil.sha256Hex("oldRefresh")).thenReturn("oldhash");
 
-        assertThatThrownBy(() -> service(DEFAULT_CFG).refreshToken("oldRefresh", "john"))
+        assertThatThrownBy(() -> service(DEFAULT_CFG).refreshToken("oldRefresh"))
                 .isInstanceOf(AuthenticationException.class)
                 .hasMessageContaining("reuse");
 

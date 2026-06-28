@@ -16,7 +16,7 @@ import io.jsonwebtoken.JwtException;
  * the supplied registration data.</li>
  * <li>{@link #authenticate(String, String, boolean)} — Authenticates a user
  * with credentials and optional session persistence.</li>
- * <li>{@link #refreshToken(String, String)} — Issues a new authentication token using a
+ * <li>{@link #refreshToken(String)} — Issues a new authentication token using a
  * valid refresh token.</li>
  * <li>{@link #logout(String)} — Invalidates an existing authentication token to
  * end a user session.</li>
@@ -52,15 +52,16 @@ public interface AuthenticationService {
 
     /**
      * Issues a new authentication token using a valid refresh token.
+     * The username is extracted from the token's subject claim — no client-supplied
+     * username is needed or accepted.
      *
      * @param refreshToken the refresh token
-     * @param username     the username of the user
      * @return an UserEntity representing the refreshed authentication
      * @throws JwtException            if the refresh token is invalid or expired
      * @throws AuthenticationException if token refresh fails
      * @throws UserException           if user is not valid
      */
-    UserEntity refreshToken(String refreshToken, String username) throws JwtException, AuthenticationException, UserException;
+    UserEntity refreshToken(String refreshToken) throws JwtException, AuthenticationException, UserException;
 
     /**
      * Invalidates an existing authentication token to end a user session.

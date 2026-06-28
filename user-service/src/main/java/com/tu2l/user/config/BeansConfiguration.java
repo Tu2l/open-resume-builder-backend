@@ -12,6 +12,8 @@ import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.web.servlet.config.annotation.CorsRegistry;
 import org.springframework.web.servlet.config.annotation.WebMvcConfigurer;
 
+import java.nio.charset.StandardCharsets;
+
 @RequiredArgsConstructor
 @Configuration
 public class BeansConfiguration {
@@ -30,7 +32,12 @@ public class BeansConfiguration {
 
     @Bean
     public JwtUtil jwtUtil() {
-        return new JwtUtil(jwtConfig.secretKey(), jwtConfig.accessTokenExpirationMinutes(), jwtConfig.refreshTokenExpirationDays(), jwtConfig.issuer());
+        var secret = jwtConfig.secretKey();
+        if (secret == null || secret.getBytes(StandardCharsets.UTF_8).length < 32) {
+            throw new IllegalStateException(
+                    "app.auth.jwt.secret-key must be at least 32 bytes (256 bits) for HS256");
+        }
+        return new JwtUtil(secret, jwtConfig.accessTokenExpirationMinutes(), jwtConfig.refreshTokenExpirationDays(), jwtConfig.issuer());
     }
 
     @Bean

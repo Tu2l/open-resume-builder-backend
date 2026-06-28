@@ -12,8 +12,4 @@ public class RefreshTokenRequest implements BaseRequest {
     @Schema(description = "The refresh token issued during login or a previous refresh.", example = "eyJhbGciOiJIUzI1NiJ9...")
     @NotBlank(message = "Refresh token is required")
     private String refreshToken;
-
-    @Schema(description = "Username of the token owner — must match the subject embedded in the refresh token.", example = "john.doe")
-    @NotBlank(message = "Username is required")
-    private String username;
 }

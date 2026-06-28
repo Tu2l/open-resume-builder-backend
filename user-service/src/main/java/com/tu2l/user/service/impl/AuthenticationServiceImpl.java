@@ -111,7 +111,10 @@ public class AuthenticationServiceImpl implements AuthenticationService {
     }
 
     @Override
-    public UserEntity refreshToken(String refreshToken, String username) throws JwtException, AuthenticationException, UserException {
+    public UserEntity refreshToken(String refreshToken) throws JwtException, AuthenticationException, UserException {
+        // Extract the username from the token's subject — the client must not supply it,
+        // so there is no risk of a username/token mismatch attack.
+        var username = authTokenService.getUsername(refreshToken);
         var user = userService.getUserWithCredentials(username);
 
         var refreshTokenCredential = user.getCredentialByTokenTypeAndToken(JwtTokenType.REFRESH, commonUtil.sha256Hex(refreshToken));
