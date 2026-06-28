@@ -36,6 +36,17 @@ public interface AuthTokenService {
     String generateToken(UserEntity user, JwtTokenType tokenType) throws JwtException;
 
     /**
+     * Generate an access token for a user.
+     *
+     * @param user       the user data for token claims
+     * @param rememberMe when {@code true}, the access token is issued with the longer
+     *                   "remember me" validity instead of the default access-token validity
+     * @return generated access token value
+     * @throws JwtException if token generation fails
+     */
+    String generateAccessToken(UserEntity user, boolean rememberMe) throws JwtException;
+
+    /**
      * Validate a JWT token based on its type.
      */
     boolean validateToken(String token, JwtTokenType tokenType) throws JwtException;

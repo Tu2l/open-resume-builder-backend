@@ -33,14 +33,22 @@ public class JwtUtil {
     // --- Token Generation Methods ---
 
     /**
-     * Generate access token for user authentication
+     * Generate access token for user authentication using the default validity.
      */
     public String generateAccessToken(String username, String email, String role) {
+        return generateAccessToken(username, email, role, accessTokenExpirationMinutes);
+    }
+
+    /**
+     * Generate access token for user authentication with an explicit validity (in minutes).
+     * Used for "remember me" logins where the access token lives longer than the default.
+     */
+    public String generateAccessToken(String username, String email, String role, long expirationMinutes) {
         Map<String, Object> claims = new HashMap<>();
         claims.put(CommonConstants.JwtClaims.EMAIL, email);
         claims.put(CommonConstants.JwtClaims.TOKEN_TYPE, JwtTokenType.ACCESS.getValue());
         claims.put(CommonConstants.JwtClaims.ROLE, role);
-        return createToken(claims, username, accessTokenExpirationMinutes, ChronoUnit.MINUTES);
+        return createToken(claims, username, expirationMinutes, ChronoUnit.MINUTES);
     }
 
     /**

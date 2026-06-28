@@ -45,7 +45,7 @@ public interface AuthenticationApi {
             summary = "Authenticate (login)",
             description = "Authenticates a user with email and Base64-encoded password. " +
                           "Returns an access token (short-lived) and a refresh token. " +
-                          "Set `rememberMe: true` to receive a long-lived refresh token."
+                          "Set `rememberMe: true` to receive a longer-lived access token."
     )
     @ApiResponses({
             @ApiResponse(responseCode = "200", description = "Login successful",

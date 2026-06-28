@@ -46,7 +46,7 @@ public class AuthenticationServiceImpl implements AuthenticationService {
         user.setPassword(passwordService.hashPassword(request.getPassword()));
 
         try {
-            attachLoginTokens(user);
+            attachLoginTokens(user, false);
             var verificationToken = authTokenService.generateToken(user, JwtTokenType.EMAIL_VERIFICATION);
             user.addUserCredential(buildUserCredential(verificationToken, JwtTokenType.EMAIL_VERIFICATION));
             var saved = userService.saveUser(user);
@@ -100,7 +100,7 @@ public class AuthenticationServiceImpl implements AuthenticationService {
             // Successful login: clear any prior failed attempts and record the time.
             accountStatus.unlockAccount();
             accountStatus.setLastLoginAt(LocalDateTime.now());
-            attachLoginTokens(user);
+            attachLoginTokens(user, rememberMe);
             log.info("User authenticated successfully: {}", email);
             var saved = userService.saveUser(user);
             auditService.log(AuditEventType.LOGIN_SUCCESS, saved.getId(), null);
@@ -247,11 +247,13 @@ public class AuthenticationServiceImpl implements AuthenticationService {
         return true;
     }
 
-    private void attachLoginTokens(UserEntity user) {
+    private void attachLoginTokens(UserEntity user, boolean rememberMe) {
         var refreshToken = authTokenService.generateToken(user, JwtTokenType.REFRESH);
         user.addUserCredential(buildUserCredential(refreshToken, JwtTokenType.REFRESH));
 
-        var accessToken = authTokenService.generateToken(user, JwtTokenType.ACCESS);
+        // "remember me" only extends the access-token lifetime; the refresh token keeps
+        // its standard refresh-token-expiration-days validity.
+        var accessToken = authTokenService.generateAccessToken(user, rememberMe);
         user.addUserCredential(buildUserCredential(accessToken, JwtTokenType.ACCESS));
 
         // Carry the raw tokens back for the auth response (only hashes are persisted).

@@ -136,7 +136,7 @@ class AuthenticationServiceImplTest {
         when(userService.getUserByEmailWithDetails("john@example.com")).thenReturn(user);
         when(passwordService.verifyPassword("pw", "hash")).thenReturn(true);
         when(authTokenService.generateToken(user, JwtTokenType.REFRESH)).thenReturn("refresh");
-        when(authTokenService.generateToken(user, JwtTokenType.ACCESS)).thenReturn("access");
+        when(authTokenService.generateAccessToken(user, false)).thenReturn("access");
         when(commonUtil.sha256Hex(anyString())).thenReturn("hash");
         when(authTokenService.issuedAt(anyString())).thenReturn(LocalDateTime.now());
         when(authTokenService.expiresAt(anyString())).thenReturn(LocalDateTime.now().plusDays(1));
@@ -146,6 +146,28 @@ class AuthenticationServiceImplTest {
 
         assertThat(result.getPlainAccessToken()).isEqualTo("access");
         assertThat(result.getPlainRefreshToken()).isEqualTo("refresh");
+    }
+
+    @Test
+    void authenticate_rememberMe_issuesRememberMeAccessToken() {
+        var status = new UserAccountStatus();
+        status.setEnabled(true);
+        status.setEmailVerified(true);
+        var user = userWith(status);
+        when(userService.getUserByEmailWithDetails("john@example.com")).thenReturn(user);
+        when(passwordService.verifyPassword("pw", "hash")).thenReturn(true);
+        when(authTokenService.generateToken(user, JwtTokenType.REFRESH)).thenReturn("refresh");
+        // rememberMe=true must request the longer-lived ("remember me") access token.
+        when(authTokenService.generateAccessToken(user, true)).thenReturn("rememberAccess");
+        when(commonUtil.sha256Hex(anyString())).thenReturn("hash");
+        when(authTokenService.issuedAt(anyString())).thenReturn(LocalDateTime.now());
+        when(authTokenService.expiresAt(anyString())).thenReturn(LocalDateTime.now().plusDays(1));
+        when(userService.saveUser(user)).thenReturn(user);
+
+        var result = service(DEFAULT_CFG).authenticate("john@example.com", "pw", true);
+
+        assertThat(result.getPlainAccessToken()).isEqualTo("rememberAccess");
+        verify(authTokenService).generateAccessToken(user, true);
     }
 
     // --- forgot password enumeration (#8) ---

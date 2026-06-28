@@ -29,7 +29,7 @@ public class LoginRequest implements BaseRequest {
     private String password;
 
     @Schema(
-            description = "When `true`, issues a long-lived refresh token instead of the default short-lived one.",
+            description = "When `true`, issues a longer-lived access token instead of the default short-lived one.",
             defaultValue = "false",
             example = "false"
     )

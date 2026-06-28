@@ -3,6 +3,7 @@ package com.tu2l.user.service.impl;
 import com.tu2l.common.model.JwtTokenType;
 import com.tu2l.common.model.states.UserRole;
 import com.tu2l.common.util.JwtUtil;
+import com.tu2l.user.config.AuthConfigValues;
 import com.tu2l.user.entity.UserEntity;
 import com.tu2l.user.service.AuthTokenService;
 import io.jsonwebtoken.JwtException;
@@ -13,19 +14,30 @@ import java.time.LocalDateTime;
 @Service
 public class JwtServiceImpl implements AuthTokenService {
     private final JwtUtil jwtUtil;
+    private final AuthConfigValues authConfigValues;
 
-    public JwtServiceImpl(JwtUtil jwtUtil) {
+    public JwtServiceImpl(JwtUtil jwtUtil, AuthConfigValues authConfigValues) {
         this.jwtUtil = jwtUtil;
+        this.authConfigValues = authConfigValues;
     }
 
     @Override
     public String generateToken(UserEntity user, JwtTokenType tokenType) throws JwtException {
         return switch (tokenType) {
-            case ACCESS -> jwtUtil.generateAccessToken(user.getUsername(), user.getEmail(), user.getRole().name());
+            case ACCESS -> generateAccessToken(user, false);
             case REFRESH -> jwtUtil.generateRefreshToken(user.getUsername());
             case PASSWORD_RESET -> jwtUtil.generatePasswordResetToken(user.getUsername(), user.getEmail());
             case EMAIL_VERIFICATION -> jwtUtil.generateEmailVerificationToken(user.getUsername(), user.getEmail());
         };
+    }
+
+    @Override
+    public String generateAccessToken(UserEntity user, boolean rememberMe) throws JwtException {
+        if (rememberMe) {
+            return jwtUtil.generateAccessToken(user.getUsername(), user.getEmail(), user.getRole().name(),
+                    authConfigValues.rememberMeTokenValidityMinutes());
+        }
+        return jwtUtil.generateAccessToken(user.getUsername(), user.getEmail(), user.getRole().name());
     }
 
     @Override
