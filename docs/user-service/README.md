@@ -70,8 +70,11 @@ flowchart TB
 
 Cross-cutting: `@ConfigurationPropertiesScan` binds all `app.*` records; `@EnableScheduling`
 drives cleanup; `@EnableCaching` (Caffeine `users` cache); `CorrelationIdFilter` puts a
-per-request id in MDC; springdoc serves the OpenAPI spec at `/users/v1/api-docs` (Swagger UI is
-disabled here and aggregated by the gateway). Actuator exposes `health`/`info` on the app port.
+per-request id in MDC; `spring.jpa.open-in-view=false` (all service→mapper paths use JOIN FETCH
+to load associations before the transaction closes); springdoc serves the OpenAPI spec at
+`/users/v1/api-docs` **in dev only** (disabled in prod and in the base config as a secure default —
+Swagger UI is also disabled and was aggregated by the gateway in dev). Actuator exposes
+`health`/`info` on the app port.
 
 ---
 
@@ -140,9 +143,16 @@ erDiagram
     }
 ```
 
-The schema is owned by **Flyway**: `V1__baseline.sql` plus `V2__add_password_changed_audit_event.sql`
-(which extends the `audit_events.event_type` CHECK constraint with `PASSWORD_CHANGED`). `ddl-auto` is
-`validate` in dev and prod. `users.deleted_at` drives soft delete via `@SQLRestriction("deleted_at IS NULL")`.
+The schema is owned by **Flyway** (`ddl-auto: validate` in all profiles):
+
+| Migration | What it does |
+|-----------|-------------|
+| `V1__baseline.sql` | Full baseline: all tables, indexes, constraints |
+| `V2__add_password_changed_audit_event.sql` | Extends `audit_events.event_type` CHECK with `PASSWORD_CHANGED` |
+| `V3__partial_unique_username_email.sql` | Drops unconditional `uk_username`/`uk_email`; replaces with partial unique indexes `WHERE deleted_at IS NULL` (enables soft-delete re-registration) |
+| `V4__fix_failed_login_attempts_not_null.sql` | Backfills `NULL` → `0`, adds `NOT NULL DEFAULT 0` on `failed_login_attempts` |
+
+`users.deleted_at` drives soft delete via `@SQLRestriction("deleted_at IS NULL")`.
 
 ### Entity relationships (UML)
 
@@ -329,8 +339,9 @@ sequenceDiagram
     alt app.bootstrap-admin.enabled = false
         AB-->>App: skip
     else enabled
-        AB->>DB: existsByRole(ADMIN)?
-        alt admin exists / name taken / config incomplete
+        AB->>DB: existsByRoleIncludingDeleted('ADMIN')?
+        note right of DB: native SQL — bypasses @SQLRestriction,<br/>so soft-deleted admin still blocks re-seed
+        alt admin exists (active or soft-deleted) / name taken / config incomplete
             AB-->>App: skip (idempotent)
         else none yet
             AB->>DB: save ADMIN (enabled, emailVerified, BCrypt password)
@@ -360,6 +371,11 @@ sequenceDiagram
 - **Audit** — `AuditService.log` runs `REQUIRES_NEW` so events persist even when the business
   transaction rolls back (e.g. `LOGIN_FAILED`). Client IP is resolved via the same trusted-proxy
   `ClientIpResolver` as the rate limiter. Self-service password change emits `PASSWORD_CHANGED`.
+- **Connection pool** — HikariCP tuned in prod: pool name `user-service-pool`, max/min pool size
+  via `HIKARI_MAX_POOL_SIZE` (default 10) / `HIKARI_MIN_IDLE` (default 5); connection-timeout 20s;
+  idle-timeout 5 min; max-lifetime 30 min; keepalive 1 min (prevents cloud DB from dropping idle
+  connections); leak-detection-threshold 60s (logs a warning if a connection is held longer —
+  useful for catching unexpected long-held connections).
 - **Caching** — Caffeine `users` cache (5-min TTL); mutations evict. In-process (single VM).
 - **Observability** — `CorrelationIdFilter` reads/generates `X-Correlation-Id`, stores it in MDC as
   `requestId`, and echoes it back; `logging.pattern.level` includes `%X{requestId}` so it appears on
@@ -408,10 +424,24 @@ app:
     email: admin@resume-builder.local
     password: Admin@12345
 spring:
-  jpa.hibernate.ddl-auto: validate       # Flyway owns the schema
+  jpa:
+    hibernate.ddl-auto: validate         # Flyway owns the schema
+    open-in-view: false                  # all service→mapper paths use JOIN FETCH; OSIV not needed
   flyway: { enabled: true, baseline-on-migrate: true }
+  datasource.hikari:                     # prod only; env-var overridable
+    pool-name: user-service-pool
+    maximum-pool-size: ${HIKARI_MAX_POOL_SIZE:10}
+    minimum-idle: ${HIKARI_MIN_IDLE:5}
+    connection-timeout: 20000
+    idle-timeout: 300000
+    max-lifetime: 1800000
+    keepalive-time: 60000
+    leak-detection-threshold: 60000
   mail: { host, port, username, password }   # prod SMTP transport (env-driven)
   # NOTE: no spring.profiles.active pinned here — see "Lifecycle/secrets" above.
+springdoc:                               # base default (secure); dev profile enables api-docs
+  swagger-ui.enabled: false
+  api-docs.enabled: false
 server:
   shutdown: graceful                       # drain in-flight requests on shutdown
 management:                                # Actuator (shared app port)
@@ -435,8 +465,9 @@ mvn -pl user-service -am test              # unit/regression suite (offline-frie
 mvn -pl user-service spring-boot:run       # :8091  (run gateway for :8080)
 ```
 
-OpenAPI spec: `http://localhost:8091/users/v1/api-docs` (Swagger UI is disabled in user-service and
-aggregated by the gateway at `/swagger-ui.html`). Health: `http://localhost:8091/users/actuator/health`.
+OpenAPI spec (dev only): `http://localhost:8091/users/v1/api-docs` — disabled in prod and in the
+base config as a secure default; the gateway aggregates it at `/swagger-ui.html` in dev.
+Health: `http://localhost:8091/users/actuator/health`.
 Exercise flows with `etc/requests/user-service.http`. Tests are pure unit/Mockito (services, mapper,
 JWT, rate-limiter, exception handler, controllers, bootstrapper); there are no integration/context-load
 tests yet.

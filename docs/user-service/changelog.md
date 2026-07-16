@@ -5,6 +5,53 @@ Design rationale lives in [`README.md`](./README.md). Branch: `user-service-refa
 
 ---
 
+## Production-readiness follow-up (2026-07) — commit `7789065`
+
+Resolved the remaining MED/LOW items from the production-readiness audit.
+
+### HikariCP pool tuning
+Added explicit pool configuration to `application-prod.yml` (previously running on HikariCP
+defaults). Pool size is env-var overridable (`HIKARI_MAX_POOL_SIZE` / `HIKARI_MIN_IDLE`, defaults
+10/5). `keepalive-time: 60s` prevents cloud DB (Supabase) from dropping idle connections.
+`leak-detection-threshold: 60s` logs a warning if a connection is held longer than expected.
+
+### API-docs lockdown
+`springdoc.swagger-ui` and `springdoc.api-docs` are now **disabled in the base `application.yml`**
+as a secure default (dev profile explicitly re-enables `api-docs`). The gateway prod profile
+disables its own springdoc and removes the `/api/users/v1/api-docs` and `/api/pdf/v1/api-docs`
+paths from `public-routes`, so accidental re-enablement on a downstream service would land behind
+JWT rather than being publicly accessible.
+
+### OSIV eliminated + N+1 fixed
+Set `spring.jpa.open-in-view: false` globally. Every controller→mapper path that accessed lazy
+`profile` or `accountStatus` associations outside a transaction was identified and fixed:
+
+| Changed method | Was | Now |
+|---|---|---|
+| `UserServiceImpl.getUserById` | `findById` | `findByIdWithDetails` (JOIN FETCH) |
+| `UserServiceImpl.updateUser` | `findById` | `findByIdWithDetails` |
+| `UserServiceImpl.updatePassword` | `findUserByUsername` | `findByUsernameWithDetails` |
+| `UserServiceImpl.getAllUsers` | `findAll(pageable)` | `findAllWithDetails` (JOIN FETCH + countQuery) |
+| `UserController.getCurrentUser` | `getUserByEmail` | `getUserByEmailWithDetails` |
+
+`findAllWithDetails` also resolves the N+1 on the admin paginated user listing (profile and account
+status were previously lazy-loaded per row).
+
+### AdminBootstrapper soft-delete blind spot
+`existsByRole(UserRole.ADMIN)` is a derived query filtered by `@SQLRestriction("deleted_at IS NULL")`,
+so a soft-deleted admin was invisible — the bootstrapper would re-seed on the next restart.
+Replaced with `existsByRoleIncludingDeleted(String role)` — a native SQL `EXISTS` query that
+bypasses the restriction and counts all rows regardless of `deleted_at`.
+
+### `failed_login_attempts` schema fix (`V4` migration)
+The V1 baseline declared `failed_login_attempts integer` (nullable, no default), while the
+`UserAccountStatus` entity maps it to a primitive `int`. Any row with a `NULL` value would cause
+Hibernate to NPE on read. `V4__fix_failed_login_attempts_not_null.sql` backfills `NULL → 0`,
+then adds `NOT NULL DEFAULT 0`. The `@Column` annotation on `UserAccountStatus` is aligned to
+`nullable = false`.
+
+---
+
 ## Production hardening & single-VM deployment (2026-06)
 
 A production-readiness review drove a batch of go-live fixes. The deployment target is a **single
