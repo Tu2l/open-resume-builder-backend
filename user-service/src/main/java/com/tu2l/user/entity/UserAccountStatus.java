@@ -41,7 +41,7 @@ public class UserAccountStatus {
     @Column(nullable = false, name = "phone_verified")
     private boolean phoneVerified;
 
-    @Column(name = "failed_login_attempts")
+    @Column(name = "failed_login_attempts", nullable = false)
     private int failedLoginAttempts;
 
     @Column(name = "account_locked_until")

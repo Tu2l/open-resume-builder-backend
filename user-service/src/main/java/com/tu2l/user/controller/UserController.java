@@ -29,7 +29,7 @@ public class UserController extends BaseController implements UserApi {
     @Override
     public ResponseEntity<UserResponse> getCurrentUser(String userEmail) throws Exception {
         log.info("Fetching current user profile");
-        UserEntity user = userService.getUserByEmail(userEmail);
+        UserEntity user = userService.getUserByEmailWithDetails(userEmail);
         return ResponseEntity.ok(UserResponse.of(userMapper.toUserDTO(user)));
     }
 

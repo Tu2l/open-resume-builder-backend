@@ -56,7 +56,7 @@ class UserServiceImplTest {
     void updateUser_missingUser_throwsNotFound() {
         UserDTO dto = new UserDTO();
         dto.setId(99L);
-        when(userRepository.findById(99L)).thenReturn(Optional.empty());
+        when(userRepository.findByIdWithDetails(99L)).thenReturn(Optional.empty());
 
         assertThatThrownBy(() -> userService.updateUser(dto))
                 .isInstanceOf(UserNotFoundException.class);
@@ -67,7 +67,7 @@ class UserServiceImplTest {
         UserDTO dto = new UserDTO();
         dto.setId(1L);
         UserEntity existing = UserEntity.builder().id(1L).build();
-        when(userRepository.findById(1L)).thenReturn(Optional.of(existing));
+        when(userRepository.findByIdWithDetails(1L)).thenReturn(Optional.of(existing));
         when(userMapper.updateUserFromDTO(dto, existing)).thenReturn(existing);
         when(userRepository.save(existing)).thenReturn(existing);
 
@@ -76,7 +76,7 @@ class UserServiceImplTest {
 
     @Test
     void getUserById_missing_throwsNotFound() {
-        when(userRepository.findById(7L)).thenReturn(Optional.empty());
+        when(userRepository.findByIdWithDetails(7L)).thenReturn(Optional.empty());
 
         assertThatThrownBy(() -> userService.getUserById(7L))
                 .isInstanceOf(UserNotFoundException.class);
@@ -88,7 +88,7 @@ class UserServiceImplTest {
         status.setAccountLockedUntil(LocalDateTime.now().plusMinutes(10));
         status.setFailedLoginAttempts(5);
         UserEntity user = UserEntity.builder().id(1L).accountStatus(status).build();
-        when(userRepository.findById(1L)).thenReturn(Optional.of(user));
+        when(userRepository.findByIdWithDetails(1L)).thenReturn(Optional.of(user));
         when(userRepository.save(any(UserEntity.class))).thenReturn(user);
 
         userService.unlockAccount(1L);
@@ -101,7 +101,7 @@ class UserServiceImplTest {
     void updatePassword_validOldPassword_encodesNewAndAudits() {
         UserEntity user = UserEntity.builder().id(1L).username("john").password("oldHash").build();
         when(commonUtil.decodeBase64StringToString("bmV3")).thenReturn("newPlain");
-        when(userRepository.findUserByUsername("john")).thenReturn(Optional.of(user));
+        when(userRepository.findByUsernameWithDetails("john")).thenReturn(Optional.of(user));
         when(commonUtil.decodeBase64StringToString("b2xk")).thenReturn("oldPlain");
         when(passwordEncoder.matches("oldPlain", "oldHash")).thenReturn(true);
         when(passwordEncoder.encode("newPlain")).thenReturn("newHash");
@@ -117,7 +117,7 @@ class UserServiceImplTest {
     void updatePassword_wrongOldPassword_throwsAndDoesNotAudit() {
         UserEntity user = UserEntity.builder().id(1L).username("john").password("oldHash").build();
         when(commonUtil.decodeBase64StringToString("bmV3")).thenReturn("newPlain");
-        when(userRepository.findUserByUsername("john")).thenReturn(Optional.of(user));
+        when(userRepository.findByUsernameWithDetails("john")).thenReturn(Optional.of(user));
         when(commonUtil.decodeBase64StringToString("YmFk")).thenReturn("bad");
         when(passwordEncoder.matches("bad", "oldHash")).thenReturn(false);
 
@@ -132,7 +132,7 @@ class UserServiceImplTest {
         UserAccountStatus status = new UserAccountStatus();
         status.setEnabled(true);
         UserEntity user = UserEntity.builder().id(1L).accountStatus(status).build();
-        when(userRepository.findById(1L)).thenReturn(Optional.of(user));
+        when(userRepository.findByIdWithDetails(1L)).thenReturn(Optional.of(user));
         when(userRepository.save(any(UserEntity.class))).thenReturn(user);
 
         userService.setEnabled(1L, false);

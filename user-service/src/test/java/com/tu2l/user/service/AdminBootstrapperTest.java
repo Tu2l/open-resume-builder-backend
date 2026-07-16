@@ -33,7 +33,7 @@ class AdminBootstrapperTest {
 
     @Test
     void seedsAdminWhenEnabledAndNoneExists() {
-        when(userRepository.existsByRole(UserRole.ADMIN)).thenReturn(false);
+        when(userRepository.existsByRoleIncludingDeleted(UserRole.ADMIN.name())).thenReturn(false);
         when(userRepository.existsByUsernameOrEmail("admin", "admin@x.com")).thenReturn(false);
         when(passwordEncoder.encode("Admin@12345")).thenReturn("hashed");
 
@@ -56,7 +56,7 @@ class AdminBootstrapperTest {
 
     @Test
     void skipsWhenAdminAlreadyExists() {
-        when(userRepository.existsByRole(UserRole.ADMIN)).thenReturn(true);
+        when(userRepository.existsByRoleIncludingDeleted(UserRole.ADMIN.name())).thenReturn(true);
 
         bootstrapper(props(true)).run(null);
 
@@ -72,7 +72,7 @@ class AdminBootstrapperTest {
 
     @Test
     void skipsWhenUsernameOrEmailTaken() {
-        when(userRepository.existsByRole(UserRole.ADMIN)).thenReturn(false);
+        when(userRepository.existsByRoleIncludingDeleted(UserRole.ADMIN.name())).thenReturn(false);
         when(userRepository.existsByUsernameOrEmail("admin", "admin@x.com")).thenReturn(true);
 
         bootstrapper(props(true)).run(null);

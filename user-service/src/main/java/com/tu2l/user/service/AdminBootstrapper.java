@@ -37,8 +37,8 @@ public class AdminBootstrapper implements ApplicationRunner {
             log.warn("Bootstrap admin is enabled but username/email/password are not fully configured; skipping");
             return;
         }
-        if (userRepository.existsByRole(UserRole.ADMIN)) {
-            log.info("Bootstrap admin: an ADMIN account already exists; skipping seed");
+        if (userRepository.existsByRoleIncludingDeleted(UserRole.ADMIN.name())) {
+            log.info("Bootstrap admin: an ADMIN account already exists (active or soft-deleted); skipping seed");
             return;
         }
         if (userRepository.existsByUsernameOrEmail(properties.username(), properties.email())) {

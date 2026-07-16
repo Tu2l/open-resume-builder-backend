@@ -3,9 +3,17 @@
 # activates 'dev' for local `mvn spring-boot:run`). This makes a misconfigured prod
 # deploy fail fast on a missing datasource rather than silently booting the dev
 # profile with its weak fallback secret and seeded bootstrap admin.
+springdoc:
+  swagger-ui:
+    enabled: false
+  api-docs:
+    enabled: false
+
 spring:
   lifecycle:
     timeout-per-shutdown-phase: 30s
+  jpa:
+    open-in-view: false
 
 server:
   shutdown: graceful

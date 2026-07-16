@@ -42,7 +42,7 @@ public class UserServiceImpl implements UserService, AdminUserService {
     public UserEntity getUserById(Long id) throws UserException {
         log.info("Fetching user with id: {}", id);
 
-        return userRepository.findById(id)
+        return userRepository.findByIdWithDetails(id)
                 .orElseThrow(() -> new UserNotFoundException(USER_NOT_FOUND_MSG + id));
     }
 
@@ -62,7 +62,7 @@ public class UserServiceImpl implements UserService, AdminUserService {
             throw new UserException("UserDTO or User ID must not be null");
         }
 
-        UserEntity updatedUser = userRepository.findById(userDTO.getId())
+        UserEntity updatedUser = userRepository.findByIdWithDetails(userDTO.getId())
                 .map(user -> userMapper.updateUserFromDTO(userDTO, user))
                 .orElseThrow(() -> new UserNotFoundException(USER_NOT_FOUND_MSG + userDTO.getId()));
 
@@ -97,7 +97,7 @@ public class UserServiceImpl implements UserService, AdminUserService {
 
         String newPasswordPlainText = commonUtil.decodeBase64StringToString(newPassword);
 
-        UserEntity user = userRepository.findUserByUsername(username)
+        UserEntity user = userRepository.findByUsernameWithDetails(username)
                 .orElseThrow(() -> new UserNotFoundException(USER_NOT_FOUND_MSG + username));
 
         if (!passwordEncoder.matches(commonUtil.decodeBase64StringToString(oldPassword), user.getPassword())) {
@@ -174,7 +174,7 @@ public class UserServiceImpl implements UserService, AdminUserService {
     @Transactional(readOnly = true)
     public Page<UserEntity> getAllUsers(Pageable pageable) {
         log.info("Fetching users page: {}", pageable);
-        return userRepository.findAll(pageable);
+        return userRepository.findAllWithDetails(pageable);
     }
 
     @Override

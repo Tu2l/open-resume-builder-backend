@@ -2,6 +2,8 @@ package com.tu2l.user.repository;
 
 import com.tu2l.common.model.states.UserRole;
 import com.tu2l.user.entity.UserEntity;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
@@ -12,8 +14,18 @@ import java.util.Optional;
 @Repository
 public interface UserRepository extends JpaRepository<UserEntity, Long> {
 
-    /** True if at least one (non-deleted) user holds the given role. */
+    /**
+     * True if at least one (non-deleted) user holds the given role.
+     */
     boolean existsByRole(UserRole role);
+
+    /**
+     * True if ANY user (including soft-deleted) holds the given role.
+     * Use for idempotency guards where a soft-deleted record still counts —
+     * e.g. AdminBootstrapper must not re-seed an admin just because the original was soft-deleted.
+     */
+    @Query(value = "SELECT EXISTS(SELECT 1 FROM users WHERE role = :role)", nativeQuery = true)
+    boolean existsByRoleIncludingDeleted(@Param("role") String role);
 
     /**
      * Find a user by username or email (lightweight - no relationships loaded).
@@ -118,25 +130,29 @@ public interface UserRepository extends JpaRepository<UserEntity, Long> {
             @Param("email") String email
     );
 
+    /** Find a user by id with profile and account status eagerly loaded. */
+    @Query("SELECT u FROM UserEntity u " +
+            "LEFT JOIN FETCH u.profile " +
+            "LEFT JOIN FETCH u.accountStatus " +
+            "WHERE u.id = :id")
+    Optional<UserEntity> findByIdWithDetails(@Param("id") Long id);
+
+    /**
+     * Fetch a page of users with profile and account status eagerly loaded.
+     * The separate countQuery avoids applying the JOIN FETCH to the count.
+     */
+    @Query(value = "SELECT u FROM UserEntity u LEFT JOIN FETCH u.profile LEFT JOIN FETCH u.accountStatus",
+            countQuery = "SELECT COUNT(u) FROM UserEntity u")
+    Page<UserEntity> findAllWithDetails(Pageable pageable);
+
     /**
      * Find a user by username with ALL relationships eagerly loaded (profile, status, credentials).
      *
      * <p><b>Use this when:</b> You need to access user.getCredentials() collection or iterate
      * over credentials after the repository transaction has closed.</p>
      *
-     * <p><b>Example use cases:</b></p>
-     * <ul>
-     *   <li>Token refresh operations (checking refresh token validity)</li>
-     *   <li>Logout operations (removing specific credentials)</li>
-     *   <li>Password reset (checking password reset tokens, clearing all tokens)</li>
-     *   <li>Session management</li>
-     * </ul>
-     *
      * <p><b>WARNING:</b> Can be expensive for users with many credentials.
      * Use {@link #findByUsernameWithDetails(String)} if you only need profile/status.</p>
-     *
-     * @param username the username to search for
-     * @return an Optional containing the found UserEntity with all relationships, or empty if not found
      */
     @Query("SELECT DISTINCT u FROM UserEntity u " +
             "LEFT JOIN FETCH u.profile " +
