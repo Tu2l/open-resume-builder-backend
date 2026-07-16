@@ -12,6 +12,7 @@ import org.jspecify.annotations.NonNull;
 import org.springframework.cloud.gateway.filter.GatewayFilter;
 import org.springframework.cloud.gateway.filter.GatewayFilterChain;
 import org.springframework.core.Ordered;
+import org.springframework.core.annotation.Order;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpMethod;
 import org.springframework.http.server.reactive.ServerHttpRequest;
@@ -19,7 +20,8 @@ import org.springframework.web.server.ServerWebExchange;
 import reactor.core.publisher.Mono;
 
 @Slf4j
-public class AuthGatewayFilter implements GatewayFilter, Ordered {
+@Order(Ordered.HIGHEST_PRECEDENCE + 1)
+public class AuthGatewayFilter implements GatewayFilter {
     private final AuthGatewayService authService;
 
     public AuthGatewayFilter(AuthGatewayService authService) {
@@ -97,10 +99,5 @@ public class AuthGatewayFilter implements GatewayFilter, Ordered {
             log.error("Token validation error for {} {}", method, path, e);
             throw new AuthenticationException("Token validation error", e);
         }
-    }
-
-    @Override
-    public int getOrder() {
-        return Ordered.HIGHEST_PRECEDENCE + 1; // run after GlobalRequestFilter
     }
 }
