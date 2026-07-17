@@ -1,5 +1,6 @@
 package com.tu2l.user.controller.api;
 
+import com.tu2l.common.model.ErrorResponse;
 import com.tu2l.user.model.response.AuthorizationResponse;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
@@ -14,12 +15,6 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 
-/**
- * Admin-only RBAC management endpoints. Mounted under {@code /admin/authorize} with API version
- * {@code 1+} resolved from the {@code /v1} path segment (effective gateway path
- * {@code /api/users/v1/admin/authorize/**}); all routes require ADMIN role.
- * Self-service authorization queries live in {@link AuthorizationApi}.
- */
 @Tag(name = "Admin — Authorization", description = "Admin-only RBAC management operations")
 @SecurityRequirement(name = "bearerAuth")
 @RequestMapping(value = "/admin/authorize", version = "1")
@@ -31,7 +26,9 @@ public interface AdminAuthorizationApi {
             @ApiResponse(responseCode = "200", description = "Roles retrieved",
                     content = @Content(mediaType = MediaType.APPLICATION_JSON_VALUE,
                             schema = @Schema(implementation = AuthorizationResponse.class))),
-            @ApiResponse(responseCode = "403", description = "Caller does not have the ADMIN role")
+            @ApiResponse(responseCode = "403", description = "Caller does not have the ADMIN role",
+                    content = @Content(mediaType = MediaType.APPLICATION_JSON_VALUE,
+                            schema = @Schema(implementation = ErrorResponse.class)))
     })
     @GetMapping("/roles")
     ResponseEntity<AuthorizationResponse> getAllRoles();
@@ -41,8 +38,12 @@ public interface AdminAuthorizationApi {
             @ApiResponse(responseCode = "200", description = "User role retrieved",
                     content = @Content(mediaType = MediaType.APPLICATION_JSON_VALUE,
                             schema = @Schema(implementation = AuthorizationResponse.class))),
-            @ApiResponse(responseCode = "403", description = "Caller does not have the ADMIN role"),
-            @ApiResponse(responseCode = "404", description = "User not found")
+            @ApiResponse(responseCode = "403", description = "Caller does not have the ADMIN role",
+                    content = @Content(mediaType = MediaType.APPLICATION_JSON_VALUE,
+                            schema = @Schema(implementation = ErrorResponse.class))),
+            @ApiResponse(responseCode = "404", description = "User not found",
+                    content = @Content(mediaType = MediaType.APPLICATION_JSON_VALUE,
+                            schema = @Schema(implementation = ErrorResponse.class)))
     })
     @GetMapping("/roles/{userId}")
     ResponseEntity<AuthorizationResponse> getUserRole(
@@ -54,9 +55,15 @@ public interface AdminAuthorizationApi {
             @ApiResponse(responseCode = "200", description = "Role assigned",
                     content = @Content(mediaType = MediaType.APPLICATION_JSON_VALUE,
                             schema = @Schema(implementation = AuthorizationResponse.class))),
-            @ApiResponse(responseCode = "400", description = "Unknown role name"),
-            @ApiResponse(responseCode = "403", description = "Caller does not have the ADMIN role"),
-            @ApiResponse(responseCode = "404", description = "User not found")
+            @ApiResponse(responseCode = "400", description = "Unknown role name",
+                    content = @Content(mediaType = MediaType.APPLICATION_JSON_VALUE,
+                            schema = @Schema(implementation = ErrorResponse.class))),
+            @ApiResponse(responseCode = "403", description = "Caller does not have the ADMIN role",
+                    content = @Content(mediaType = MediaType.APPLICATION_JSON_VALUE,
+                            schema = @Schema(implementation = ErrorResponse.class))),
+            @ApiResponse(responseCode = "404", description = "User not found",
+                    content = @Content(mediaType = MediaType.APPLICATION_JSON_VALUE,
+                            schema = @Schema(implementation = ErrorResponse.class)))
     })
     @PostMapping("/roles/{userId}")
     ResponseEntity<AuthorizationResponse> assignRole(
@@ -74,7 +81,9 @@ public interface AdminAuthorizationApi {
             @ApiResponse(responseCode = "200", description = "Permissions retrieved",
                     content = @Content(mediaType = MediaType.APPLICATION_JSON_VALUE,
                             schema = @Schema(implementation = AuthorizationResponse.class))),
-            @ApiResponse(responseCode = "403", description = "Caller does not have the ADMIN role")
+            @ApiResponse(responseCode = "403", description = "Caller does not have the ADMIN role",
+                    content = @Content(mediaType = MediaType.APPLICATION_JSON_VALUE,
+                            schema = @Schema(implementation = ErrorResponse.class)))
     })
     @GetMapping("/permissions")
     ResponseEntity<AuthorizationResponse> getAllPermissions();
@@ -85,8 +94,12 @@ public interface AdminAuthorizationApi {
             @ApiResponse(responseCode = "200", description = "User permissions retrieved",
                     content = @Content(mediaType = MediaType.APPLICATION_JSON_VALUE,
                             schema = @Schema(implementation = AuthorizationResponse.class))),
-            @ApiResponse(responseCode = "403", description = "Caller does not have the ADMIN role"),
-            @ApiResponse(responseCode = "404", description = "User not found")
+            @ApiResponse(responseCode = "403", description = "Caller does not have the ADMIN role",
+                    content = @Content(mediaType = MediaType.APPLICATION_JSON_VALUE,
+                            schema = @Schema(implementation = ErrorResponse.class))),
+            @ApiResponse(responseCode = "404", description = "User not found",
+                    content = @Content(mediaType = MediaType.APPLICATION_JSON_VALUE,
+                            schema = @Schema(implementation = ErrorResponse.class)))
     })
     @GetMapping("/permissions/{userId}")
     ResponseEntity<AuthorizationResponse> getUserPermissions(

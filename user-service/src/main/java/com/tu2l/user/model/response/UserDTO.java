@@ -12,7 +12,7 @@ import lombok.Data;
 )
 public class UserDTO {
 
-    @Schema(description = "Internal user identifier.", example = "42", accessMode = Schema.AccessMode.READ_ONLY)
+    @Schema(hidden = true)
     private Long id;
 
     @Schema(description = "Unique username.", example = "john.doe")
@@ -33,15 +33,15 @@ public class UserDTO {
     @Schema(description = "User's phone number.", example = "+1-555-000-1234", nullable = true)
     private String phoneNumber;
 
-    @Schema(description = "Assigned role.", example = "USER", accessMode = Schema.AccessMode.READ_ONLY)
+    @Schema(hidden = true)
     private String role;
 
-    @Schema(description = "Whether the account is active.", example = "true", accessMode = Schema.AccessMode.READ_ONLY)
+    @Schema(hidden = true)
     private Boolean enabled;
 
-    @Schema(description = "ISO-8601 timestamp of account creation.", example = "2026-01-15T10:30:00", accessMode = Schema.AccessMode.READ_ONLY)
+    @Schema(hidden = true)
     private String createdAt;
 
-    @Schema(description = "ISO-8601 timestamp of the last account update.", example = "2026-06-21T08:00:00", accessMode = Schema.AccessMode.READ_ONLY)
+    @Schema(hidden = true)
     private String updatedAt;
 }

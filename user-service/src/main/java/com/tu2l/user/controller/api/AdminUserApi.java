@@ -1,5 +1,7 @@
 package com.tu2l.user.controller.api;
 
+import com.tu2l.common.model.ErrorResponse;
+import com.tu2l.common.model.SuccessResponse;
 import com.tu2l.common.model.base.BaseResponse;
 import com.tu2l.common.model.base.PagedResponse;
 import com.tu2l.user.model.request.UpdateUserRequest;
@@ -21,12 +23,6 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 
-/**
- * Admin-only user management endpoints. Mounted under {@code /admin/users} with API version
- * {@code 1+} resolved from the {@code /v1} path segment (effective gateway path
- * {@code /api/v1/users/admin/users/**}); all routes require ADMIN role enforced via
- * {@code @PreAuthorize("hasRole('ADMIN')")} on the controller class.
- */
 @Tag(name = "Admin — Users", description = "Admin-only user management operations")
 @SecurityRequirement(name = "bearerAuth")
 @RequestMapping(value = "/admin/users", version = "1")
@@ -35,9 +31,10 @@ public interface AdminUserApi {
 
     @Operation(summary = "List all users", description = "Paginated list of all registered users. **Requires ADMIN role.**")
     @ApiResponses({
-            @ApiResponse(responseCode = "200", description = "Users retrieved successfully",
-                    content = @Content(mediaType = MediaType.APPLICATION_JSON_VALUE)),
-            @ApiResponse(responseCode = "403", description = "Caller does not have the ADMIN role")
+            @ApiResponse(responseCode = "200", description = "Users retrieved successfully"),
+            @ApiResponse(responseCode = "403", description = "Caller does not have the ADMIN role",
+                    content = @Content(mediaType = MediaType.APPLICATION_JSON_VALUE,
+                            schema = @Schema(implementation = ErrorResponse.class)))
     })
     @GetMapping
     ResponseEntity<PagedResponse<UserDTO>> getAllUsers(@PageableDefault(size = 20) Pageable pageable);
@@ -47,8 +44,12 @@ public interface AdminUserApi {
             @ApiResponse(responseCode = "200", description = "User retrieved successfully",
                     content = @Content(mediaType = MediaType.APPLICATION_JSON_VALUE,
                             schema = @Schema(implementation = UserResponse.class))),
-            @ApiResponse(responseCode = "403", description = "Caller does not have the ADMIN role"),
-            @ApiResponse(responseCode = "404", description = "User not found")
+            @ApiResponse(responseCode = "403", description = "Caller does not have the ADMIN role",
+                    content = @Content(mediaType = MediaType.APPLICATION_JSON_VALUE,
+                            schema = @Schema(implementation = ErrorResponse.class))),
+            @ApiResponse(responseCode = "404", description = "User not found",
+                    content = @Content(mediaType = MediaType.APPLICATION_JSON_VALUE,
+                            schema = @Schema(implementation = ErrorResponse.class)))
     })
     @GetMapping("/{userId}")
     ResponseEntity<UserResponse> getUserById(
@@ -59,9 +60,15 @@ public interface AdminUserApi {
             @ApiResponse(responseCode = "200", description = "User updated successfully",
                     content = @Content(mediaType = MediaType.APPLICATION_JSON_VALUE,
                             schema = @Schema(implementation = UserResponse.class))),
-            @ApiResponse(responseCode = "400", description = "Validation error"),
-            @ApiResponse(responseCode = "403", description = "Caller does not have the ADMIN role"),
-            @ApiResponse(responseCode = "404", description = "User not found")
+            @ApiResponse(responseCode = "400", description = "Validation error",
+                    content = @Content(mediaType = MediaType.APPLICATION_JSON_VALUE,
+                            schema = @Schema(implementation = ErrorResponse.class))),
+            @ApiResponse(responseCode = "403", description = "Caller does not have the ADMIN role",
+                    content = @Content(mediaType = MediaType.APPLICATION_JSON_VALUE,
+                            schema = @Schema(implementation = ErrorResponse.class))),
+            @ApiResponse(responseCode = "404", description = "User not found",
+                    content = @Content(mediaType = MediaType.APPLICATION_JSON_VALUE,
+                            schema = @Schema(implementation = ErrorResponse.class)))
     })
     @PutMapping("/{userId}")
     ResponseEntity<UserResponse> updateUser(
@@ -73,8 +80,12 @@ public interface AdminUserApi {
             @ApiResponse(responseCode = "200", description = "Account unlocked",
                     content = @Content(mediaType = MediaType.APPLICATION_JSON_VALUE,
                             schema = @Schema(implementation = UserResponse.class))),
-            @ApiResponse(responseCode = "403", description = "Caller does not have the ADMIN role"),
-            @ApiResponse(responseCode = "404", description = "User not found")
+            @ApiResponse(responseCode = "403", description = "Caller does not have the ADMIN role",
+                    content = @Content(mediaType = MediaType.APPLICATION_JSON_VALUE,
+                            schema = @Schema(implementation = ErrorResponse.class))),
+            @ApiResponse(responseCode = "404", description = "User not found",
+                    content = @Content(mediaType = MediaType.APPLICATION_JSON_VALUE,
+                            schema = @Schema(implementation = ErrorResponse.class)))
     })
     @PostMapping("/{userId}/unlock")
     ResponseEntity<UserResponse> unlockAccount(
@@ -85,8 +96,12 @@ public interface AdminUserApi {
             @ApiResponse(responseCode = "200", description = "Account status updated",
                     content = @Content(mediaType = MediaType.APPLICATION_JSON_VALUE,
                             schema = @Schema(implementation = UserResponse.class))),
-            @ApiResponse(responseCode = "403", description = "Caller does not have the ADMIN role"),
-            @ApiResponse(responseCode = "404", description = "User not found")
+            @ApiResponse(responseCode = "403", description = "Caller does not have the ADMIN role",
+                    content = @Content(mediaType = MediaType.APPLICATION_JSON_VALUE,
+                            schema = @Schema(implementation = ErrorResponse.class))),
+            @ApiResponse(responseCode = "404", description = "User not found",
+                    content = @Content(mediaType = MediaType.APPLICATION_JSON_VALUE,
+                            schema = @Schema(implementation = ErrorResponse.class)))
     })
     @PatchMapping("/{userId}/enabled")
     ResponseEntity<UserResponse> setEnabled(
@@ -95,9 +110,15 @@ public interface AdminUserApi {
 
     @Operation(summary = "Delete user", description = "Permanently removes or deactivates the specified user account. **Requires ADMIN role.**")
     @ApiResponses({
-            @ApiResponse(responseCode = "200", description = "User deleted successfully"),
-            @ApiResponse(responseCode = "403", description = "Caller does not have the ADMIN role"),
-            @ApiResponse(responseCode = "404", description = "User not found")
+            @ApiResponse(responseCode = "200", description = "User deleted successfully",
+                    content = @Content(mediaType = MediaType.APPLICATION_JSON_VALUE,
+                            schema = @Schema(implementation = SuccessResponse.class))),
+            @ApiResponse(responseCode = "403", description = "Caller does not have the ADMIN role",
+                    content = @Content(mediaType = MediaType.APPLICATION_JSON_VALUE,
+                            schema = @Schema(implementation = ErrorResponse.class))),
+            @ApiResponse(responseCode = "404", description = "User not found",
+                    content = @Content(mediaType = MediaType.APPLICATION_JSON_VALUE,
+                            schema = @Schema(implementation = ErrorResponse.class)))
     })
     @DeleteMapping("/{username}")
     ResponseEntity<BaseResponse> deleteUser(

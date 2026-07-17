@@ -1,20 +1,13 @@
 package com.tu2l.pdf.controller;
 
-import org.springframework.http.ResponseEntity;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.PathVariable;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestBody;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RestController;
-
 import com.tu2l.common.model.base.BaseResponse;
 import com.tu2l.pdf.model.request.GenerateAndSavePDFRequest;
 import com.tu2l.pdf.model.request.GeneratePDFRequest;
 import com.tu2l.pdf.service.PDFService;
-
 import jakarta.validation.Valid;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.http.ResponseEntity;
+import org.springframework.web.bind.annotation.*;
 
 @Slf4j
 @RestController
@@ -51,8 +44,8 @@ public class PDFController {
             throws Exception {
         log.info("Received async request to generate and save PDF: fileName={}", request.getFileName());
         BaseResponse response = pdfService.generateAsync(request);
-        log.info("Asynchronous PDF generation and save initiated: fileName={}, status={}, fileId={}",
-                request.getFileName(), response.getStatus(), response.getId());
+//        log.info("Asynchronous PDF generation and save initiated: fileName={}, status={}, fileId={}",
+//                request.getFileName(), response.getStatus(), response.getId());
         return ResponseEntity.ok(response);
     }
 

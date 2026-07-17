@@ -40,7 +40,7 @@ public class AdminUserController extends BaseController implements AdminUserApi 
     public ResponseEntity<UserResponse> getUserById(Long userId) {
         log.info("Admin: fetching user id={}", userId);
         UserEntity user = userService.getUserById(userId);
-        return ResponseEntity.ok(UserResponse.of(userMapper.toUserDTO(user)));
+        return ResponseEntity.ok(UserResponse.of(userMapper.toUserDTO(user), "User retrieved successfully"));
     }
 
     @Override

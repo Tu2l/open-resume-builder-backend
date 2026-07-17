@@ -1,6 +1,8 @@
 package com.tu2l.user.controller.api;
 
 import com.tu2l.common.constant.CommonConstants;
+import com.tu2l.common.model.ErrorResponse;
+import com.tu2l.common.model.SuccessResponse;
 import com.tu2l.common.model.base.BaseResponse;
 import com.tu2l.user.model.request.ChangePasswordRequest;
 import com.tu2l.user.model.request.UpdateUserRequest;
@@ -28,8 +30,12 @@ public interface UserApi {
             @ApiResponse(responseCode = "200", description = "Profile retrieved",
                     content = @Content(mediaType = MediaType.APPLICATION_JSON_VALUE,
                             schema = @Schema(implementation = UserResponse.class))),
-            @ApiResponse(responseCode = "401", description = "Missing or invalid access token"),
-            @ApiResponse(responseCode = "404", description = "User not found")
+            @ApiResponse(responseCode = "401", description = "Missing or invalid access token",
+                    content = @Content(mediaType = MediaType.APPLICATION_JSON_VALUE,
+                            schema = @Schema(implementation = ErrorResponse.class))),
+            @ApiResponse(responseCode = "404", description = "User not found",
+                    content = @Content(mediaType = MediaType.APPLICATION_JSON_VALUE,
+                            schema = @Schema(implementation = ErrorResponse.class)))
     })
     @GetMapping("/me")
     ResponseEntity<UserResponse> getCurrentUser(
@@ -41,9 +47,15 @@ public interface UserApi {
             @ApiResponse(responseCode = "200", description = "Profile updated",
                     content = @Content(mediaType = MediaType.APPLICATION_JSON_VALUE,
                             schema = @Schema(implementation = UserResponse.class))),
-            @ApiResponse(responseCode = "400", description = "Validation error"),
-            @ApiResponse(responseCode = "401", description = "Missing or invalid access token"),
-            @ApiResponse(responseCode = "404", description = "User not found")
+            @ApiResponse(responseCode = "400", description = "Validation error",
+                    content = @Content(mediaType = MediaType.APPLICATION_JSON_VALUE,
+                            schema = @Schema(implementation = ErrorResponse.class))),
+            @ApiResponse(responseCode = "401", description = "Missing or invalid access token",
+                    content = @Content(mediaType = MediaType.APPLICATION_JSON_VALUE,
+                            schema = @Schema(implementation = ErrorResponse.class))),
+            @ApiResponse(responseCode = "404", description = "User not found",
+                    content = @Content(mediaType = MediaType.APPLICATION_JSON_VALUE,
+                            schema = @Schema(implementation = ErrorResponse.class)))
     })
     @PutMapping("/me")
     ResponseEntity<UserResponse> updateCurrentUser(
@@ -56,9 +68,15 @@ public interface UserApi {
             @ApiResponse(responseCode = "200", description = "Password changed",
                     content = @Content(mediaType = MediaType.APPLICATION_JSON_VALUE,
                             schema = @Schema(implementation = UserResponse.class))),
-            @ApiResponse(responseCode = "400", description = "Current password is incorrect or new password fails policy"),
-            @ApiResponse(responseCode = "401", description = "Missing or invalid access token"),
-            @ApiResponse(responseCode = "404", description = "User not found")
+            @ApiResponse(responseCode = "400", description = "Current password is incorrect or new password fails policy",
+                    content = @Content(mediaType = MediaType.APPLICATION_JSON_VALUE,
+                            schema = @Schema(implementation = ErrorResponse.class))),
+            @ApiResponse(responseCode = "401", description = "Missing or invalid access token",
+                    content = @Content(mediaType = MediaType.APPLICATION_JSON_VALUE,
+                            schema = @Schema(implementation = ErrorResponse.class))),
+            @ApiResponse(responseCode = "404", description = "User not found",
+                    content = @Content(mediaType = MediaType.APPLICATION_JSON_VALUE,
+                            schema = @Schema(implementation = ErrorResponse.class)))
     })
     @PutMapping("/me/password")
     ResponseEntity<UserResponse> changePassword(
@@ -68,9 +86,15 @@ public interface UserApi {
 
     @Operation(summary = "Delete my account", description = "Permanently removes or deactivates the authenticated caller's account.")
     @ApiResponses({
-            @ApiResponse(responseCode = "200", description = "Account deleted"),
-            @ApiResponse(responseCode = "401", description = "Missing or invalid access token"),
-            @ApiResponse(responseCode = "404", description = "User not found")
+            @ApiResponse(responseCode = "200", description = "Account deleted",
+                    content = @Content(mediaType = MediaType.APPLICATION_JSON_VALUE,
+                            schema = @Schema(implementation = SuccessResponse.class))),
+            @ApiResponse(responseCode = "401", description = "Missing or invalid access token",
+                    content = @Content(mediaType = MediaType.APPLICATION_JSON_VALUE,
+                            schema = @Schema(implementation = ErrorResponse.class))),
+            @ApiResponse(responseCode = "404", description = "User not found",
+                    content = @Content(mediaType = MediaType.APPLICATION_JSON_VALUE,
+                            schema = @Schema(implementation = ErrorResponse.class)))
     })
     @DeleteMapping("/me")
     ResponseEntity<BaseResponse> deleteCurrentUser(

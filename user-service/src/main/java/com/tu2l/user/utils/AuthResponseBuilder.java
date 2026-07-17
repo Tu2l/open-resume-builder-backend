@@ -18,6 +18,7 @@ import org.springframework.stereotype.Component;
 public class AuthResponseBuilder {
 
     private final AuthTokenService authTokenService;
+    private final UserMapper userMapper;
 
     /**
      * Builds an AuthResponse from a UserEntity.
@@ -39,6 +40,7 @@ public class AuthResponseBuilder {
         }
 
         AuthResponse response = AuthResponse.builder()
+                .user(userMapper.toUserDTO(user))
                 .accessToken(accessToken)
                 .refreshToken(user.getPlainRefreshToken())
                 .expiresIn(authTokenService.expiresAt(accessToken))

@@ -1,5 +1,7 @@
 package com.tu2l.user.controller.api;
 
+import com.tu2l.common.model.ErrorResponse;
+import com.tu2l.common.model.SuccessResponse;
 import com.tu2l.common.model.base.BaseResponse;
 import com.tu2l.user.model.request.*;
 import com.tu2l.user.model.response.AuthResponse;
@@ -31,12 +33,15 @@ public interface AuthenticationApi {
             @ApiResponse(responseCode = "201", description = "User registered successfully",
                     content = @Content(mediaType = MediaType.APPLICATION_JSON_VALUE,
                             schema = @Schema(implementation = AuthResponse.class))),
-            @ApiResponse(responseCode = "400", description = "Validation error — invalid input, duplicate email or username",
+            @ApiResponse(responseCode = "400", description = "Validation error — invalid input format",
                     content = @Content(mediaType = MediaType.APPLICATION_JSON_VALUE,
-                            schema = @Schema(implementation = BaseResponse.class))),
+                            schema = @Schema(implementation = ErrorResponse.class))),
+            @ApiResponse(responseCode = "409", description = "Email or username already registered",
+                    content = @Content(mediaType = MediaType.APPLICATION_JSON_VALUE,
+                            schema = @Schema(implementation = ErrorResponse.class))),
             @ApiResponse(responseCode = "500", description = "Internal server error",
                     content = @Content(mediaType = MediaType.APPLICATION_JSON_VALUE,
-                            schema = @Schema(implementation = BaseResponse.class)))
+                            schema = @Schema(implementation = ErrorResponse.class)))
     })
     @PostMapping("/register")
     ResponseEntity<@NonNull AuthResponse> register(@Valid @RequestBody final NewUserRegisterRequest request);
@@ -53,13 +58,13 @@ public interface AuthenticationApi {
                             schema = @Schema(implementation = AuthResponse.class))),
             @ApiResponse(responseCode = "400", description = "Validation error",
                     content = @Content(mediaType = MediaType.APPLICATION_JSON_VALUE,
-                            schema = @Schema(implementation = BaseResponse.class))),
+                            schema = @Schema(implementation = ErrorResponse.class))),
             @ApiResponse(responseCode = "401", description = "Invalid credentials, or account locked/disabled",
                     content = @Content(mediaType = MediaType.APPLICATION_JSON_VALUE,
-                            schema = @Schema(implementation = BaseResponse.class))),
+                            schema = @Schema(implementation = ErrorResponse.class))),
             @ApiResponse(responseCode = "500", description = "Internal server error",
                     content = @Content(mediaType = MediaType.APPLICATION_JSON_VALUE,
-                            schema = @Schema(implementation = BaseResponse.class)))
+                            schema = @Schema(implementation = ErrorResponse.class)))
     })
     @PostMapping("/authenticate")
     ResponseEntity<@NonNull AuthResponse> authenticate(@Valid @RequestBody final LoginRequest request);
@@ -75,13 +80,13 @@ public interface AuthenticationApi {
                             schema = @Schema(implementation = AuthResponse.class))),
             @ApiResponse(responseCode = "400", description = "Validation error",
                     content = @Content(mediaType = MediaType.APPLICATION_JSON_VALUE,
-                            schema = @Schema(implementation = BaseResponse.class))),
+                            schema = @Schema(implementation = ErrorResponse.class))),
             @ApiResponse(responseCode = "401", description = "Refresh token is invalid or expired",
                     content = @Content(mediaType = MediaType.APPLICATION_JSON_VALUE,
-                            schema = @Schema(implementation = BaseResponse.class))),
+                            schema = @Schema(implementation = ErrorResponse.class))),
             @ApiResponse(responseCode = "500", description = "Internal server error",
                     content = @Content(mediaType = MediaType.APPLICATION_JSON_VALUE,
-                            schema = @Schema(implementation = BaseResponse.class)))
+                            schema = @Schema(implementation = ErrorResponse.class)))
     })
     @PostMapping("/refresh-token")
     ResponseEntity<@NonNull AuthResponse> refreshToken(@Valid @RequestBody final RefreshTokenRequest request);
@@ -94,16 +99,13 @@ public interface AuthenticationApi {
     @ApiResponses({
             @ApiResponse(responseCode = "200", description = "Logout successful",
                     content = @Content(mediaType = MediaType.APPLICATION_JSON_VALUE,
-                            schema = @Schema(implementation = BaseResponse.class))),
-            @ApiResponse(responseCode = "400", description = "Token is missing, malformed, or already invalidated",
+                            schema = @Schema(implementation = SuccessResponse.class))),
+            @ApiResponse(responseCode = "400", description = "Token is missing, malformed, expired, or already invalidated",
                     content = @Content(mediaType = MediaType.APPLICATION_JSON_VALUE,
-                            schema = @Schema(implementation = BaseResponse.class))),
-            @ApiResponse(responseCode = "401", description = "Token is expired",
-                    content = @Content(mediaType = MediaType.APPLICATION_JSON_VALUE,
-                            schema = @Schema(implementation = BaseResponse.class))),
+                            schema = @Schema(implementation = ErrorResponse.class))),
             @ApiResponse(responseCode = "500", description = "Internal server error",
                     content = @Content(mediaType = MediaType.APPLICATION_JSON_VALUE,
-                            schema = @Schema(implementation = BaseResponse.class)))
+                            schema = @Schema(implementation = ErrorResponse.class)))
     })
     @PostMapping("/logout")
     ResponseEntity<@NonNull BaseResponse> logout(
@@ -119,13 +121,13 @@ public interface AuthenticationApi {
     @ApiResponses({
             @ApiResponse(responseCode = "200", description = "Reset email dispatched (or silently suppressed for unknown addresses)",
                     content = @Content(mediaType = MediaType.APPLICATION_JSON_VALUE,
-                            schema = @Schema(implementation = BaseResponse.class))),
+                            schema = @Schema(implementation = SuccessResponse.class))),
             @ApiResponse(responseCode = "400", description = "Validation error — invalid email format",
                     content = @Content(mediaType = MediaType.APPLICATION_JSON_VALUE,
-                            schema = @Schema(implementation = BaseResponse.class))),
+                            schema = @Schema(implementation = ErrorResponse.class))),
             @ApiResponse(responseCode = "500", description = "Internal server error",
                     content = @Content(mediaType = MediaType.APPLICATION_JSON_VALUE,
-                            schema = @Schema(implementation = BaseResponse.class)))
+                            schema = @Schema(implementation = ErrorResponse.class)))
     })
     @PostMapping("/forgot-password")
     ResponseEntity<@NonNull BaseResponse> forgotPassword(@Valid @RequestBody ForgotPasswordRequest request);
@@ -139,13 +141,13 @@ public interface AuthenticationApi {
     @ApiResponses({
             @ApiResponse(responseCode = "200", description = "Password reset successful",
                     content = @Content(mediaType = MediaType.APPLICATION_JSON_VALUE,
-                            schema = @Schema(implementation = BaseResponse.class))),
+                            schema = @Schema(implementation = SuccessResponse.class))),
             @ApiResponse(responseCode = "400", description = "Validation error, or reset token is invalid/expired",
                     content = @Content(mediaType = MediaType.APPLICATION_JSON_VALUE,
-                            schema = @Schema(implementation = BaseResponse.class))),
+                            schema = @Schema(implementation = ErrorResponse.class))),
             @ApiResponse(responseCode = "500", description = "Internal server error",
                     content = @Content(mediaType = MediaType.APPLICATION_JSON_VALUE,
-                            schema = @Schema(implementation = BaseResponse.class)))
+                            schema = @Schema(implementation = ErrorResponse.class)))
     })
     @PostMapping("/reset-password")
     ResponseEntity<@NonNull BaseResponse> resetPassword(@Valid @RequestBody ResetPasswordRequest request);
@@ -159,16 +161,13 @@ public interface AuthenticationApi {
     @ApiResponses({
             @ApiResponse(responseCode = "200", description = "Email verified successfully",
                     content = @Content(mediaType = MediaType.APPLICATION_JSON_VALUE,
-                            schema = @Schema(implementation = BaseResponse.class))),
-            @ApiResponse(responseCode = "400", description = "Verification token is invalid or already used",
+                            schema = @Schema(implementation = SuccessResponse.class))),
+            @ApiResponse(responseCode = "400", description = "Verification token is invalid, already used, or expired",
                     content = @Content(mediaType = MediaType.APPLICATION_JSON_VALUE,
-                            schema = @Schema(implementation = BaseResponse.class))),
-            @ApiResponse(responseCode = "401", description = "Verification token is expired",
-                    content = @Content(mediaType = MediaType.APPLICATION_JSON_VALUE,
-                            schema = @Schema(implementation = BaseResponse.class))),
+                            schema = @Schema(implementation = ErrorResponse.class))),
             @ApiResponse(responseCode = "500", description = "Internal server error",
                     content = @Content(mediaType = MediaType.APPLICATION_JSON_VALUE,
-                            schema = @Schema(implementation = BaseResponse.class)))
+                            schema = @Schema(implementation = ErrorResponse.class)))
     })
     @GetMapping("/verify-email")
     ResponseEntity<@NonNull BaseResponse> verifyEmail(
@@ -183,13 +182,13 @@ public interface AuthenticationApi {
     @ApiResponses({
             @ApiResponse(responseCode = "200", description = "Verification email dispatched (or silently suppressed)",
                     content = @Content(mediaType = MediaType.APPLICATION_JSON_VALUE,
-                            schema = @Schema(implementation = BaseResponse.class))),
+                            schema = @Schema(implementation = SuccessResponse.class))),
             @ApiResponse(responseCode = "400", description = "Validation error — invalid email format",
                     content = @Content(mediaType = MediaType.APPLICATION_JSON_VALUE,
-                            schema = @Schema(implementation = BaseResponse.class))),
+                            schema = @Schema(implementation = ErrorResponse.class))),
             @ApiResponse(responseCode = "500", description = "Internal server error",
                     content = @Content(mediaType = MediaType.APPLICATION_JSON_VALUE,
-                            schema = @Schema(implementation = BaseResponse.class)))
+                            schema = @Schema(implementation = ErrorResponse.class)))
     })
     @PostMapping("/resend-verification")
     ResponseEntity<@NonNull BaseResponse> resendVerification(@Valid @RequestBody ResendVerificationRequest request);

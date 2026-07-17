@@ -20,9 +20,6 @@ public class AuthResponse extends BaseResponse {
     @Schema(description = "Refresh token used to obtain a new access token without re-authenticating.", example = "eyJhbGciOiJIUzI1NiJ9...")
     private String refreshToken;
 
-    @Schema(description = "Token type — always `Bearer`.", example = "Bearer")
-    private String tokenType = "Bearer";
-
     @Schema(description = "UTC date-time at which the access token expires.", example = "2026-06-21T15:30:00")
     private LocalDateTime expiresIn;
 

@@ -1,13 +1,12 @@
 package com.tu2l.pdf.util;
 
-import java.util.Optional;
-
-import org.springframework.stereotype.Component;
-
 import com.tu2l.common.model.states.ResponseProcessingStatus;
 import com.tu2l.pdf.entity.GeneratedPDFEntity;
 import com.tu2l.pdf.model.request.GenerateAndSavePDFRequest;
 import com.tu2l.pdf.model.response.GeneratePDFResponse;
+import org.springframework.stereotype.Component;
+
+import java.util.Optional;
 
 @Component
 public class EntityMapper {
@@ -26,7 +25,7 @@ public class EntityMapper {
         return Optional.of(entity);
     }
 
-      public Optional<GeneratedPDFEntity> map(GenerateAndSavePDFRequest request) {
+    public Optional<GeneratedPDFEntity> map(GenerateAndSavePDFRequest request) {
         if (request == null) {
             return Optional.empty();
         }
@@ -39,9 +38,9 @@ public class EntityMapper {
         return Optional.of(entity);
     }
 
-     public GeneratePDFResponse map(GeneratedPDFEntity entity) {
+    public GeneratePDFResponse map(GeneratedPDFEntity entity) {
         GeneratePDFResponse response = new GeneratePDFResponse();
-        response.setId(String.valueOf(entity.getId()));
+//        response.setId(String.valueOf(entity.getId()));
         response.setFileName(entity.getFileName());
         response.setContent(entity.getEncodedPdf());
         response.setStatus(ResponseProcessingStatus.SUCCESS);
