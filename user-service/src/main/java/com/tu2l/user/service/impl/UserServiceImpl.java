@@ -1,118 +1,94 @@
 package com.tu2l.user.service.impl;
 
 import com.tu2l.common.util.CommonUtil;
+import com.tu2l.user.audit.AuditEventType;
+import com.tu2l.user.audit.AuditService;
+import com.tu2l.user.config.CacheConfig;
 import com.tu2l.user.entity.UserEntity;
 import com.tu2l.user.exception.UserException;
+import com.tu2l.user.exception.UserNotFoundException;
 import com.tu2l.user.model.response.UserDTO;
 import com.tu2l.user.repository.UserRepository;
+import com.tu2l.user.service.AdminUserService;
 import com.tu2l.user.service.UserService;
 import com.tu2l.user.utils.UserMapper;
+import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.cache.annotation.CacheEvict;
+import org.springframework.cache.annotation.Cacheable;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDateTime;
 
+@RequiredArgsConstructor
 @Slf4j
 @Service
-public class UserServiceImpl implements UserService {
-    private static final String USER_NOT_FOUND_MSG = "User not found with id: ";
+@Transactional
+public class UserServiceImpl implements UserService, AdminUserService {
+    private static final String USER_NOT_FOUND_MSG = "User not found with username: ";
 
     private final UserRepository userRepository;
     private final PasswordEncoder passwordEncoder;
     private final CommonUtil commonUtil;
     private final UserMapper userMapper;
+    private final AuditService auditService;
 
-    public UserServiceImpl(UserRepository userRepository, PasswordEncoder passwordEncoder, CommonUtil commonUtil,
-                           UserMapper userMapper) {
-        this.userRepository = userRepository;
-        this.passwordEncoder = passwordEncoder;
-        this.commonUtil = commonUtil;
-        this.userMapper = userMapper;
-    }
-
-    /**
-     * Retrieves a user by their unique identifier.
-     *
-     * @param id the unique identifier of the user
-     * @return the UserEntity corresponding to the provided id
-     * @throws Exception if the user is not found
-     */
     @Override
-    public UserEntity getUserById(Long id) throws Exception {
+    @Transactional(readOnly = true)
+    public UserEntity getUserById(Long id) throws UserException {
         log.info("Fetching user with id: {}", id);
 
-        return userRepository.findById(id)
-                .orElseThrow(() -> new Exception(USER_NOT_FOUND_MSG + id));
+        return userRepository.findByIdWithDetails(id)
+                .orElseThrow(() -> new UserNotFoundException(USER_NOT_FOUND_MSG + id));
     }
 
-    /**
-     * Retrieves a user by their username.
-     *
-     * @param username the username of the user
-     * @return the UserEntity corresponding to the provided username
-     * @throws Exception if the user is not found
-     */
     @Override
-    public UserEntity getUserByUsername(String username) throws Exception {
-        return userRepository.findUserByUsername(username).orElseThrow(() -> new UserException("User not found with username: " + username));
+    @Transactional(readOnly = true)
+    // Caches only eager top-level fields; current callers (profile mapping, role
+    // checks) never touch the lazy associations on a cache hit.
+    @Cacheable(value = CacheConfig.USERS_CACHE, key = "#username")
+    public UserEntity getUserByUsername(String username) throws UserException {
+        return userRepository.findUserByUsername(username).orElseThrow(() -> new UserNotFoundException("User not found with username: " + username));
     }
 
-    /**
-     * Updates user profile information.
-     *
-     * @param userDTO the UserDTO containing updated user information
-     * @return the updated UserEntity
-     * @throws Exception if the user is not found or if the input is invalid
-     */
     @Override
-    public UserEntity updateUser(UserDTO userDTO) throws Exception {
+    @CacheEvict(value = CacheConfig.USERS_CACHE, allEntries = true)
+    public UserEntity updateUser(UserDTO userDTO) throws UserException {
         if (userDTO == null || userDTO.getId() == null) {
             throw new UserException("UserDTO or User ID must not be null");
         }
 
-        UserEntity updatedUser = userRepository.findById(userDTO.getId())
+        UserEntity updatedUser = userRepository.findByIdWithDetails(userDTO.getId())
                 .map(user -> userMapper.updateUserFromDTO(userDTO, user))
-                .orElseThrow(() -> new Exception(USER_NOT_FOUND_MSG + userDTO.getId()));
+                .orElseThrow(() -> new UserNotFoundException(USER_NOT_FOUND_MSG + userDTO.getId()));
 
         log.info("Updating user with id: {}", updatedUser.getId());
         return userRepository.save(updatedUser);
     }
 
-    /**
-     * Deletes a user account by ID.
-     *
-     * @param id the unique identifier of the user to delete
-     * @return a Boolean indicating the outcome of the deletion
-     * @throws Exception if the user is not found
-     */
     @Override
-    public Boolean deleteUser(Long id) throws Exception {
-        if (id == null) {
+    @CacheEvict(value = CacheConfig.USERS_CACHE, key = "#username")
+    public boolean deleteUser(String username) throws UserException {
+        if (username == null) {
             throw new UserException("User ID must not be null");
         }
-        // soft delete by setting deletedAt timestamp
-        return userRepository.findById(id).map(user -> {
-            log.info("Deleting user with id: {}", id);
+        // soft delete by setting deletedAt timestamp (hidden by @SQLRestriction thereafter)
+        return userRepository.findUserByUsername(username).map(user -> {
+            log.info("Deleting user with username: {}", username);
             user.setDeletedAt(LocalDateTime.now());
             userRepository.save(user);
             return true;
-        }).orElseThrow(() -> new UserException(USER_NOT_FOUND_MSG + id));
+        }).orElseThrow(() -> new UserNotFoundException(USER_NOT_FOUND_MSG + username));
     }
 
-    /**
-     * Updates the user's password after validating the old password.
-     *
-     * @param id          the unique identifier of the user
-     * @param oldPassword the current password of the user
-     * @param newPassword the new password to set
-     * @return the updated UserEntity
-     * @throws Exception if the user is not found or if the old password does not
-     *                   match
-     */
     @Override
-    public UserEntity updatePassword(Long id, String oldPassword, String newPassword) throws Exception {
-        if (id == null) {
+    @CacheEvict(value = CacheConfig.USERS_CACHE, key = "#username")
+    public UserEntity updatePassword(String username, String oldPassword, String newPassword) throws UserException {
+        if (username == null) {
             throw new UserException("User ID must not be null");
         }
         if (oldPassword == null || newPassword == null || oldPassword.isEmpty() || newPassword.isEmpty()) {
@@ -121,28 +97,101 @@ public class UserServiceImpl implements UserService {
 
         String newPasswordPlainText = commonUtil.decodeBase64StringToString(newPassword);
 
-        UserEntity user = userRepository.findById(id)
-                .orElseThrow(() -> new UserException(USER_NOT_FOUND_MSG + id));
+        UserEntity user = userRepository.findByUsernameWithDetails(username)
+                .orElseThrow(() -> new UserNotFoundException(USER_NOT_FOUND_MSG + username));
 
         if (!passwordEncoder.matches(commonUtil.decodeBase64StringToString(oldPassword), user.getPassword())) {
             throw new UserException("Old password does not match");
         }
 
-        log.info("Updating password for user with id: {}", id);
+        log.info("Updating password for user with username: {}", username);
 
         user.setPassword(passwordEncoder.encode(newPasswordPlainText));
-        return userRepository.save(user);
+        UserEntity saved = userRepository.save(user);
+        auditService.log(AuditEventType.PASSWORD_CHANGED, saved.getId(), null);
+        return saved;
     }
 
     @Override
+    @Transactional(readOnly = true)
     public boolean existsByUsernameOrEmail(String username, String email) {
         log.info("Checking existence of user with username: {} or email: {}", username, email);
         return userRepository.existsByUsernameOrEmail(username, email);
     }
 
     @Override
-    public UserEntity getUserByEmail(String email) {
+    @Transactional(readOnly = true)
+    public UserEntity getUserByEmail(String email) throws UserException {
         log.info("Fetching user with email: {}", email);
-        return userRepository.findUserByEmail(email).orElseThrow(() -> new UserException("User not found with email: " + email));
+        return userRepository.findUserByEmail(email).orElseThrow(() -> new UserNotFoundException("User not found with email: " + email));
+    }
+
+    @Override
+    @Transactional(readOnly = true)
+    public UserEntity getUserWithDetails(String username) throws UserException {
+        log.info("Fetching user with details for username: {}", username);
+        return userRepository.findByUsernameWithDetails(username)
+                .orElseThrow(() -> new UserNotFoundException("User not found with username: " + username));
+    }
+
+    @Override
+    @Transactional(readOnly = true)
+    public UserEntity getUserByEmailWithDetails(String email) throws UserException {
+        log.info("Fetching user with details for email: {}", email);
+        return userRepository.findByEmailWithDetails(email)
+                .orElseThrow(() -> new UserNotFoundException("User not found with email: " + email));
+    }
+
+    @Override
+    @Transactional(readOnly = true)
+    public UserEntity getUserWithCredentials(String username) throws UserException {
+        log.info("Fetching user with credentials for username: {}", username);
+        return userRepository.findByUsernameWithAll(username)
+                .orElseThrow(() -> new UserNotFoundException("User not found with username: " + username));
+    }
+
+    @Override
+    @Transactional(readOnly = true)
+    public UserEntity getUserByEmailWithCredentials(String email) throws UserException {
+        log.info("Fetching user with credentials for email: {}", email);
+        return userRepository.findByEmailWithAll(email)
+                .orElseThrow(() -> new UserNotFoundException("User not found with email: " + email));
+    }
+
+    @Override
+    @Transactional(readOnly = true)
+    public java.util.Optional<UserEntity> findByEmailWithCredentials(String email) {
+        log.info("Looking up user (optional) with credentials for email: {}", email);
+        return userRepository.findByEmailWithAll(email);
+    }
+
+    @Override
+    public UserEntity saveUser(UserEntity user) {
+        return userRepository.save(user);
+    }
+
+    @Override
+    @Transactional(readOnly = true)
+    public Page<UserEntity> getAllUsers(Pageable pageable) {
+        log.info("Fetching users page: {}", pageable);
+        return userRepository.findAllWithDetails(pageable);
+    }
+
+    @Override
+    @CacheEvict(value = CacheConfig.USERS_CACHE, allEntries = true)
+    public UserEntity unlockAccount(Long userId) {
+        UserEntity user = getUserById(userId);
+        user.getAccountStatus().unlockAccount();
+        log.info("Unlocking account for user id: {}", userId);
+        return userRepository.save(user);
+    }
+
+    @Override
+    @CacheEvict(value = CacheConfig.USERS_CACHE, allEntries = true)
+    public UserEntity setEnabled(Long userId, boolean enabled) {
+        UserEntity user = getUserById(userId);
+        user.getAccountStatus().setEnabled(enabled);
+        log.info("Setting enabled={} for user id: {}", enabled, userId);
+        return userRepository.save(user);
     }
 }

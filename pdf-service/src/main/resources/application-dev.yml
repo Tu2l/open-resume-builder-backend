@@ -2,16 +2,34 @@ server:
   servlet:
     context-path: /pdf
   port: 8090
+  error:
+    whitelabel:
+      enabled: false
 spring:
+  docker:
+    compose:
+      enabled: true
+      file: ../compose.yaml
+      lifecycle-management: start-only
   jackson:
     default-property-inclusion: non_null
   datasource:
-    url: jdbc:sqlite:./etc/databases/generated_pdfs.db
-    driver-class-name: org.sqlite.JDBC
-  jpa:
-    database-platform: org.hibernate.community.dialect.SQLiteDialect
-    hibernate:
-      ddl-auto: update
+    url: jdbc:postgresql://localhost:5432/postgres
+    username: postgres
+    password: postgres
+    driver-class-name: org.postgresql.Driver
+    jpa:
+      database-platform: org.hibernate.dialect.PostgreSQLDialect
+      hibernate:
+        ddl-auto: create
+      show-sql: true
+springdoc:
+  swagger-ui:
+    enabled: false
+  api-docs:
+    enabled: true
+    path: /v1/api-docs
+
 logging:
   level:
     org:
@@ -20,8 +38,9 @@ logging:
       tu2l:
         pdf: DEBUG
   file:
-    name: ./etc/logs/pdf-service/app.log
+    name: ../etc/logs/pdf-service/app.log
   logback:
     rollingpolicy:
+      file-name-pattern: ../etc/logs/pdf-service/%d{yyyy-MM-dd}.%i.log
       max-file-size: 10MB
-      max-history: 1
+      max-history: 7

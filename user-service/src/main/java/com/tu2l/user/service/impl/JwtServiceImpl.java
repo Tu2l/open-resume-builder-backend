@@ -1,49 +1,93 @@
 package com.tu2l.user.service.impl;
 
-import org.springframework.stereotype.Service;
-
 import com.tu2l.common.model.JwtTokenType;
 import com.tu2l.common.model.states.UserRole;
+import com.tu2l.common.util.JwtUtil;
+import com.tu2l.user.config.AuthConfigValues;
 import com.tu2l.user.entity.UserEntity;
-import com.tu2l.user.service.JwtService;
+import com.tu2l.user.service.AuthTokenService;
+import io.jsonwebtoken.JwtException;
+import org.springframework.stereotype.Service;
+
+import java.time.LocalDateTime;
 
 @Service
-public class JwtServiceImpl implements JwtService {
+public class JwtServiceImpl implements AuthTokenService {
+    private final JwtUtil jwtUtil;
+    private final AuthConfigValues authConfigValues;
 
-    @Override
-    public String generateToken(UserEntity user, JwtTokenType tokenType) throws Exception {
-        // TODO Auto-generated method stub
-        throw new UnsupportedOperationException("Unimplemented method 'generateToken'");
+    public JwtServiceImpl(JwtUtil jwtUtil, AuthConfigValues authConfigValues) {
+        this.jwtUtil = jwtUtil;
+        this.authConfigValues = authConfigValues;
     }
 
     @Override
-    public Boolean validateToken(String token, JwtTokenType tokenType) throws Exception {
-        // TODO Auto-generated method stub
-        throw new UnsupportedOperationException("Unimplemented method 'validateToken'");
+    public String generateToken(UserEntity user, JwtTokenType tokenType) throws JwtException {
+        return switch (tokenType) {
+            case ACCESS -> generateAccessToken(user, false);
+            case REFRESH -> jwtUtil.generateRefreshToken(user.getUsername());
+            case PASSWORD_RESET -> jwtUtil.generatePasswordResetToken(user.getUsername(), user.getEmail());
+            case EMAIL_VERIFICATION -> jwtUtil.generateEmailVerificationToken(user.getUsername(), user.getEmail());
+        };
     }
 
     @Override
-    public String refreshAccessToken(String refreshToken) throws Exception {
-        // TODO Auto-generated method stub
-        throw new UnsupportedOperationException("Unimplemented method 'refreshAccessToken'");
+    public String generateAccessToken(UserEntity user, boolean rememberMe) throws JwtException {
+        if (rememberMe) {
+            return jwtUtil.generateAccessToken(user.getUsername(), user.getEmail(), user.getRole().name(),
+                    authConfigValues.rememberMeTokenValidityMinutes());
+        }
+        return jwtUtil.generateAccessToken(user.getUsername(), user.getEmail(), user.getRole().name());
+    }
+
+    @Override
+    public boolean validateToken(String token, JwtTokenType tokenType) {
+        // A token is valid only if it is unexpired AND was issued for the expected
+        // purpose, so e.g. an access token cannot be used to reset a password.
+        // An expired/malformed/wrong-signature token is simply invalid here — callers
+        // (resetPassword/verifyEmail) expect a friendly false rather than a thrown 401.
+        try {
+            return !jwtUtil.isTokenExpired(token) && getTokenType(token) == tokenType;
+        } catch (JwtException e) {
+            return false;
+        }
+    }
+
+    @Override
+    public String refreshAccessToken(String refreshToken, UserEntity user) throws JwtException {
+        if (!jwtUtil.validateRefreshToken(refreshToken, user.getUsername())) {
+            throw new JwtException("Invalid refresh token");
+        }
+        return generateToken(user, JwtTokenType.ACCESS);
     }
 
     @Override
     public String getUsername(String token) {
-        // TODO Auto-generated method stub
-        throw new UnsupportedOperationException("Unimplemented method 'getUsername'");
+        return jwtUtil.extractUsername(token);
     }
 
     @Override
-    public Long getUserId(String token) {
-        // TODO Auto-generated method stub
-        throw new UnsupportedOperationException("Unimplemented method 'getUserId'");
+    public boolean verifyRole(String token, UserRole role) {
+        return jwtUtil.extractRole(token).equals(role.name());
     }
 
     @Override
-    public Boolean verifyRole(String token, UserRole role) {
-        // TODO Auto-generated method stub
-        throw new UnsupportedOperationException("Unimplemented method 'verifyRole'");
+    public long getTokenRemainingTime(String token) {
+        return jwtUtil.getTokenRemainingTime(token);
     }
 
+    @Override
+    public LocalDateTime issuedAt(String token) {
+        return jwtUtil.issuedAt(token);
+    }
+
+    @Override
+    public LocalDateTime expiresAt(String token) {
+        return jwtUtil.expiresAt(token);
+    }
+
+    @Override
+    public JwtTokenType getTokenType(String token) {
+        return JwtTokenType.fromValue(jwtUtil.extractTokenType(token));
+    }
 }

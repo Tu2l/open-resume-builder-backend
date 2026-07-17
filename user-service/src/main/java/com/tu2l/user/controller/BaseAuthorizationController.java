@@ -1,0 +1,39 @@
+package com.tu2l.user.controller;
+
+import com.tu2l.common.factory.ResponseFactory;
+import com.tu2l.common.model.states.ResponseProcessingStatus;
+import com.tu2l.common.model.states.UserRole;
+import com.tu2l.user.model.response.AuthorizationResponse;
+import org.springframework.http.ResponseEntity;
+import org.springframework.security.core.context.SecurityContextHolder;
+
+import java.util.Set;
+import java.util.stream.Collectors;
+
+/**
+ * Shared helpers for authorization controllers.
+ * Eliminates duplicate {@code ok()}/{@code toNames()} across
+ * {@link AuthorizationController} and {@link AdminAuthorizationController}.
+ */
+abstract class BaseAuthorizationController extends BaseController {
+
+    protected ResponseEntity<AuthorizationResponse> ok(AuthorizationResponse response, String message) {
+        return ResponseEntity.ok(ResponseFactory.configureResponse(response, message, ResponseProcessingStatus.SUCCESS));
+    }
+
+    protected <E extends Enum<E>> Set<String> toNames(Set<E> enums) {
+        return enums.stream().map(Enum::name).collect(Collectors.toSet());
+    }
+
+    protected UserRole getCurrentUserRole() {
+        var auth = SecurityContextHolder.getContext().getAuthentication();
+        if (auth == null || auth.getAuthorities().isEmpty()) return UserRole.GUEST;
+        var authority = auth.getAuthorities().iterator().next().getAuthority();
+        try {
+            assert authority != null;
+            return UserRole.valueOf(authority.replace("ROLE_", ""));
+        } catch (IllegalArgumentException e) {
+            return UserRole.GUEST;
+        }
+    }
+}

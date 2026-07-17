@@ -18,7 +18,7 @@ import lombok.extern.slf4j.Slf4j;
 
 @Slf4j
 @RestController
-@RequestMapping("/")
+@RequestMapping(version = "1+")
 public class PDFController {
     private final PDFService pdfService;
 

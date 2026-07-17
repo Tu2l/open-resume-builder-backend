@@ -3,15 +3,30 @@ server:
     context-path: /users
   port: 8091
 spring:
+  docker:
+    compose:
+      enabled: true
+      file: ../compose.yaml
+      lifecycle-management: start-only
   jackson:
     default-property-inclusion: non_null
   datasource:
-    url: jdbc:sqlite:./etc/databases/users.db
-    driver-class-name: org.sqlite.JDBC
+    url: jdbc:postgresql://localhost:5432/postgres
+    username: postgres
+    password: postgres
+    driver-class-name: org.postgresql.Driver
   jpa:
-    database-platform: org.hibernate.community.dialect.SQLiteDialect
+    database-platform: org.hibernate.dialect.PostgreSQLDialect
     hibernate:
-      ddl-auto: update
+      ddl-auto: validate
+    show-sql: true
+  flyway:
+    enabled: true
+    baseline-on-migrate: true
+  web:
+    error:
+      whitelabel:
+        enabled: false
 logging:
   level:
     org:
@@ -20,15 +35,54 @@ logging:
       tu2l:
         user: DEBUG
   file:
-    name: ./etc/logs/user-service/app.log
+    name: ../etc/logs/user-service/app.log
   logback:
     rollingpolicy:
+      file-name-pattern: ../etc/logs/user-service/%d{yyyy-MM-dd}.%i.log
       max-file-size: 10MB
-      max-history: 1
-jwt:
-  secret-key: ${JWT_SECRET_KEY:dev-secret-key-must-be-at-least-256-bits-or-32-characters-long}
-  access-token:
-    expiration-minutes: 15
-  refresh-token:
-    expiration-days: 7
-  issuer: resume-builder-app
+      max-history: 7
+springdoc:
+  swagger-ui:
+    enabled: false
+  api-docs:
+    enabled: true
+    path: /v1/api-docs
+
+app:
+  mail:
+    from-address: no-reply@resume-builder.local
+    frontend-base-url: http://localhost:8080
+    verification-path: /api/users/v1/auth/verify-email?token=
+    password-reset-path: /api/users/v1/reset-password?token=
+    verification-subject: "Verify your email"
+    password-reset-subject: "Reset your password"
+  rate-limit:
+    enabled: true
+    capacity: 5
+    window-seconds: 60
+    cleanup-interval-ms: 300000
+    limited-paths:
+      - /auth/authenticate
+      - /auth/forgot-password
+      - /auth/reset-password
+      - /auth/register
+      - /auth/refresh-token
+  cors:
+    allowed-origins:
+      - http://localhost:3000
+      - http://localhost:8080
+  auth:
+    max-failed-login-attempts: 5
+    account-lock-duration-minutes: 15
+    remember-me-token-validity-minutes: 14
+    require-verified-email: false
+    jwt:
+      secret-key: ${JWT_SECRET_KEY:dev-secret-key-must-be-at-least-256-bits-or-32-characters-long}
+      access-token-expiration-minutes: 15
+      refresh-token-expiration-days: 7
+      issuer: resume-builder-app
+  bootstrap-admin:
+    enabled: true
+    username: admin
+    email: admin@resume-builder.local
+    password: Admin@12345

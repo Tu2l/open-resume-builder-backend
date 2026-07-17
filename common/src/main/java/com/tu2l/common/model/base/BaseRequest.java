@@ -8,7 +8,7 @@ package com.tu2l.common.model.base;
  * and future extensibility (e.g., for validation, serialization, or request handling).
  * Implementing this interface helps to group all request models and enables framework-level
  * operations that can target all requests uniformly.
+ * </p>
  */
 public interface BaseRequest {
-    
 }

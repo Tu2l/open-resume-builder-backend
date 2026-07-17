@@ -57,11 +57,26 @@
       <optional>true</optional>
     </dependency>
 
+    <!-- Auto-manage the local Postgres container (compose.yaml) in the dev profile -->
+    <dependency>
+      <groupId>org.springframework.boot</groupId>
+      <artifactId>spring-boot-docker-compose</artifactId>
+      <scope>runtime</scope>
+      <optional>true</optional>
+    </dependency>
+
     <!-- Lombok - version inherited from parent -->
     <dependency>
       <groupId>org.projectlombok</groupId>
       <artifactId>lombok</artifactId>
       <scope>provided</scope>
+    </dependency>
+
+    <!-- OpenAPI / Swagger (springdoc 3.x targets Spring Boot 4) -->
+    <dependency>
+      <groupId>org.springdoc</groupId>
+      <artifactId>springdoc-openapi-starter-webmvc-ui</artifactId>
+      <version>3.0.0</version>
     </dependency>
 
     <!-- Testing -->

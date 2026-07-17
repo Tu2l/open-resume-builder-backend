@@ -1,7 +1,9 @@
 package com.tu2l.common.util;
 
 import com.tu2l.common.constant.CommonConstants;
+import com.tu2l.common.model.JwtTokenType;
 import io.jsonwebtoken.Claims;
+import io.jsonwebtoken.JwtException;
 import io.jsonwebtoken.Jwts;
 import io.jsonwebtoken.security.Keys;
 import lombok.AllArgsConstructor;
@@ -9,10 +11,12 @@ import lombok.AllArgsConstructor;
 import javax.crypto.SecretKey;
 import java.nio.charset.StandardCharsets;
 import java.time.Instant;
+import java.time.LocalDateTime;
 import java.time.temporal.ChronoUnit;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.UUID;
 import java.util.function.Function;
 
 @AllArgsConstructor
@@ -29,13 +33,22 @@ public class JwtUtil {
     // --- Token Generation Methods ---
 
     /**
-     * Generate access token for user authentication
+     * Generate access token for user authentication using the default validity.
      */
     public String generateAccessToken(String username, String email, String role) {
+        return generateAccessToken(username, email, role, accessTokenExpirationMinutes);
+    }
+
+    /**
+     * Generate access token for user authentication with an explicit validity (in minutes).
+     * Used for "remember me" logins where the access token lives longer than the default.
+     */
+    public String generateAccessToken(String username, String email, String role, long expirationMinutes) {
         Map<String, Object> claims = new HashMap<>();
         claims.put(CommonConstants.JwtClaims.EMAIL, email);
+        claims.put(CommonConstants.JwtClaims.TOKEN_TYPE, JwtTokenType.ACCESS.getValue());
         claims.put(CommonConstants.JwtClaims.ROLE, role);
-        return createToken(claims, username, accessTokenExpirationMinutes, ChronoUnit.MINUTES);
+        return createToken(claims, username, expirationMinutes, ChronoUnit.MINUTES);
     }
 
     /**
@@ -43,7 +56,7 @@ public class JwtUtil {
      */
     public String generateRefreshToken(String username) {
         Map<String, Object> claims = new HashMap<>();
-        claims.put(CommonConstants.JwtClaims.TOKEN_TYPE, CommonConstants.Token.TOKEN_TYPE_REFRESH);
+        claims.put(CommonConstants.JwtClaims.TOKEN_TYPE, JwtTokenType.REFRESH.getValue());
         return createToken(claims, username, refreshTokenExpirationDays, ChronoUnit.DAYS);
     }
 
@@ -51,9 +64,9 @@ public class JwtUtil {
      * Generate password reset token
      */
     public String generatePasswordResetToken(String username, String email) {
-        Map<String, Object> claims = new HashMap<>();
+        Map<String, Object> claims = new HashMap<>(); // TODO update token claims for security
         claims.put(CommonConstants.JwtClaims.EMAIL, email);
-        claims.put(CommonConstants.JwtClaims.TOKEN_TYPE, CommonConstants.Token.TOKEN_TYPE_PASSWORD_RESET);
+        claims.put(CommonConstants.JwtClaims.TOKEN_TYPE, JwtTokenType.PASSWORD_RESET.getValue());
         return createToken(claims, username, 1, ChronoUnit.HOURS);
     }
 
@@ -63,7 +76,7 @@ public class JwtUtil {
     public String generateEmailVerificationToken(String username, String email) {
         Map<String, Object> claims = new HashMap<>();
         claims.put(CommonConstants.JwtClaims.EMAIL, email);
-        claims.put(CommonConstants.JwtClaims.TOKEN_TYPE, CommonConstants.Token.TOKEN_TYPE_EMAIL_VERIFICATION);
+        claims.put(CommonConstants.JwtClaims.TOKEN_TYPE, JwtTokenType.EMAIL_VERIFICATION.getValue());
         return createToken(claims, username, 24, ChronoUnit.HOURS);
     }
 
@@ -78,6 +91,7 @@ public class JwtUtil {
                 .claims(claims)
                 .subject(subject)
                 .issuer(issuer)
+                .id(UUID.randomUUID().toString()) // Add unique JTI to prevent duplicate tokens
                 .issuedAt(Date.from(now))
                 .expiration(Date.from(expiration))
                 .signWith(getSigningKey())
@@ -152,7 +166,7 @@ public class JwtUtil {
     /**
      * Validate token against username
      */
-    public boolean validateToken(String token, String username) throws Exception {
+    public boolean validateToken(String token, String username) {
         final String tokenUsername = extractUsername(token);
         return tokenUsername.equals(username) && !isTokenExpired(token);
     }
@@ -160,9 +174,9 @@ public class JwtUtil {
     /**
      * Validate refresh token
      */
-    public boolean validateRefreshToken(String token) throws Exception {
-        String tokenType = extractTokenType(token);
-        return CommonConstants.Token.TOKEN_TYPE_REFRESH.equals(tokenType) && !isTokenExpired(token);
+    public boolean validateRefreshToken(String token, String username) throws JwtException {
+        final String tokenType = extractTokenType(token);
+        return CommonConstants.Token.TOKEN_TYPE_REFRESH.equals(tokenType) && validateToken(token, username);
     }
 
     /**
@@ -184,14 +198,14 @@ public class JwtUtil {
     /**
      * Check if token is expired
      */
-    public boolean isTokenExpired(String token) throws Exception {
-        return extractExpiration(token).after(new Date());
+    public boolean isTokenExpired(String token) {
+        return extractExpiration(token).before(new Date());
     }
 
     /**
      * Get remaining time before token expires (in seconds)
      */
-    public long getTokenRemainingTime(String token) throws Exception {
+    public long getTokenRemainingTime(String token) {
         Date expiration = extractExpiration(token);
         long expirationTime = expiration.getTime();
         long currentTime = System.currentTimeMillis();
@@ -220,5 +234,15 @@ public class JwtUtil {
      */
     public long getRefreshTokenExpiration() {
         return refreshTokenExpirationDays * 24 * 60 * 60 * 1000;
+    }
+
+    public LocalDateTime issuedAt(String accessToken) {
+        Date issuedAt = extractClaim(accessToken, Claims::getIssuedAt);
+        return LocalDateTime.ofInstant(issuedAt.toInstant(), java.time.ZoneId.systemDefault());
+    }
+
+    public LocalDateTime expiresAt(String accessToken) {
+        Date expiration = extractClaim(accessToken, Claims::getExpiration);
+        return LocalDateTime.ofInstant(expiration.toInstant(), java.time.ZoneId.systemDefault());
     }
 }

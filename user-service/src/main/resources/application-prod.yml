@@ -5,15 +5,42 @@ server:
 spring:
   jackson:
     default-property-inclusion: non_null
+  mail:
+    host: ${MAIL_HOST}
+    port: ${MAIL_PORT:587}
+    username: ${MAIL_USERNAME}
+    password: ${MAIL_PASSWORD}
+    properties:
+      mail:
+        smtp:
+          auth: true
+          starttls:
+            enable: true
   datasource:
     url: ${DATABASE_URL}
     username: ${DATABASE_USERNAME}
     password: ${DATABASE_PASSWORD}
     driver-class-name: org.postgresql.Driver
+    hikari:
+      pool-name: user-service-pool
+      maximum-pool-size: ${HIKARI_MAX_POOL_SIZE:10}
+      minimum-idle: ${HIKARI_MIN_IDLE:5}
+      connection-timeout: 20000
+      idle-timeout: 300000
+      max-lifetime: 1800000
+      keepalive-time: 60000
+      leak-detection-threshold: 60000
   jpa:
     database-platform: org.hibernate.dialect.PostgreSQLDialect
     hibernate:
       ddl-auto: validate
+  flyway:
+    enabled: true
+    baseline-on-migrate: true
+  web:
+    error:
+      whitelabel:
+        enabled: false
 logging:
   level:
     org:
@@ -22,15 +49,53 @@ logging:
       tu2l:
         user: INFO
   file:
-    name: /var/log/resume-builder/user-service/app.log
+    name: ../etc/logs/user-service/app.log
   logback:
     rollingpolicy:
+      file-name-pattern: ../etc/logs/user-service/%d{yyyy-MM-dd}.%i.log
       max-file-size: 10MB
-      max-history: 1
-jwt:
-  secret-key: ${JWT_SECRET_KEY}
-  access-token:
-    expiration-minutes: 30
-  refresh-token:
-    expiration-days: 1
-  issuer: resume-builder-app
+      max-history: 30
+springdoc:
+  swagger-ui:
+    enabled: false
+  api-docs:
+    enabled: false
+    path: /v1/api-docs
+
+app:
+  mail:
+    from-address: ${MAIL_FROM_ADDRESS:no-reply@resume-builder.app}
+    frontend-base-url: ${FRONTEND_BASE_URL}
+    verification-path: /verify-email?token=
+    password-reset-path: /reset-password?token=
+    verification-subject: "Verify your email"
+    password-reset-subject: "Reset your password"
+  rate-limit:
+    enabled: true
+    capacity: 10
+    window-seconds: 60
+    cleanup-interval-ms: 300000
+    limited-paths:
+      - /auth/authenticate
+      - /auth/forgot-password
+      - /auth/reset-password
+      - /auth/register
+      - /auth/refresh-token
+    trusted-proxies: ${RATE_LIMIT_TRUSTED_PROXIES:}
+  cors:
+    allowed-origins: ${CORS_ALLOWED_ORIGINS}
+  auth:
+    max-failed-login-attempts: 5
+    account-lock-duration-minutes: 15
+    remember-me-token-validity-minutes: 14
+    require-verified-email: ${REQUIRE_VERIFIED_EMAIL:false}
+    jwt:
+      secret-key: ${JWT_SECRET_KEY}
+      access-token-expiration-minutes: 15
+      refresh-token-expiration-days: 7
+      issuer: resume-builder-app
+  bootstrap-admin:
+    enabled: ${BOOTSTRAP_ADMIN_ENABLED:false}
+    username: ${BOOTSTRAP_ADMIN_USERNAME:}
+    email: ${BOOTSTRAP_ADMIN_EMAIL:}
+    password: ${BOOTSTRAP_ADMIN_PASSWORD:}

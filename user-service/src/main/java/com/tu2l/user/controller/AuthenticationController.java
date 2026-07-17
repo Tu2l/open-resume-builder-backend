@@ -1,177 +1,99 @@
 package com.tu2l.user.controller;
 
+import com.tu2l.common.constant.CommonConstants;
 import com.tu2l.common.model.base.BaseResponse;
-import com.tu2l.common.model.states.ResponseProcessingStatus;
-import com.tu2l.user.entity.UserEntity;
-import com.tu2l.user.entity.UserLogin;
+import com.tu2l.user.constants.AuthenticationMessages;
+import com.tu2l.user.controller.api.AuthenticationApi;
 import com.tu2l.user.model.request.*;
 import com.tu2l.user.model.response.AuthResponse;
 import com.tu2l.user.service.AuthenticationService;
+import com.tu2l.user.utils.AuthResponseBuilder;
 import jakarta.validation.Valid;
-import lombok.NonNull;
+import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.jspecify.annotations.NonNull;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
-import org.springframework.web.bind.annotation.*;
+import org.springframework.web.bind.annotation.RequestBody;
+import org.springframework.web.bind.annotation.RestController;
 
-/**
- * Authentication Controller - Handles authentication operations
- * Base path: /user/auth
- */
 @Slf4j
+@RequiredArgsConstructor
 @RestController
-@RequestMapping("/auth")
-public class AuthenticationController {
+public class AuthenticationController extends BaseController implements AuthenticationApi {
+
     private final AuthenticationService authenticationService;
+    private final AuthResponseBuilder authResponseBuilder;
 
-    public AuthenticationController(AuthenticationService authenticationService) {
-        this.authenticationService = authenticationService;
-    }
-
-    /**
-     * POST /auth/register - Register a new user account
-     */
-    @PostMapping("/register")
-    public ResponseEntity<AuthResponse> register(@Valid @RequestBody RegisterRequest request) throws Exception {
-        log.info("Registration request received for username: {}", request.getUsername());
-
-        UserEntity registeredUser = authenticationService.register(request);
-        UserLogin userLogin = registeredUser.getMostRecentLogin();
-
-        AuthResponse response = AuthResponse.builder()
-                .accessToken(userLogin.getToken())
-                .expiresIn(userLogin.getExpiresIn())
-                .refreshToken(registeredUser.getRefreshToken())
-                .build();
-
-        response.setMessage("User registered successfully");
-        response.setStatus(ResponseProcessingStatus.SUCCESS);
-
+    @Override
+    public ResponseEntity<@NonNull AuthResponse> register(@Valid @RequestBody NewUserRegisterRequest request) {
+        var registeredUser = authenticationService.register(request);
+        var response = authResponseBuilder.buildAuthResponse(registeredUser, AuthenticationMessages.USER_REGISTERED_SUCCESS);
         log.info("User registered successfully: {}", request.getUsername());
         return ResponseEntity.status(HttpStatus.CREATED).body(response);
     }
 
-    /**
-     * POST /auth/login - Authenticate user and return JWT tokens
-     */
-    @PostMapping("/login")
-    public ResponseEntity<@NonNull AuthResponse> login(@Valid @RequestBody LoginRequest request) throws Exception {
-        log.info("Login attempt for user: {}", request.getUsernameOrEmail());
-
-        UserEntity loggedInUserEntity = authenticationService.authenticate(request.getUsernameOrEmail(),
-                request.getPassword(), request.getRememberMe());
-        UserLogin userLogin = loggedInUserEntity.getMostRecentLogin();
-
-        AuthResponse response = AuthResponse.builder()
-                .accessToken(userLogin.getToken())
-                .expiresIn(userLogin.getExpiresIn())
-                .refreshToken(loggedInUserEntity.getRefreshToken())
-                .build();
-
-        response.setMessage("Login successful");
-        response.setStatus(ResponseProcessingStatus.SUCCESS);
-
-        log.info("Login successful for user: {}", request.getUsernameOrEmail());
+    @Override
+    public ResponseEntity<@NonNull AuthResponse> authenticate(LoginRequest request) {
+        log.info("Login attempt received");
+        var loggedInUserEntity = authenticationService.authenticate(
+                request.getEmail(), request.getPassword(), request.getRememberMe());
+        var response = authResponseBuilder.buildAuthResponse(loggedInUserEntity, AuthenticationMessages.LOGIN_SUCCESS);
+        log.info("Login successful");
         return ResponseEntity.ok(response);
     }
 
-    /**
-     * POST /auth/refresh - Refresh access token using refresh token
-     */
-    @PostMapping("/refresh")
-    public ResponseEntity<AuthResponse> refreshToken(@Valid @RequestBody RefreshTokenRequest request) throws Exception {
-        log.info("Token refresh request received");
-
-        UserEntity refreshedUserEntity = authenticationService.refreshToken(request.getRefreshToken());
-
-        AuthResponse response = AuthResponse.builder()
-                .accessToken(refreshedUserEntity.getMostRecentLogin().getToken())
-                .expiresIn(refreshedUserEntity.getMostRecentLogin().getExpiresIn())
-                .refreshToken(refreshedUserEntity.getRefreshToken())
-                .build();
-
-        response.setMessage("Token refreshed successfully");
-        response.setStatus(ResponseProcessingStatus.SUCCESS);
-
+    @Override
+    public ResponseEntity<@NonNull AuthResponse> refreshToken(@Valid @RequestBody RefreshTokenRequest request) {
+        var refreshedUserEntity = authenticationService.refreshToken(request.getRefreshToken());
+        var response = authResponseBuilder.buildAuthResponse(refreshedUserEntity, AuthenticationMessages.TOKEN_REFRESHED_SUCCESS);
         log.info("Token refreshed successfully");
         return ResponseEntity.ok(response);
     }
 
-    /**
-     * POST /auth/logout - Logout user (invalidate tokens)
-     */
-    @PostMapping("/logout")
-    public ResponseEntity<BaseResponse> logout(@RequestHeader("Authorization") String token) throws Exception {
-        log.info("Logout request received");
-
-        authenticationService.logout(token);
-
-        BaseResponse response = new BaseResponse() {
-        };
-        response.setMessage("Logout successful");
-        response.setStatus(ResponseProcessingStatus.SUCCESS);
-
-        log.info("Logout successful");
-        return ResponseEntity.ok(response);
+    @Override
+    public ResponseEntity<@NonNull BaseResponse> logout(String authorizationHeader) {
+        // The Authorization header arrives with the scheme prefix ("Bearer <jwt>"); the
+        // service hashes/parses the bare JWT, so strip the prefix before delegating.
+        var success = authenticationService.logout(stripBearerPrefix(authorizationHeader));
+        log.info("Logout attempt: {}", success ? "successful" : "failed");
+        return getResponse(success, AuthenticationMessages.LOGOUT_SUCCESS, AuthenticationMessages.LOGOUT_FAILED_INVALID_TOKEN);
     }
 
-    /**
-     * forgot password, reset password, verify email are still incomplete
-     */
-
-    /**
-     * POST /auth/forgot-password - Request password reset
-     */
-    @PostMapping("/forgot-password")
-    public ResponseEntity<BaseResponse> forgotPassword(@Valid @RequestBody ForgotPasswordRequest request)
-            throws Exception {
-        log.info("Password reset request for email: {}", request.getEmail());
-
-        authenticationService.forgotPassword(request.getEmail());
-
-        BaseResponse response = new BaseResponse() {
-        };
-        response.setMessage("Password reset instructions sent to your email");
-        response.setStatus(ResponseProcessingStatus.SUCCESS);
-
-        log.info("Password reset email sent to: {}", request.getEmail());
-        return ResponseEntity.ok(response);
+    /** Strip a leading case-insensitive {@code "Bearer "} scheme if present; otherwise return as-is. */
+    private static String stripBearerPrefix(String token) {
+        if (token != null && token.regionMatches(true, 0, CommonConstants.Token.BEARER_PREFIX, 0,
+                CommonConstants.Token.BEARER_PREFIX_LENGTH)) {
+            return token.substring(CommonConstants.Token.BEARER_PREFIX_LENGTH);
+        }
+        return token;
     }
 
-    /**
-     * POST /auth/reset-password - Reset password using reset token
-     */
-    @PostMapping("/reset-password")
-    public ResponseEntity<BaseResponse> resetPassword(@Valid @RequestBody ResetPasswordRequest request)
-            throws Exception {
-        log.info("Password reset attempt with token");
-
-        authenticationService.resetPassword(request.getResetToken(), request.getNewPassword());
-
-        BaseResponse response = new BaseResponse() {
-        };
-        response.setMessage("Password reset successful");
-        response.setStatus(ResponseProcessingStatus.SUCCESS);
-
-        log.info("Password reset successful");
-        return ResponseEntity.ok(response);
+    @Override
+    public ResponseEntity<@NonNull BaseResponse> forgotPassword(ForgotPasswordRequest request) {
+        var success = authenticationService.forgotPassword(request.getEmail());
+        log.info("Forgot password attempt: {}", success ? "successful" : "failed");
+        return getResponse(success, AuthenticationMessages.PASSWORD_RESET_EMAIL_SENT, AuthenticationMessages.PASSWORD_RESET_EMAIL_FAILED);
     }
 
-    /**
-     * POST /auth/verify-email - Verify email address (optional)
-     */
-    @PostMapping("/verify-email")
-    public ResponseEntity<BaseResponse> verifyEmail(@RequestBody String verificationToken) throws Exception {
-        log.info("Email verification attempt");
+    @Override
+    public ResponseEntity<@NonNull BaseResponse> resetPassword(ResetPasswordRequest request) {
+        var success = authenticationService.resetPassword(request.getResetToken(), request.getNewPassword());
+        log.info("Reset password attempt: {}", success ? "successful" : "failed");
+        return getResponse(success, AuthenticationMessages.PASSWORD_RESET_SUCCESS, AuthenticationMessages.PASSWORD_RESET_FAILED);
+    }
 
-        authenticationService.verifyEmail(verificationToken);
+    @Override
+    public ResponseEntity<@NonNull BaseResponse> verifyEmail(String token) {
+        var success = authenticationService.verifyEmail(token);
+        log.info("Verify email attempt: {}", success ? "successful" : "failed");
+        return getResponse(success, AuthenticationMessages.EMAIL_VERIFIED_SUCCESS, AuthenticationMessages.EMAIL_VERIFICATION_FAILED);
+    }
 
-        BaseResponse response = new BaseResponse() {
-        };
-        response.setMessage("Email verified successfully");
-        response.setStatus(ResponseProcessingStatus.SUCCESS);
-
-        log.info("Email verified successfully");
-        return ResponseEntity.ok(response);
+    @Override
+    public ResponseEntity<@NonNull BaseResponse> resendVerification(ResendVerificationRequest request) {
+        authenticationService.resendVerification(request.getEmail());
+        log.info("Resend verification requested");
+        return success(AuthenticationMessages.VERIFICATION_EMAIL_SENT);
     }
 }

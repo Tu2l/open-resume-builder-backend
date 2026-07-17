@@ -2,22 +2,23 @@ package com.tu2l.user.config;
 
 import com.tu2l.common.util.CommonUtil;
 import com.tu2l.common.util.JwtUtil;
-import org.springframework.beans.factory.annotation.Value;
+import lombok.RequiredArgsConstructor;
+import org.jspecify.annotations.NonNull;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.http.HttpMethod;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.security.crypto.password.PasswordEncoder;
+import org.springframework.web.servlet.config.annotation.CorsRegistry;
+import org.springframework.web.servlet.config.annotation.WebMvcConfigurer;
 
+import java.nio.charset.StandardCharsets;
+
+@RequiredArgsConstructor
 @Configuration
 public class BeansConfiguration {
-    @Value("${jwt.secret-key:dev-default-secret-key-must-be-at-least-32-chars-long-for-HS256}")
-    private String secretKey;
-    @Value("${jwt.access-token.expiration-minutes:60}")
-    private int accessTokenExpirationMinutes;
-    @Value("${jwt.refresh-token.expiration-days:30}")
-    private int refreshTokenExpirationDays;
-    @Value("${jwt.issuer:resume-builder-app}")
-    private String issuer;
+    private final CorsProperties corsProperties;
+    private final JwtConfig jwtConfig;
 
     @Bean
     PasswordEncoder passwordEncoder() {
@@ -31,6 +32,28 @@ public class BeansConfiguration {
 
     @Bean
     public JwtUtil jwtUtil() {
-        return new JwtUtil(secretKey, accessTokenExpirationMinutes, refreshTokenExpirationDays, issuer);
+        var secret = jwtConfig.secretKey();
+        if (secret == null || secret.getBytes(StandardCharsets.UTF_8).length < 32) {
+            throw new IllegalStateException(
+                    "app.auth.jwt.secret-key must be at least 32 bytes (256 bits) for HS256");
+        }
+        return new JwtUtil(secret, jwtConfig.accessTokenExpirationMinutes(), jwtConfig.refreshTokenExpirationDays(), jwtConfig.issuer());
+    }
+
+    @Bean
+    public WebMvcConfigurer corsConfigurer() {
+        return new WebMvcConfigurer() {
+            @Override
+            public void addCorsMappings(@NonNull CorsRegistry registry) {
+                WebMvcConfigurer.super.addCorsMappings(registry);
+                registry.addMapping("/**")
+                        .allowedOrigins(corsProperties.allowedOrigins().toArray(new String[0]))
+                        .allowedMethods(HttpMethod.GET.name(), HttpMethod.POST.name(), HttpMethod.PUT.name(), HttpMethod.DELETE.name(), HttpMethod.OPTIONS.name(), HttpMethod.PATCH.name())
+                        .allowedHeaders("*")
+                        .allowCredentials(true)
+                        .exposedHeaders("Authorization", "Content-Type")
+                        .maxAge(3600);
+            }
+        };
     }
 }

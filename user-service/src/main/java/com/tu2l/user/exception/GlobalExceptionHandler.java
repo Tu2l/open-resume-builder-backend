@@ -1,67 +1,96 @@
 package com.tu2l.user.exception;
 
-import java.util.stream.Collectors;
-
 import com.tu2l.common.exception.AuthenticationException;
+import com.tu2l.common.factory.ResponseFactory;
+import com.tu2l.common.model.base.BaseResponse;
+import io.jsonwebtoken.JwtException;
+import lombok.extern.slf4j.Slf4j;
+import org.jspecify.annotations.NonNull;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.http.converter.HttpMessageConversionException;
+import org.springframework.security.access.AccessDeniedException;
+import org.springframework.web.HttpRequestMethodNotSupportedException;
 import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
+import org.springframework.web.server.ResponseStatusException;
 import org.springframework.web.servlet.resource.NoResourceFoundException;
 
-import com.tu2l.common.model.base.BaseResponse;
-import com.tu2l.common.model.states.ResponseProcessingStatus;
-
-import lombok.extern.slf4j.Slf4j;
+import java.util.stream.Collectors;
 
 @Slf4j
 @RestControllerAdvice
 public class GlobalExceptionHandler {
 
     @ExceptionHandler(Exception.class)
-    public ResponseEntity<BaseResponse> handleGlobalExceptions(Exception exception) {
+    public ResponseEntity<@NonNull BaseResponse> handleGlobalExceptions(Exception exception) {
         log.error("Exception caught", exception);
+        return getResponse("Something went wrong", "Exception caught: {}", HttpStatus.INTERNAL_SERVER_ERROR);
+    }
 
-        BaseResponse error = new BaseResponse() {};
-        error.setMessage(exception.getMessage());
-        error.setStatus(ResponseProcessingStatus.FAILURE);
-        return new ResponseEntity<>(error, HttpStatus.INTERNAL_SERVER_ERROR);
+    @ExceptionHandler(ResponseStatusException.class)
+    public ResponseEntity<@NonNull BaseResponse> handleResponseStatusException(ResponseStatusException exception) {
+        // Honour the status carried by the exception (e.g. Spring's native API-versioning errors
+        // InvalidApiVersionException/NotAcceptableApiVersionException -> 400) instead of letting the
+        // generic Exception handler mask it as 500.
+        String message = exception.getReason() != null ? exception.getReason() : exception.getMessage();
+        log.warn("ResponseStatusException caught: {}", message);
+        return new ResponseEntity<>(ResponseFactory.createErrorResponse(message), exception.getStatusCode());
+    }
+
+    @ExceptionHandler(HttpMessageConversionException.class)
+    public ResponseEntity<@NonNull BaseResponse> handleBadRequests(HttpMessageConversionException exception) {
+        log.error("Exception caught", exception);
+        return getResponse("Something went wrong", "Exception caught: {}", HttpStatus.BAD_REQUEST);
     }
 
     @ExceptionHandler(NoResourceFoundException.class)
-    public ResponseEntity<BaseResponse> handleNoResourceFoundException(NoResourceFoundException exception) {
-        log.warn("Resource not found: {}", exception.getMessage());
-
-        BaseResponse error = new BaseResponse() {};
-        error.setMessage(exception.getMessage());
-        error.setStatus(ResponseProcessingStatus.FAILURE);
-        return new ResponseEntity<>(error, HttpStatus.NOT_FOUND);
+    public ResponseEntity<@NonNull BaseResponse> handleNoResourceFoundException(NoResourceFoundException exception) {
+        return getResponse("Resource not found", "Resource not found: {}", HttpStatus.NOT_FOUND);
     }
 
-
     @ExceptionHandler(MethodArgumentNotValidException.class)
-    public ResponseEntity<BaseResponse> handleValidationExceptions(MethodArgumentNotValidException exception) {
+    public ResponseEntity<@NonNull BaseResponse> handleValidationExceptions(MethodArgumentNotValidException exception) {
         String errorMessage = exception.getBindingResult()
                 .getFieldErrors()
                 .stream()
                 .map(error -> error.getField() + ": " + error.getDefaultMessage())
                 .collect(Collectors.joining(", "));
-        
-        log.warn("Validation failed: {}", errorMessage);
 
-        BaseResponse error = new BaseResponse() {};
-        error.setMessage(errorMessage);
-        error.setStatus(ResponseProcessingStatus.FAILURE);
-        return new ResponseEntity<>(error, HttpStatus.BAD_REQUEST);
+        return getResponse(errorMessage, "Validation failed: {}", HttpStatus.BAD_REQUEST);
     }
 
-    @ExceptionHandler({UserException.class, AuthenticationException.class})
-    public ResponseEntity<BaseResponse> handleAppLevelExceptions(RuntimeException exception) {
-        log.error("UserException caught: {}", exception.getMessage());
-        BaseResponse error = new BaseResponse() {};
-        error.setMessage(exception.getMessage());
-        error.setStatus(ResponseProcessingStatus.FAILURE);  
-        return new ResponseEntity<>(error, HttpStatus.OK);
-    }   
+    @ExceptionHandler({UserException.class})
+    public ResponseEntity<@NonNull BaseResponse> handleUserException(UserException exception) {
+        return getResponse(exception.getMessage(), "UserException caught: {}", exception.getStatus());
+    }
+
+    @ExceptionHandler({AuthenticationException.class})
+    public ResponseEntity<@NonNull BaseResponse> handleAuthenticationException(AuthenticationException exception) {
+        return getResponse(exception.getMessage(), "AuthenticationException caught: {}", HttpStatus.UNAUTHORIZED);
+    }
+
+    @ExceptionHandler({AccessDeniedException.class})
+    public ResponseEntity<@NonNull BaseResponse> handleAccessDeniedException(AccessDeniedException exception) {
+        // Thrown by @PreAuthorize (AuthorizationDeniedException) during controller invocation —
+        // downstream of the security filter chain, so SecurityConfig's accessDeniedHandler never
+        // sees it. Translate it into a clean 403 instead of letting it fall through to 500.
+        return getResponse("Access denied", "AccessDeniedException caught: {}", HttpStatus.FORBIDDEN);
+    }
+
+    @ExceptionHandler({JwtException.class})
+    public ResponseEntity<@NonNull BaseResponse> handleJwtException(JwtException exception) {
+        return getResponse(exception.getMessage(), "JwtException caught: {}", HttpStatus.UNAUTHORIZED);
+    }
+
+    @ExceptionHandler({HttpRequestMethodNotSupportedException.class})
+    public ResponseEntity<@NonNull BaseResponse> handleHttpRequestMethodNotSupportedException(HttpRequestMethodNotSupportedException exception) {
+        return getResponse(exception.getMessage(), "HttpRequestMethodNotSupportedException caught: {}", HttpStatus.METHOD_NOT_ALLOWED);
+    }
+
+    private ResponseEntity<@NonNull BaseResponse> getResponse(String message, String format, HttpStatus ok) {
+        log.warn(format, message);
+        return new ResponseEntity<>(ResponseFactory.createErrorResponse(message), ok);
+    }
 }

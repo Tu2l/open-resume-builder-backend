@@ -20,6 +20,7 @@ public final class CommonConstants {
         public static final String X_USER_ID = "X-User-Id";
         public static final String X_USER_EMAIL = "X-User-Email";
         public static final String X_USER_ROLE = "X-User-Role";
+        public static final String X_USER_USERNAME = "X-User-Username";
         public static final String X_REQUEST_ID = "X-Request-Id";
         public static final String X_REQUEST_TYPE = "X-Request-Type";
         public static final String X_CORRELATION_ID = "X-Correlation-Id";
@@ -121,6 +122,9 @@ public final class CommonConstants {
         // Token messages
         public static final String TOKEN_REQUIRED = "Token is required";
         public static final String TOKEN_INVALID = "Token is invalid";
+
+        // Base64 messages
+        public static final String BASE64_INVALID = "Value must be a valid Base64 encoded string";
     }
 
     // ============ HTTP Status Messages ============
@@ -225,5 +229,6 @@ public final class CommonConstants {
         public static final String PASSWORD_PATTERN = "^(?=.*[a-z])(?=.*[A-Z])(?=.*\\d)(?=.*[@$!%*?&])[A-Za-z\\d@$!%*?&]+$";
         public static final String PHONE_PATTERN = "^[+]?[(]?[0-9]{1,4}[)]?[-\\s\\.]?[(]?[0-9]{1,4}[)]?[-\\s\\.]?[0-9]{1,9}$";
         public static final String USERNAME_PATTERN = "^[a-zA-Z0-9._-]+$";
+        public static final String BASE_64_PATTERN = "^(?:[A-Za-z0-9+/]{4})*(?:[A-Za-z0-9+/]{2}==|[A-Za-z0-9+/]{3}=)?$";
     }
 }

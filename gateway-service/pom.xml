@@ -26,6 +26,13 @@
 			<optional>true</optional>
 		</dependency>
 
+		<!-- OpenAPI aggregation (WebFlux variant required for reactive gateway) -->
+		<dependency>
+			<groupId>org.springdoc</groupId>
+			<artifactId>springdoc-openapi-starter-webflux-ui</artifactId>
+			<version>3.0.0</version>
+		</dependency>
+
         <!-- Lombok - version inherited from parent -->
         <dependency>
             <groupId>org.projectlombok</groupId>

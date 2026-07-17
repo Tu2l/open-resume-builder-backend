@@ -1,186 +1,165 @@
 package com.tu2l.user.entity;
 
+import com.tu2l.common.model.JwtTokenType;
 import com.tu2l.common.model.states.UserRole;
 import jakarta.persistence.*;
-import lombok.AllArgsConstructor;
-import lombok.Builder;
-import lombok.Data;
-import lombok.NoArgsConstructor;
+import lombok.*;
 import org.hibernate.annotations.CreationTimestamp;
+import org.hibernate.annotations.SQLRestriction;
 import org.hibernate.annotations.UpdateTimestamp;
 
 import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Objects;
+import java.util.Optional;
 
 @Data
 @Builder
 @NoArgsConstructor
 @AllArgsConstructor
+@ToString(exclude = {"profile", "accountStatus", "credentials", "plainAccessToken", "plainRefreshToken"})
+@EqualsAndHashCode(exclude = {"profile", "accountStatus", "credentials", "plainAccessToken", "plainRefreshToken"})
 @Entity
-@Table(name = "users", indexes = {
-        @Index(name = "idx_username", columnList = "username"),
-        @Index(name = "idx_email", columnList = "email")
-})
+@Table(
+        name = "users",
+        uniqueConstraints = {
+                @UniqueConstraint(name = "uk_username", columnNames = "username"),
+                @UniqueConstraint(name = "uk_email", columnNames = "email")
+        }
+)
+@SQLRestriction("deleted_at IS NULL")
 public class UserEntity {
-
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
-    @Column(nullable = false, unique = true, length = 50)
-    private String username;
-
-    @Column(nullable = false, unique = true, length = 100)
-    private String email;
-
-    @Column(nullable = false)
-    private String password; // Hashed password
-
-    @Column(length = 50)
-    private String firstName;
-
-    @Column(length = 50)
-    private String lastName;
-
-    @Column(length = 20)
-    private String phoneNumber;
-
-    @Builder.Default
-    @Enumerated(EnumType.STRING)
-    @Column(nullable = false, length = 20)
-    private UserRole role = UserRole.USER;
-
-    @Builder.Default
-    @Column(nullable = false)
-    private Boolean enabled = true;
-
-    @Builder.Default
-    @Column(nullable = false)
-    private Boolean emailVerified = false;
-
-    @Column(length = 100)
-    private String emailVerificationToken;
-
-    @Column
-    private LocalDateTime emailVerificationExpiry;
-
-    @Column(length = 100)
-    private String passwordResetToken;
-
-    @Column
-    private LocalDateTime passwordResetExpiry;
-
-    @Column(length = 255)
-    private String refreshToken;
-
-    @Column
-    private LocalDateTime refreshTokenExpiry;
-
-    @Column
-    private LocalDateTime lastLoginAt;
-
-    @Builder.Default
-    @Column
-    private Integer failedLoginAttempts = 0;
-
-    @Column
-    private LocalDateTime accountLockedUntil;
-
     @CreationTimestamp
-    @Column(nullable = false, updatable = false)
+    @Column(nullable = false, name = "created_at")
     private LocalDateTime createdAt;
 
     @UpdateTimestamp
-    @Column(nullable = false)
+    @Column(nullable = false, name = "updated_at")
     private LocalDateTime updatedAt;
 
-    @Column
-    private LocalDateTime deletedAt; // For soft delete
+    @Column(nullable = false, name = "email", length = 100)
+    private String email;
+
+    @Column(nullable = false, name = "username", length = 50)
+    private String username;
 
     @Builder.Default
-    @OneToMany(mappedBy = "user", cascade = CascadeType.ALL, orphanRemoval = true)
-    private List<UserLogin> userLogins = new ArrayList<>();
+    @Enumerated(EnumType.STRING)
+    @Column(nullable = false, name = "role", length = 20)
+    private UserRole role = UserRole.USER;
+
+    @Column(nullable = false, name = "oauth_user")
+    private boolean isOAuthUser;
+
+    @Column(name = "password", length = 255)
+    private String password;
+
+    @Builder.Default
+    @OneToOne(fetch = FetchType.LAZY, cascade = CascadeType.ALL, orphanRemoval = true)
+    @JoinColumn(name = "profile_id", unique = true, nullable = false)
+    private UserProfile profile = null;
+
+    @Builder.Default
+    @OneToOne(fetch = FetchType.LAZY, cascade = CascadeType.ALL, orphanRemoval = true)
+    @JoinColumn(name = "account_status_id", unique = true, nullable = false)
+    private UserAccountStatus accountStatus = null;
+
+    @Builder.Default
+    @OneToMany(mappedBy = "user", fetch = FetchType.LAZY, cascade = CascadeType.ALL, orphanRemoval = true)
+    private List<UserCredential> credentials = new ArrayList<>();
+
+    /**
+     * Soft-delete marker. When set, {@link SQLRestriction} on this entity hides the
+     * row from all standard queries. {@code null} means the user is active.
+     */
+    @Column(name = "deleted_at")
+    private LocalDateTime deletedAt;
+
+    /**
+     * Raw (un-hashed) access/refresh tokens for the current operation. Not persisted
+     * ({@link Transient}) — only stored hashes live in {@link UserCredential}. These
+     * carry the real JWTs back to the auth response after token hashing.
+     */
+    @Transient
+    private String plainAccessToken;
+
+    @Transient
+    private String plainRefreshToken;
 
     @PrePersist
-    protected void onCreate() {
-        if (role == null) {
-            role = UserRole.USER;
+    void onCreate() {
+        if (isOAuthUser && password != null) {
+            throw new IllegalStateException("OAuth users should not have a password set.");
         }
-        if (enabled == null) {
-            enabled = true;
+
+        if (profile == null) {
+            profile = new UserProfile();
         }
-        if (emailVerified == null) {
-            emailVerified = false;
+        if (accountStatus == null) {
+            accountStatus = new UserAccountStatus();
         }
-        if (failedLoginAttempts == null) {
-            failedLoginAttempts = 0;
+        if (credentials == null) {
+            credentials = new ArrayList<>();
         }
-        if (userLogins == null) {
-            userLogins = new ArrayList<>();
-        }
-        userLogins.forEach(login -> login.setUser(this));
+
+        profile.setUser(this);
+        accountStatus.setUser(this);
     }
 
-    // Helper methods
-    public boolean isAccountLocked() {
-        return accountLockedUntil != null && accountLockedUntil.isAfter(LocalDateTime.now());
-    }
-
-    public boolean isPasswordResetTokenValid() {
-        return passwordResetToken != null
-                && passwordResetExpiry != null
-                && passwordResetExpiry.isAfter(LocalDateTime.now());
-    }
-
-    public boolean isEmailVerificationTokenValid() {
-        return emailVerificationToken != null
-                && emailVerificationExpiry != null
-                && emailVerificationExpiry.isAfter(LocalDateTime.now());
-    }
-
-    public boolean isRefreshTokenValid() {
-        return refreshToken != null
-                && refreshTokenExpiry != null
-                && refreshTokenExpiry.isAfter(LocalDateTime.now());
-    }
-
-    public String getFullName() {
-        if (firstName == null && lastName == null) {
-            return username;
+    @PreUpdate
+    void onUpdate() {
+        if (isOAuthUser && password != null) {
+            throw new IllegalStateException("OAuth users should not have a password set.");
         }
-        if (firstName == null) {
-            return lastName;
+        if (profile != null && !Objects.equals(profile.getUser(), this)) {
+            profile.setUser(this);
         }
-        if (lastName == null) {
-            return firstName;
+        if (accountStatus != null && !Objects.equals(accountStatus.getUser(), this)) {
+            accountStatus.setUser(this);
         }
-        return firstName + " " + lastName;
     }
 
-    public void clearSensitiveTokens() {
-        this.passwordResetToken = null;
-        this.passwordResetExpiry = null;
-        this.emailVerificationToken = null;
-        this.emailVerificationExpiry = null;
-        this.refreshToken = null;
-        this.refreshTokenExpiry = null;
+    public void addUserCredential(UserCredential credential) {
+        if (credential != null) {
+            credential.setUser(this);
+            this.credentials.add(credential);
+        }
     }
 
-    public UserLogin getMostRecentLogin() {
-        if (userLogins == null || userLogins.isEmpty()) {
-            return null;
-        }
-        return userLogins.stream()
-                .max((login1, login2) -> login1.getLoggedInAt().compareTo(login2.getLoggedInAt()))
+    public Optional<UserCredential> getLatestCredentials() {
+        return credentials.stream()
+                .max((c1, c2) -> c1.getCreatedAt().compareTo(c2.getCreatedAt()));
+    }
+
+    public UserCredential getCredentialsByType(JwtTokenType type) {
+        return credentials.stream()
+                .filter(cred -> cred.getTokenType() == type)
+                .findFirst()
                 .orElse(null);
     }
 
-    public void addUserLogin(UserLogin login) {
-        login.setUser(this);
-        if (this.userLogins == null) {
-            this.userLogins = new ArrayList<>();
-        }
-        this.userLogins.add(login);
+    public UserCredential getCredentialByTokenTypeAndToken(JwtTokenType type, String token) {
+        return credentials.stream()
+                .filter(cred -> cred.getTokenType() == type && cred.getToken().equals(token))
+                .findFirst()
+                .orElse(null);
+    }
+
+    public boolean removeCredentialByToken(String token) {
+        return credentials.removeIf(cred -> cred.getToken().equals(token));
+    }
+
+    public void clearSensitiveTokens() {
+        credentials.clear();
+    }
+
+    public String getTokenByType(JwtTokenType jwtTokenType) {
+        UserCredential credential = getCredentialsByType(jwtTokenType);
+        return credential != null ? credential.getToken() : null;
     }
 }

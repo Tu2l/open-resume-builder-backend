@@ -2,6 +2,9 @@ server:
   servlet:
     context-path: /pdf
   port: 8090
+  error:
+    whitelabel:
+      enabled: false
 spring:
   jackson:
     default-property-inclusion: non_null
@@ -15,6 +18,13 @@ spring:
     # show-sql: true
     hibernate:
       ddl-auto: update
+springdoc:
+  swagger-ui:
+    enabled: false
+  api-docs:
+    enabled: true
+    path: /v1/api-docs
+
 logging:
   level:
     org:
@@ -23,8 +33,9 @@ logging:
       tu2l:
         pdf: INFO
   file:
-    name: /var/log/resume-builder/pdf-service/app.log
+    name: ../etc/logs/pdf-service/app.log
   logback:
     rollingpolicy:
+      file-name-pattern: ../etc/logs/pdf-service/%d{yyyy-MM-dd}.%i.log
       max-file-size: 10MB
-      max-history: 1
+      max-history: 30

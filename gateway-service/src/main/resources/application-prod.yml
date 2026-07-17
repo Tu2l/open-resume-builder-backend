@@ -1,13 +1,22 @@
 server:
   port: 8080
+  error:
+    whitelabel:
+      enabled: false
 
 gateway: # Custom gateway configuration
   public-routes:
-    - /api/users/auth/**
+    - /api/users/v1/auth/**
     - /api/pdf/**
   service-urls:
     user-service: http://user-service:8091
     pdf-service: http://pdf-service:8090
+
+springdoc:
+  swagger-ui:
+    enabled: false
+  api-docs:
+    enabled: false
 
 # Common configuration
 logging:
@@ -24,11 +33,12 @@ logging:
     reactor:
       netty: INFO
   file:
-    name: ./logs/gateway-service/app.log
+    name: ../etc/logs/gateway-service/app.log
   logback:
     rollingpolicy:
+      file-name-pattern: ../etc/logs/gateway-service/%d{yyyy-MM-dd}.%i.log
       max-file-size: 10MB
-      max-history: 7
+      max-history: 30
 
 jwt:
   secret-key: ${JWT_SECRET_KEY}
