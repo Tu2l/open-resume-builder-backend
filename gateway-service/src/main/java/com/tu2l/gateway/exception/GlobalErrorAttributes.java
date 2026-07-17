@@ -1,6 +1,7 @@
 package com.tu2l.gateway.exception;
 
 import com.tu2l.common.exception.AuthenticationException;
+import lombok.extern.slf4j.Slf4j;
 import org.jspecify.annotations.NonNull;
 import org.springframework.boot.web.error.ErrorAttributeOptions;
 import org.springframework.boot.webflux.error.DefaultErrorAttributes;
@@ -11,17 +12,16 @@ import org.springframework.web.reactive.function.server.ServerRequest;
 import java.net.ConnectException;
 import java.net.UnknownHostException;
 import java.util.Map;
-import java.util.logging.Logger;
 
+@Slf4j
 @Component
 public class GlobalErrorAttributes extends DefaultErrorAttributes {
-    private final static Logger logger = Logger.getLogger(GlobalErrorAttributes.class.getName());
 
     @NonNull
     @Override
     public Map<String, Object> getErrorAttributes(@NonNull ServerRequest request, ErrorAttributeOptions options) {
         Throwable throwable = getError(request);
-        logger.warning(() -> "Gateway error for %s %s: %s".formatted(request.method(), request.uri(), throwable.getMessage()));
+        log.warn("Gateway error for {} {}: {}", request.method(), request.uri(), throwable.getMessage());
 
         ErrorAttributeOptions sanitizedOptions = options.excluding(ErrorAttributeOptions.Include.STACK_TRACE);
         Map<String, Object> attributes = super.getErrorAttributes(request, sanitizedOptions);

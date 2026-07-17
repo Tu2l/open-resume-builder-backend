@@ -12,5 +12,10 @@ import java.util.Map;
 public class CustomGatewayProperties {
     private List<String> publicRoutes = new ArrayList<>();
     private Map<String, String> serviceUrls = Map.of();
-}
+    private Cors cors = new Cors();
 
+    @Data
+    public static class Cors {
+        private List<String> allowedOrigins = new ArrayList<>();
+    }
+}

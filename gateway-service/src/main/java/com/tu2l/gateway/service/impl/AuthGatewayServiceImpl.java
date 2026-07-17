@@ -26,12 +26,6 @@ public class AuthGatewayServiceImpl implements AuthGatewayService {
     }
 
     @Override
-    public boolean validateTokenInRemote(String token) throws Exception {
-        // TODO call remote auth service to validate token if needed
-        return true;
-    }
-
-    @Override
     public ServerHttpRequest mutateRequestWithUserInfo(ServerHttpRequest request, String token) throws AuthenticationException {
         Claims claims = jwtUtil.extractAllClaims(token);
         var tokenType = jwtUtil.extractClaim(claims, claim -> claim.get(CommonConstants.JwtClaims.TOKEN_TYPE, String.class));

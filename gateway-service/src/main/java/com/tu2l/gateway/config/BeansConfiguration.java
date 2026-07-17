@@ -1,7 +1,6 @@
 package com.tu2l.gateway.config;
 
 import com.tu2l.common.util.JwtUtil;
-import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.autoconfigure.web.ErrorProperties;
 import org.springframework.boot.autoconfigure.web.WebProperties;
 import org.springframework.context.annotation.Bean;
@@ -10,18 +9,11 @@ import org.springframework.util.AntPathMatcher;
 
 @Configuration
 public class BeansConfiguration {
-    @Value("${jwt.secret-key:dev-default-secret-key-must-be-at-least-32-chars-long-for-HS256}")
-    private String secretKey;
-    @Value("${jwt.access-token.expiration-minutes:60}")
-    private int accessTokenExpirationMinutes;
-    @Value("${jwt.refresh-token.expiration-days:30}")
-    private int refreshTokenExpirationDays;
-    @Value("${jwt.issuer:resume-builder-app}")
-    private String issuer;
 
     @Bean
-    public JwtUtil jwtUtil() {
-        return new JwtUtil(secretKey, accessTokenExpirationMinutes, refreshTokenExpirationDays, issuer);
+    public JwtUtil jwtUtil(JwtGatewayProperties jwtProps) {
+        return new JwtUtil(jwtProps.secretKey(), jwtProps.accessTokenExpirationMinutes(),
+                jwtProps.refreshTokenExpirationDays(), jwtProps.issuer());
     }
 
     @Bean

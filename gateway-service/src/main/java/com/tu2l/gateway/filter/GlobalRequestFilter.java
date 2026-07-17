@@ -55,7 +55,8 @@ public class GlobalRequestFilter implements GlobalFilter {
                 ? RequestType.PUBLIC
                 : RequestType.PROTECTED;
 
-        String correlationId = UUID.randomUUID().toString();
+        String incoming = request.getHeaders().getFirst(CommonConstants.Headers.X_CORRELATION_ID);
+        String correlationId = (incoming != null && !incoming.isBlank()) ? incoming : UUID.randomUUID().toString();
 
         // 1. Mutate the request headers to pass downstream to microservices
         ServerHttpRequest mutatedRequest = request.mutate()

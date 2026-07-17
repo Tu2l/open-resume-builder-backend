@@ -1,5 +1,32 @@
+# NOTE: no spring.profiles.active here on purpose. The active profile must be set
+# explicitly (SPRING_PROFILES_ACTIVE=prod in production; the spring-boot-maven-plugin
+# activates 'dev' for local `mvn spring-boot:run`). A misconfigured prod deploy
+# will fail fast on a missing JWT secret rather than silently boot the dev profile.
 spring:
   application:
     name: gateway-service
-  profiles:
-    active: dev
+  lifecycle:
+    timeout-per-shutdown-phase: 30s
+
+server:
+  shutdown: graceful
+
+management:
+  endpoints:
+    web:
+      exposure:
+        include: health,info
+  endpoint:
+    health:
+      probes:
+        enabled: true
+      show-details: never
+  health:
+    livenessstate:
+      enabled: true
+    readinessstate:
+      enabled: true
+
+logging:
+  pattern:
+    level: "%5p [%X{requestId:-}]"

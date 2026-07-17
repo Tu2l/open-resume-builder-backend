@@ -13,6 +13,10 @@ gateway: # Custom gateway configuration
   service-urls:
     user-service: http://localhost:8091
     pdf-service: http://localhost:8090
+  cors:
+    allowed-origins:
+      - http://localhost:3000
+      - http://localhost:8080
 
 springdoc:
   swagger-ui:
